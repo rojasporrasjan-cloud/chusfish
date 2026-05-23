@@ -1,0 +1,24 @@
+{
+  "name": "Chus's Fish — Selección Marina Premium",
+  "short_name": "Chus's Fish",
+  "description": "Mariscos y pescados premium directo al consumidor en Costa Rica",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#060e1c",
+  "theme_color": "#0a1628",
+  "lang": "es-CR",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

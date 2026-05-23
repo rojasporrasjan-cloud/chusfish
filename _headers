@@ -1,0 +1,37 @@
+# ════════════════════════════════════════════════════
+#  Chus's Fish — Netlify Headers
+#  Caché agresivo para assets estáticos + seguridad
+# ════════════════════════════════════════════════════
+
+# ── Seguridad: aplica a todo el sitio ────────────────
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# ── HTML: caché corto + revalidación silenciosa ──────
+# El navegador sirve la versión cacheada 10 min sin consultar Netlify.
+# Después actualiza en background (stale-while-revalidate): el usuario
+# ve la página al instante y Netlify recibe un solo request en background.
+/*.html
+  Cache-Control: public, max-age=600, stale-while-revalidate=86400
+
+# ── Service Worker: el navegador lo versiona él solo ─
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# ── Manifest: 1 día (cambia poco) ────────────────────
+/manifest.json
+  Cache-Control: public, max-age=86400
+
+# ── Logo: 1 año (inmutable — si cambia, renombrar) ───
+# Con immutable el navegador ni siquiera pregunta si cambió.
+/logo.png
+  Cache-Control: public, max-age=31536000, immutable
+
+# ── Assets estáticos (hero.mp4, imágenes locales) ────
+# Un video de 5 MB sin caché = 5 MB × cada visitante.
+# Con caché de 1 año solo se descarga la primera vez.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable

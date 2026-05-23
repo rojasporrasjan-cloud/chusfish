@@ -1,0 +1,26 @@
+# ════════════════════════════════════════════════════
+#  Chus's Fish — Netlify config
+# ════════════════════════════════════════════════════
+
+[build]
+  publish = "."   # la carpeta raíz del proyecto ES el sitio
+
+# ── Post-procesamiento automático en cada deploy ─────
+[build.processing]
+  skip_processing = false
+
+[build.processing.images]
+  # Netlify comprime PNG/JPEG sin pérdida de calidad.
+  # logo.png puede bajar un 30-60% de peso sin verse diferente.
+  compress = true
+
+[build.processing.css]
+  bundle = false
+  minify = false   # El CSS está inline en el HTML → Netlify no puede minificarlo aquí
+
+[build.processing.js]
+  bundle = false
+  minify = false   # Igual: el JS está inline
+
+[build.processing.html]
+  pretty_urls = true  # /catalogo → sirve catalogo.html (mejor UX y necesario para la PWA)

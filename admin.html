@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Chus's Fish</title>
+  <link rel="icon" href="logo.png" type="image/png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a1628">
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --deep:   #060e1c; --ocean: #0a1628; --petrol: #0d2137; --mid: #122840;
+      --gold:   #c8a96e; --gold-lt: #e8c98a; --gold-dk: #9a7a48;
+      --text:   #d4dde8; --muted: #7a95aa; --white: #f0f4f8;
+      --glass:  rgba(13,33,55,0.6); --gb: rgba(200,169,110,0.18);
+      --radius: 12px; --sidebar: 260px;
+      --red: #e74c3c; --green: #27ae60; --blue: #2980b9; --amber: #f39c12;
+    }
+    html, body { height: 100%; }
+    body { font-family: 'Montserrat', sans-serif; background: var(--ocean); color: var(--text); overflow-x: hidden; display: flex; }
+    ::selection { background: var(--gold-dk); color: #fff; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--deep); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dk); border-radius: 3px; }
+    input, select, textarea, button { font-family: 'Montserrat', sans-serif; }
+
+    /* ═══ LOGIN ═══════════════════════════════ */
+    #login-screen {
+      position: fixed; inset: 0; z-index: 999;
+      background: radial-gradient(ellipse 80% 70% at 50% 40%, var(--petrol) 0%, var(--deep) 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .login-box {
+      background: var(--glass); border: 1px solid var(--gb);
+      border-radius: 20px; padding: 3rem 2.5rem;
+      width: 100%; max-width: 380px;
+      backdrop-filter: blur(16px);
+      text-align: center;
+    }
+    .login-logo { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); margin-bottom: 0.2rem; }
+    .login-logo em { font-style: italic; font-weight: 300; }
+    .login-sub { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-bottom: 2.5rem; }
+    .login-label { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); text-align: left; display: block; margin-bottom: 0.5rem; }
+    .login-input {
+      width: 100%; padding: 0.8rem 1rem;
+      background: rgba(6,14,28,0.6); border: 1px solid var(--gb);
+      border-radius: 10px; color: var(--white); font-size: 0.88rem;
+      outline: none; transition: border-color 0.3s; margin-bottom: 1.4rem;
+    }
+    .login-input:focus { border-color: var(--gold-dk); }
+    .login-btn {
+      width: 100%; padding: 0.85rem;
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      color: var(--deep); border: none; border-radius: 30px; cursor: pointer;
+      font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(200,169,110,0.3); }
+    .login-error { font-size: 0.72rem; color: var(--red); margin-top: 0.8rem; min-height: 1.2em; }
+
+    /* ═══ SIDEBAR ════════════════════════════ */
+    #sidebar {
+      width: var(--sidebar); flex-shrink: 0;
+      background: var(--deep); height: 100vh; position: sticky; top: 0;
+      border-right: 1px solid var(--gb); display: flex; flex-direction: column;
+      overflow-y: auto;
+    }
+    .sb-logo {
+      padding: 1.8rem 1.4rem 1.4rem;
+      border-bottom: 1px solid var(--gb);
+    }
+    .sb-logo-text { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--gold); }
+    .sb-logo-text em { font-style: italic; font-weight: 300; }
+    .sb-logo-sub { font-size: 0.56rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); margin-top: 0.2rem; }
+    .sb-nav { padding: 1.2rem 0.8rem; flex: 1; }
+    .sb-section { font-size: 0.54rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--muted); padding: 0 0.6rem; margin: 1.2rem 0 0.5rem; }
+    .sb-item {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.7rem 0.9rem; border-radius: 10px;
+      color: var(--muted); font-size: 0.74rem; letter-spacing: 0.06em; font-weight: 500;
+      cursor: pointer; transition: all 0.25s; margin-bottom: 0.2rem; border: none; background: none;
+      width: 100%; text-align: left;
+    }
+    .sb-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .sb-item:hover { color: var(--gold); background: rgba(200,169,110,0.06); }
+    .sb-item.active { color: var(--gold); background: rgba(200,169,110,0.12); border-left: 2px solid var(--gold); }
+    .sb-footer { padding: 1rem 0.8rem; border-top: 1px solid var(--gb); }
+    .sb-link {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.68rem; color: var(--muted); text-decoration: none;
+      padding: 0.5rem 0.6rem; border-radius: 8px; transition: color 0.2s;
+    }
+    .sb-link:hover { color: var(--gold); }
+    .sb-link svg { width: 14px; height: 14px; }
+
+    /* ═══ MAIN ═══════════════════════════════ */
+    #main { flex: 1; min-width: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+    /* ── Topbar ──────────────────────────── */
+    #topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem; height: 64px; flex-shrink: 0;
+      background: rgba(6,14,28,0.95); border-bottom: 1px solid var(--gb);
+      backdrop-filter: blur(12px);
+    }
+    .tb-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; color: var(--white); }
+    .tb-actions { display: flex; align-items: center; gap: 0.8rem; }
+    .tb-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.5rem 1.1rem; border-radius: 20px; cursor: pointer;
+      font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+      border: none; transition: all 0.25s;
+    }
+    .tb-btn svg { width: 13px; height: 13px; }
+    .tb-btn-primary { background: linear-gradient(135deg, var(--gold-dk), var(--gold)); color: var(--deep); }
+    .tb-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,169,110,0.3); }
+    .tb-btn-ghost { background: rgba(200,169,110,0.08); border: 1px solid var(--gb); color: var(--gold); }
+    .tb-btn-ghost:hover { background: rgba(200,169,110,0.15); }
+    .tb-btn-danger { background: rgba(231,76,60,0.12); border: 1px solid rgba(231,76,60,0.3); color: var(--red); }
+    .tb-btn-danger:hover { background: rgba(231,76,60,0.2); }
+
+    /* ── Content area ────────────────────── */
+    #content { flex: 1; overflow-y: auto; padding: 2rem; }
+
+    /* ═══ STAT CARDS ═════════════════════════ */
+    .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
+    .stat-card {
+      background: var(--glass); border: 1px solid var(--gb);
+      border-radius: var(--radius); padding: 1.4rem;
+      backdrop-filter: blur(10px); transition: border-color 0.3s;
+    }
+    .stat-card:hover { border-color: var(--gold-dk); }
+    .stat-label { font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.6rem; }
+    .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; font-weight: 400; color: var(--white); line-height: 1; }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.red { color: var(--red); }
+    .stat-value.amber { color: var(--amber); }
+    .stat-value.green { color: var(--green); }
+    .stat-value.blue { color: var(--blue); }
+    .stat-sub { font-size: 0.62rem; color: var(--muted); margin-top: 0.4rem; }
+
+    /* ═══ CATEGORY BARS ══════════════════════ */
+    .section-title { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 300; color: var(--white); margin-bottom: 1.2rem; }
+    .section-title em { font-style: italic; color: var(--gold); }
+    .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    .dash-panel { background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius); padding: 1.4rem; }
+    .panel-title { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; }
+    .cat-bar-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.75rem; }
+    .cat-bar-label { font-size: 0.68rem; color: var(--text); min-width: 180px; }
+    .cat-bar-track { flex: 1; height: 6px; background: rgba(200,169,110,0.1); border-radius: 3px; overflow: hidden; }
+    .cat-bar-fill { height: 100%; background: linear-gradient(90deg, var(--gold-dk), var(--gold)); border-radius: 3px; transition: width 0.8s ease; }
+    .cat-bar-count { font-size: 0.62rem; color: var(--muted); min-width: 24px; text-align: right; }
+    .quick-actions { display: flex; flex-direction: column; gap: 0.8rem; }
+    .qa-btn {
+      display: flex; align-items: center; gap: 0.8rem;
+      padding: 0.9rem 1rem; border-radius: 10px; cursor: pointer;
+      background: rgba(200,169,110,0.05); border: 1px solid var(--gb);
+      color: var(--text); font-size: 0.74rem; font-weight: 500;
+      transition: all 0.25s; width: 100%; text-align: left;
+    }
+    .qa-btn svg { width: 16px; height: 16px; color: var(--gold); }
+    .qa-btn:hover { border-color: var(--gold-dk); color: var(--gold); background: rgba(200,169,110,0.1); }
+
+    /* ═══ PRODUCTS TABLE ═════════════════════ */
+    .table-controls {
+      display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; flex-wrap: wrap;
+    }
+    .tbl-search-wrap { position: relative; flex: 1; min-width: 200px; }
+    .tbl-search-wrap svg { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted); pointer-events: none; }
+    .tbl-search {
+      width: 100%; padding: 0.6rem 1rem 0.6rem 2.4rem;
+      background: rgba(6,14,28,0.6); border: 1px solid var(--gb);
+      border-radius: 30px; color: var(--text); font-size: 0.74rem;
+      outline: none; transition: border-color 0.3s;
+    }
+    .tbl-search:focus { border-color: var(--gold-dk); }
+    .tbl-filter {
+      padding: 0.6rem 1rem; background: rgba(6,14,28,0.6);
+      border: 1px solid var(--gb); border-radius: 30px; color: var(--text);
+      font-size: 0.72rem; outline: none; cursor: pointer;
+    }
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--gb); }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: rgba(6,14,28,0.8); }
+    thead th { padding: 0.9rem 1rem; font-size: 0.62rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); text-align: left; font-weight: 500; white-space: nowrap; }
+    tbody tr { border-top: 1px solid rgba(200,169,110,0.06); transition: background 0.2s; }
+    tbody tr:hover { background: rgba(200,169,110,0.04); }
+    tbody td { padding: 0.75rem 1rem; font-size: 0.74rem; vertical-align: middle; }
+    .td-img { width: 48px; }
+    .td-thumb {
+      width: 44px; height: 44px; border-radius: 8px; object-fit: cover;
+      background: rgba(18,40,64,0.8); display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--gb); overflow: hidden; flex-shrink: 0;
+    }
+    .td-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .td-thumb svg { width: 18px; height: 18px; opacity: 0.3; color: var(--gold); }
+    .td-name { font-weight: 500; color: var(--white); max-width: 220px; }
+    .td-cat {
+      display: inline-block; font-size: 0.6rem; letter-spacing: 0.1em;
+      padding: 0.2rem 0.6rem; border-radius: 10px;
+      background: rgba(200,169,110,0.1); color: var(--gold);
+      white-space: nowrap;
+    }
+    .td-price { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); white-space: nowrap; }
+    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .status-dot.ok { background: var(--green); }
+    .status-dot.warn { background: var(--amber); }
+    .status-dot.none { background: rgba(200,169,110,0.2); }
+    .td-flags { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+    .flag {
+      font-size: 0.55rem; padding: 0.15rem 0.5rem; border-radius: 8px; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+    }
+    .flag-ok   { background: rgba(39,174,96,0.15);  color: var(--green); }
+    .flag-warn { background: rgba(243,156,18,0.15); color: var(--amber); }
+    .flag-info { background: rgba(41,128,185,0.15); color: var(--blue); }
+    .flag-red  { background: rgba(231,76,60,0.15);  color: var(--red); }
+    .td-actions { display: flex; gap: 0.4rem; }
+    .act-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 8px; border: none; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .act-btn svg { width: 13px; height: 13px; }
+    .act-edit  { background: rgba(200,169,110,0.12); color: var(--gold); }
+    .act-edit:hover  { background: rgba(200,169,110,0.25); }
+    .act-del   { background: rgba(231,76,60,0.1); color: var(--red); }
+    .act-del:hover   { background: rgba(231,76,60,0.22); }
+    .table-footer { padding: 0.9rem 1.2rem; border-top: 1px solid var(--gb); display: flex; align-items: center; justify-content: space-between; font-size: 0.68rem; color: var(--muted); }
+
+    /* ═══ CATEGORIES VIEW ════════════════════ */
+    .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+    .cat-card {
+      background: var(--glass); border: 1px solid var(--gb);
+      border-radius: var(--radius); padding: 1.4rem;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+    .cat-card:hover { border-color: var(--gold-dk); transform: translateY(-3px); }
+    .cat-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--white); margin-bottom: 0.5rem; }
+    .cat-card-count { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); }
+    .cat-card-sub { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; }
+
+    /* ═══ PRODUCT MODAL ══════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 800;
+      background: rgba(4,10,20,0.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal-box {
+      background: linear-gradient(160deg, var(--petrol) 0%, var(--deep) 100%);
+      border: 1px solid var(--gb); border-radius: 18px;
+      width: 100%; max-width: 640px; max-height: 90vh; overflow-y: auto;
+      transform: translateY(20px) scale(0.97);
+      transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+    }
+    .modal-overlay.open .modal-box { transform: translateY(0) scale(1); }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 1.8rem; border-bottom: 1px solid var(--gb);
+    }
+    .modal-header h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--white); }
+    .modal-close-btn {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: rgba(200,169,110,0.1); border: 1px solid var(--gb);
+      color: var(--muted); cursor: pointer; font-size: 1rem;
+      display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+    }
+    .modal-close-btn:hover { background: rgba(231,76,60,0.15); color: var(--red); }
+    .modal-body { padding: 1.6rem 1.8rem; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-label { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); }
+    .form-input, .form-select, .form-textarea {
+      background: rgba(6,14,28,0.6); border: 1px solid var(--gb);
+      border-radius: 10px; color: var(--text); font-size: 0.82rem;
+      padding: 0.65rem 0.9rem; outline: none; transition: border-color 0.3s;
+      width: 100%;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--gold-dk); }
+    .form-select { cursor: pointer; }
+    .form-select option { background: var(--deep); }
+    .form-textarea { resize: vertical; min-height: 90px; }
+    .form-hint { font-size: 0.6rem; color: var(--muted); opacity: 0.7; }
+
+    /* imagen upload */
+    .img-upload-area {
+      border: 2px dashed var(--gb); border-radius: 12px;
+      padding: 1.5rem; text-align: center; cursor: pointer;
+      transition: border-color 0.3s; position: relative; overflow: hidden;
+    }
+    .img-upload-area:hover { border-color: var(--gold-dk); }
+    .img-upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .img-preview {
+      width: 100%; max-height: 160px; object-fit: cover;
+      border-radius: 8px; display: none; margin-bottom: 0.5rem;
+    }
+    .img-upload-icon { color: var(--muted); margin-bottom: 0.5rem; }
+    .img-upload-icon svg { width: 32px; height: 32px; opacity: 0.4; }
+    .img-upload-text { font-size: 0.72rem; color: var(--muted); }
+    .img-upload-sub  { font-size: 0.62rem; color: var(--muted); opacity: 0.6; margin-top: 0.2rem; }
+
+    /* toggle switch */
+    .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+    .toggle-label { font-size: 0.74rem; color: var(--text); }
+    .toggle { position: relative; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider {
+      position: absolute; inset: 0; border-radius: 24px; cursor: pointer;
+      background: rgba(200,169,110,0.15); border: 1px solid var(--gb);
+      transition: 0.3s;
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; width: 16px; height: 16px; border-radius: 50%;
+      background: var(--muted); left: 3px; bottom: 3px; transition: 0.3s;
+    }
+    .toggle input:checked + .toggle-slider { background: rgba(200,169,110,0.3); border-color: var(--gold-dk); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); background: var(--gold); }
+
+    .modal-footer {
+      padding: 1.2rem 1.8rem; border-top: 1px solid var(--gb);
+      display: flex; gap: 0.8rem; justify-content: flex-end;
+    }
+    .btn-cancel {
+      padding: 0.65rem 1.5rem; border-radius: 20px; cursor: pointer;
+      background: rgba(200,169,110,0.06); border: 1px solid var(--gb);
+      color: var(--muted); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase;
+      transition: all 0.2s;
+    }
+    .btn-cancel:hover { color: var(--text); border-color: rgba(200,169,110,0.3); }
+    .btn-save {
+      padding: 0.65rem 1.8rem; border-radius: 20px; cursor: pointer;
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      border: none; color: var(--deep);
+      font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,169,110,0.3); }
+
+    /* ═══ CONFIRM MODAL ══════════════════════ */
+    #confirm-modal .modal-box { max-width: 420px; }
+    .confirm-body { padding: 2rem 1.8rem; text-align: center; }
+    .confirm-icon { width: 56px; height: 56px; border-radius: 50%; background: rgba(231,76,60,0.12); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; }
+    .confirm-icon svg { width: 24px; height: 24px; color: var(--red); }
+    .confirm-title { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; color: var(--white); margin-bottom: 0.5rem; }
+    .confirm-text { font-size: 0.78rem; color: var(--muted); line-height: 1.7; }
+    .confirm-footer { padding: 1rem 1.8rem 1.4rem; display: flex; gap: 0.8rem; justify-content: center; }
+    .btn-confirm-del {
+      padding: 0.65rem 1.8rem; border-radius: 20px; cursor: pointer;
+      background: var(--red); border: none; color: #fff;
+      font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    .btn-confirm-del:hover { opacity: 0.85; }
+
+    /* ═══ TOAST ══════════════════════════════ */
+    #toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 1000;
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      color: var(--deep); padding: 0.7rem 1.4rem; border-radius: 30px;
+      font-size: 0.72rem; letter-spacing: 0.1em; font-weight: 600;
+      opacity: 0; transform: translateY(10px); transition: all 0.3s;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ═══ EMPTY STATE ════════════════════════ */
+    .empty-state { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+    .empty-state svg { width: 48px; height: 48px; opacity: 0.2; margin-bottom: 1rem; }
+    .empty-state p { font-size: 0.82rem; }
+
+    /* ═══ RESPONSIVE ═════════════════════════ */
+    @media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(3,1fr); } }
+    @media (max-width: 900px)  { .dash-grid { grid-template-columns: 1fr; } .cat-grid { grid-template-columns: repeat(2,1fr); } }
+
+    @media (max-width: 768px) {
+      /* sidebar: overlay deslizable desde la izquierda */
+      #sidebar {
+        position: fixed; top: 0; left: 0; bottom: 0; z-index: 1000;
+        transform: translateX(-100%);
+        transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+        box-shadow: 4px 0 30px rgba(0,0,0,0.5);
+      }
+      #sidebar.mob-open { transform: translateX(0); }
+
+      /* hamburger visible */
+      #mob-menu-btn { display: flex !important; }
+
+      /* main ocupa todo el ancho cuando el sidebar es overlay */
+      #main { width: 100%; min-width: 0; }
+
+      /* topbar */
+      #topbar { padding: 0 1rem; height: 56px; }
+      .tb-title { font-size: 1rem; }
+      .tb-btn { font-size: 0.62rem; padding: 0.4rem 0.9rem; }
+      .tb-btn svg { width: 14px; height: 14px; }
+
+      /* content */
+      #content { padding: 1rem; }
+
+      /* tabla: scroll horizontal */
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      table { min-width: 600px; }
+      thead th:first-child, tbody td:first-child { display: none; }
+
+      /* table controls: apilar verticalmente */
+      .table-controls { flex-direction: column; align-items: stretch; gap: 0.7rem; }
+      .tbl-search-wrap { min-width: unset; }
+      .tbl-filter { width: 100%; }
+
+      /* stats */
+      .stats-grid { grid-template-columns: repeat(2,1fr); gap: 0.8rem; }
+
+      /* form */
+      .form-grid { grid-template-columns: 1fr; }
+
+      /* modal: bottom sheet */
+      .modal-overlay { padding: 0; align-items: flex-end; }
+      .modal-box {
+        max-width: 100%;
+        border-radius: 20px 20px 0 0;
+        max-height: 92vh;
+        overflow-y: auto;
+      }
+      .modal-header { padding: 1.1rem 1.4rem; }
+      .modal-body   { padding: 1.2rem 1.4rem; }
+      .modal-footer { padding: 1rem 1.4rem 1.4rem; }
+    }
+
+    /* ── TABLA → TARJETAS en móvil ────────────── */
+    @media (max-width: 640px) {
+      /* desactivar scroll horizontal, convertir a bloques */
+      .table-wrap { border-radius: var(--radius); overflow-x: visible; }
+      table  { display: block; min-width: unset !important; }
+      thead  { display: none; }
+      tbody  { display: flex; flex-direction: column; }
+
+      /* cada fila se convierte en tarjeta con grid de 3 columnas */
+      tbody tr {
+        display: grid;
+        grid-template-areas:
+          "img  name  acts"
+          "img  cat   acts"
+          "price price price"
+          "flags flags flags";
+        grid-template-columns: 52px 1fr auto;
+        gap: 0.15rem 0.75rem;
+        padding: 0.85rem 1rem;
+        border-top: 1px solid rgba(200,169,110,0.06);
+        border-bottom: none;
+        align-items: start;
+        transition: background 0.2s;
+      }
+      tbody tr:hover { background: rgba(200,169,110,0.04); }
+
+      /* quitar padding de las celdas */
+      tbody td { padding: 0; border: none; font-size: 0.76rem; line-height: 1.3; }
+
+      .td-c-id    { display: none; }
+      .td-c-img   { grid-area: img;   align-self: center; }
+      .td-c-name  { grid-area: name;  align-self: end;   padding-top: 0.1rem; }
+      .td-c-cat   { grid-area: cat;   align-self: start; padding-top: 0.25rem; }
+      .td-c-price {
+        grid-area: price;
+        padding-top: 0.55rem; margin-top: 0.15rem;
+        border-top: 1px solid rgba(200,169,110,0.07);
+        display: flex; align-items: baseline; gap: 0.4rem; flex-wrap: wrap;
+      }
+      .td-c-flags { grid-area: flags; padding-bottom: 0.1rem; }
+      .td-c-acts  { grid-area: acts;  align-self: center; justify-self: end; }
+
+      .td-name  { font-size: 0.84rem; max-width: none; }
+      .td-price { font-size: 1rem; }
+      .td-thumb { width: 48px; height: 48px; }
+      .td-flags { flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem; }
+
+      /* vacío */
+      tbody tr:has(.empty-state) {
+        display: block; border-top: none;
+      }
+
+      /* tabla footer */
+      .table-footer { flex-direction: column; align-items: flex-start; gap: 0.3rem; }
+      .table-footer span:last-child { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid { grid-template-columns: repeat(2,1fr); gap: 0.6rem; }
+      .stat-card { padding: 1rem; }
+      .stat-value { font-size: 2rem; }
+      .cat-grid { grid-template-columns: 1fr; }
+      #content { padding: 0.8rem; }
+      /* ocultar texto del botón topbar, dejar solo ícono */
+      .tb-btn .btn-label { display: none; }
+      .tb-btn { padding: 0.5rem 0.7rem; }
+      /* modal footer: apilar botones */
+      .modal-footer { flex-direction: column-reverse; gap: 0.6rem; }
+      .btn-cancel, .btn-save { width: 100%; text-align: center; padding: 0.75rem; border-radius: 12px; }
+    }
+
+    @media (max-width: 380px) {
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Chus<em>'s Fish</em></div>
+    <div class="login-sub">Panel de Administración</div>
+    <label class="login-label">Correo Electrónico</label>
+    <input type="email" class="login-input" id="login-email" placeholder="correo@ejemplo.com" autocomplete="email" />
+    <label class="login-label">Contraseña</label>
+    <input type="password" class="login-input" id="login-pass" placeholder="••••••••••" />
+    <button class="login-btn" id="login-btn">Ingresar</button>
+    <p class="login-error" id="login-err"></p>
+  </div>
+</div>
+
+<!-- ═══ APP ══════════════════════════════════ -->
+<div id="app" style="display:none; width:100%; display:none; flex-direction:row;">
+
+<div id="sidebar-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:999;backdrop-filter:blur(2px);" onclick="closeMobileSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-text">Chus<em>'s Fish</em></div>
+      <div class="sb-logo-sub">Admin Panel</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Principal</div>
+      <button class="sb-item active" data-view="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </button>
+      <div class="sb-section">Catálogo</div>
+      <button class="sb-item" data-view="productos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/></svg>
+        Productos
+      </button>
+      <button class="sb-item" data-view="categorias">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 10h16M4 14h10"/></svg>
+        Categorías
+      </button>
+      <div class="sb-section">Acciones</div>
+      <button class="sb-item" id="sb-add-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Nuevo Producto
+      </button>
+    </nav>
+    <div class="sb-footer">
+      <a href="index.html" target="_blank" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+        Ver sitio web
+      </a>
+      <a href="catalogo.html" target="_blank" class="sb-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Ver catálogo
+      </a>
+      <button class="sb-item" id="logout-btn" style="margin-top:0.5rem">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main id="main">
+    <header id="topbar">
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <button id="mob-menu-btn" style="display:none;background:none;border:none;cursor:pointer;padding:0.3rem;color:var(--gold);flex-direction:column;gap:5px;" aria-label="Menú">
+          <span style="display:block;width:22px;height:1.5px;background:currentColor"></span>
+          <span style="display:block;width:22px;height:1.5px;background:currentColor"></span>
+          <span style="display:block;width:22px;height:1.5px;background:currentColor"></span>
+        </button>
+        <span class="tb-title" id="tb-title">Dashboard</span>
+      </div>
+      <div class="tb-actions">
+        <button class="tb-btn tb-btn-primary" id="tb-add-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="btn-label">Nuevo Producto</span>
+        </button>
+      </div>
+    </header>
+
+    <div id="content">
+
+      <!-- ── DASHBOARD ─────────────────────── -->
+      <div id="view-dashboard" class="view">
+        <div class="stats-grid" id="stats-grid"></div>
+        <div class="dash-grid">
+          <div class="dash-panel">
+            <div class="panel-title">Productos por categoría</div>
+            <div id="cat-bars"></div>
+          </div>
+          <div class="dash-panel">
+            <div class="panel-title">Acciones rápidas</div>
+            <div class="quick-actions">
+              <button class="qa-btn" id="qa-add">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                Agregar nuevo producto
+              </button>
+              <button class="qa-btn" id="qa-products">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+                Administrar productos
+              </button>
+              <a href="catalogo.html" target="_blank" class="qa-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Ver catálogo en vivo
+              </a>
+              <a href="index.html" target="_blank" class="qa-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                Ver landing page
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PRODUCTOS ─────────────────────── -->
+      <div id="view-productos" class="view" style="display:none">
+        <div class="table-controls">
+          <div class="tbl-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input class="tbl-search" id="tbl-search" placeholder="Buscar por nombre o descripción..." autocomplete="off"/>
+          </div>
+          <select class="tbl-filter" id="tbl-cat-filter">
+            <option value="all">Todas las categorías</option>
+            <option value="camarones-imp">Camarones Importados</option>
+            <option value="camarones-nac">Camarones Nacionales</option>
+            <option value="filetes-premium">Filete Premium</option>
+            <option value="filetes-trad">Filetes Tradicionales</option>
+            <option value="pescado-entero">Pescado Entero</option>
+            <option value="picadura">Picadura Ceviche</option>
+            <option value="mariscos">Mariscos Varios</option>
+            <option value="mariscadas">Mariscadas y Paellas</option>
+            <option value="gourmet">Gourmet</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th style="min-width:50px">Img</th>
+                <th>Nombre</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+          <div class="table-footer">
+            <span id="table-count">0 productos</span>
+            <span style="color:var(--muted);font-size:0.62rem">Los cambios se aplican al catálogo automáticamente</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CATEGORÍAS ─────────────────────── -->
+      <div id="view-categorias" class="view" style="display:none">
+        <div class="cat-grid" id="cat-grid"></div>
+      </div>
+
+    </div><!-- /content -->
+  </main>
+</div><!-- /app -->
+
+<!-- ═══ MODAL PRODUCTO ════════════════════════ -->
+<div id="product-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="modal-title">Nuevo Producto</h3>
+      <button class="modal-close-btn" id="modal-close">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id" />
+      <div class="form-grid">
+        <div class="form-group full">
+          <label class="form-label">Nombre del producto *</label>
+          <input class="form-input" id="f-name" placeholder="Ej. Filete de Corvina P.P." />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Categoría *</label>
+          <select class="form-select" id="f-cat">
+            <option value="camarones-imp">Camarones Importados</option>
+            <option value="camarones-nac">Camarones Nacionales</option>
+            <option value="filetes-premium">Filete Premium</option>
+            <option value="filetes-trad">Filetes Tradicionales</option>
+            <option value="pescado-entero">Pescado Entero</option>
+            <option value="picadura">Picadura Ceviche</option>
+            <option value="mariscos">Mariscos Varios</option>
+            <option value="mariscadas">Mariscadas y Paellas</option>
+            <option value="gourmet">Gourmet</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Badge / Etiqueta</label>
+          <input class="form-input" id="f-badge" placeholder="Ej. Premium · Nacional" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Precio (₡) — vacío = Consultar</label>
+          <input class="form-input" id="f-price" type="number" placeholder="Ej. 18500" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unidad de precio</label>
+          <select class="form-select" id="f-unit" onchange="updateUnitHint()">
+            <optgroup label="⚖ Por peso">
+              <option value="/kg">Por kilo  (/kg)</option>
+              <option value="/500g">Por 500 gramos  (/500g)</option>
+              <option value="/250g">Por 250 gramos  (/250g)</option>
+              <option value="/libra">Por libra  (/libra)</option>
+            </optgroup>
+            <optgroup label="📦 Por presentación">
+              <option value="/ unidad">Por unidad</option>
+              <option value="/ porción">Por porción</option>
+              <option value="/ combo">Por combo</option>
+              <option value="/ paquete">Por paquete</option>
+              <option value="/ bandeja">Por bandeja</option>
+              <option value="/ caja">Por caja</option>
+              <option value="/ bolsa">Por bolsa</option>
+              <option value="/ rollo">Por rollo</option>
+            </optgroup>
+            <optgroup label="🔢 Por cantidad fija">
+              <option value="/10 uds">Por 10 unidades  (/10 uds)</option>
+              <option value="/25 uds">Por 25 unidades  (/25 uds)</option>
+              <option value="/50 uds">Por 50 unidades  (/50 uds)</option>
+              <option value="/100 uds">Por 100 unidades  (/100 uds)</option>
+            </optgroup>
+          </select>
+          <p class="form-hint" id="unit-hint" style="margin-top:0.4rem">⚖ El cliente pedirá en pasos de 0.5 kg (mín. 0.5 kg)</p>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Descripción *</label>
+          <textarea class="form-textarea" id="f-desc" placeholder="Descripción detallada del producto..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Imagen del producto</label>
+          <div class="img-upload-area" id="img-upload-area">
+            <input type="file" id="f-img" accept="image/*" />
+            <img id="img-preview" class="img-preview" alt="Preview" />
+            <div class="img-upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>
+            <div class="img-upload-text">Haz clic o arrastra una imagen aquí</div>
+            <div class="img-upload-sub">JPG, PNG, WEBP · Máx. recomendado 2MB</div>
+          </div>
+          <button class="btn-cancel" id="clear-img-btn" style="margin-top:0.5rem;font-size:0.6rem;display:none">✕ Eliminar imagen</button>
+        </div>
+        <div class="form-group full">
+          <div class="toggle-row">
+            <span class="toggle-label">Requiere pedido con anticipación (1 semana)</span>
+            <label class="toggle">
+              <input type="checkbox" id="f-preorder" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" id="modal-cancel">Cancelar</button>
+      <button class="btn-save" id="modal-save">Guardar Producto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ CONFIRM DELETE ════════════════════════ -->
+<div id="confirm-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="confirm-body">
+      <div class="confirm-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+      </div>
+      <div class="confirm-title">¿Eliminar producto?</div>
+      <p class="confirm-text" id="confirm-text">Esta acción no se puede deshacer.</p>
+    </div>
+    <div class="confirm-footer">
+      <button class="btn-cancel" id="confirm-cancel">Cancelar</button>
+      <button class="btn-confirm-del" id="confirm-ok">Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════ */
+const STORE_KEY = 'chusfish_products'; // caché offline
+const AUTH_KEY  = 'chusfish_auth';
+
+/* ── FIREBASE ──────────────────────────────────────────── */
+firebase.initializeApp({
+  apiKey:            'AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk',
+  authDomain:        'chus-fish.firebaseapp.com',
+  projectId:         'chus-fish',
+  storageBucket:     'chus-fish.firebasestorage.app',
+  messagingSenderId: '788310353696',
+  appId:             '1:788310353696:web:16ca9bd3f934b915cb1945',
+});
+const db      = firebase.firestore();
+const DOC_REF = db.collection('chusfish').doc('catalog');
+
+/* ── CLOUDINARY ────────────────────────────────────────── */
+const CLD_CLOUD  = 'dll3mpcmx';
+const CLD_PRESET = 'chus fish';
+
+async function uploadToCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLD_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLD_CLOUD}/image/upload`, {
+    method: 'POST', body: fd,
+  });
+  if (!res.ok) throw new Error('Error al subir imagen a Cloudinary');
+  const data = await res.json();
+  /* optimización automática: WebP, calidad auto, ancho máx 900px */
+  return data.secure_url.replace('/upload/', '/upload/f_auto,q_auto,w_900/');
+}
+
+const CAT_NAMES = {
+  'camarones-imp':   'Camarones Importados',
+  'camarones-nac':   'Camarones Nacionales',
+  'filetes-premium': 'Filete Premium',
+  'filetes-trad':    'Filetes Tradicionales',
+  'pescado-entero':  'Pescado Entero',
+  'picadura':        'Picadura Ceviche',
+  'mariscos':        'Mariscos Varios',
+  'mariscadas':      'Mariscadas y Paellas',
+  'gourmet':         'Gourmet',
+};
+const CAT_ORDER = Object.keys(CAT_NAMES);
+
+/* ════════════════════════════════════════════
+   PRODUCTOS POR DEFECTO
+════════════════════════════════════════════ */
+const DEFAULT_PRODUCTS = [
+  { id:1,  cat:'camarones-imp', name:'Camarón Pelado Cultivado Semi-Mediano', price:8500,  unit:'/kg',       badge:'Importado',                  preorder:false, desc:'Producto cultivado de tamaño semi-mediano. Viene completamente pelado, listo para cocinar directamente sin preparación previa. Ideal para arroces, pastas y salteados.' },
+  { id:2,  cat:'camarones-imp', name:'Camarón Cultivado Tailón Grande',        price:11000, unit:'/kg',       badge:'Importado',                  preorder:false, desc:'Camarón de cultivo con formato de cola grande ("tailón"). Presentación elegante y llamativa, perfecta para parrillas, platillos a la plancha y preparaciones gourmet.' },
+  { id:3,  cat:'camarones-imp', name:'Camarón Pelado Cultivado Mediano',       price:9500,  unit:'/kg',       badge:'Importado',                  preorder:false, desc:'Variante de tamaño mediano, cultivado y pelado para mayor comodidad. Versátil para todo tipo de preparaciones calientes o frías.' },
+  { id:4,  cat:'camarones-imp', name:'Camarón Pinki Tailón Agua Salada',       price:11500, unit:'/kg',       badge:'Importado',                  preorder:false, desc:'Camarón tipo Pinki capturado en agua salada, presentado en formato de cola ("tailón"). Sabor intenso del mar, textura firme y carnosa.' },
+  { id:5,  cat:'camarones-imp', name:'Camarón Cultivo Agua Salada Tailón Extra-Grande', price:12000, unit:'/kg', badge:'Importado',              preorder:false, desc:'Camarón de agua salada en su formato de tamaño máximo disponible ("extra-grande"). El de mayor impacto visual para presentaciones especiales y eventos.' },
+  { id:6,  cat:'camarones-nac', name:'Camarón con Cabeza Yumbo',               price:21600, unit:'/kg',       badge:'Nacional · Sin químicos',    preorder:false, desc:'Camarón entero gigante (tamaño Yumbo) que rinde exactamente 14 piezas por kilo. 100% nacional y libre de químicos. Ideal para sopas, fondos marinos y presentaciones enteras.' },
+  { id:7,  cat:'camarones-nac', name:'Camarón Yumbo',                          price:25500, unit:'/kg',       badge:'Nacional · Sin químicos',    preorder:false, desc:'Formato Yumbo clásico, ideal para platillos principales, rindiendo 22 piezas por kilo. Nacional, libre de químicos y de excelente calidad.' },
+  { id:8,  cat:'camarones-nac', name:'Camarón Cultivo Juvenil Grande',         price:16000, unit:'/kg',       badge:'Nacional · Sin químicos',    preorder:false, desc:'Camarón nacional cosechado en etapa juvenil pero seleccionado por su buen tamaño. 100% libre de químicos, fresco y versátil para múltiples preparaciones.' },
+  { id:9,  cat:'camarones-nac', name:'Camarón Yumbo Juvenil',                  price:20800, unit:'/kg',       badge:'Nacional · Sin químicos',    preorder:false, desc:'Camarón yumbo en etapa más juvenil, lo que permite obtener más piezas (28 unidades) por cada kilo. Nacional y libre de químicos.' },
+  { id:10, cat:'camarones-nac', name:'Camarón Pinki pequeño para arroz',       price:9600,  unit:'/kg',       badge:'Nacional · Sin químicos',    preorder:false, desc:'Variedad nacional pequeña, idónea y muy buscada para mezclar de forma uniforme en arroces con mariscos. 100% libre de químicos.' },
+  { id:11, cat:'filetes-premium', name:'Filete de Corvina P.P.',               price:18500, unit:'/kg',       badge:'Premium · Nacional',         preorder:false, desc:'El premium más solicitado del catálogo. Sumamente buscado porque queda muy suave y delicioso al cocinar. Perfecto para empanizar o para preparar un ceviche de lujo.' },
+  { id:12, cat:'filetes-premium', name:'Filete de Corvina Reina P.G.',         price:13500, unit:'/kg',       badge:'Premium · Nacional',         preorder:false, desc:'Muy solicitado por su suavidad, con la característica de ser un poco más firme en su consistencia. Perfecto tanto para empanizar como para armar un ceviche.' },
+  { id:13, cat:'filetes-premium', name:'Filete de Mero',                       price:15500, unit:'/kg',       badge:'Premium · Nacional',         preorder:false, desc:'Algo más premium y especial. Posee una textura superior y un sabor sumamente fino, ideal para lucirse en la mesa o preparar un ceviche peruano.' },
+  { id:14, cat:'filetes-premium', name:'Filete de Wahoo',                      price:11500, unit:'/kg',       badge:'Premium · Nacional',         preorder:false, desc:'Opción económica, rendidora y muy solicitada por hoteles y restaurantes. Un pescado muy versátil, de textura firme, ideal para la plancha o empanizado.' },
+  { id:15, cat:'filetes-premium', name:'Atún Aleta Amarilla',                  price:9000,  unit:'/kg',       badge:'Premium · Nacional',         preorder:false, desc:'Ofrece un sabor diferente, concentrado y con una textura especial ideal para sellar a la plancha o preparar salpicón. Muy solicitado para recetas especiales.' },
+  { id:16, cat:'filetes-premium', name:'Filete de Congrio',                    price:12400, unit:'/kg',       badge:'Premium · Nacional',         preorder:false, desc:'Opción clásica muy solicitada que destaca por su textura distinta y su sabor suave. Especial para hacer empanizado.' },
+  { id:17, cat:'filetes-premium', name:'Filete de Dorado',                     price:13500, unit:'/kg',       badge:'Premium · Nacional',         preorder:false, desc:'Opción clásica premium muy solicitada. Sabor equilibrado y textura firme. Muy versátil: plancha, empanizado o ceviche.' },
+  { id:18, cat:'filetes-premium', name:'Filete de Trucha con Piel',            price:10000, unit:'/kg',       badge:'Premium · Cultivo',          preorder:false, desc:'Pescado premium de cultivo con un sabor suave. Alternativa muy fácil de preparar, ideal para una comida ligera y saludable. Recomendado al horno o empanizado.' },
+  { id:19, cat:'filetes-trad', name:'Filete de Macarela con Piel',             price:6000,  unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Opción económica con un sabor diferenciado e intenso a pescado. Conserva la piel para aportarle un gusto similar al del pescado entero. Especial para empanizado.' },
+  { id:20, cat:'filetes-trad', name:'Filete de Macarela sin Piel',             price:6000,  unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Mismo sabor diferenciado e intenso a pescado, en presentación sin piel que ofrece una textura muy suave. Especial para empanizado.' },
+  { id:21, cat:'filetes-trad', name:'Chuleta de Macarela',                     price:6400,  unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Corte en rodajas que mantiene la piel para asegurar ese gusto tradicional intenso a pescado entero. Especial para empanizado.' },
+  { id:22, cat:'filetes-trad', name:'Filete de Vela',                          price:5800,  unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Filete de textura densa, muy recomendado y especial para cocinar empanizado o a la plancha.' },
+  { id:23, cat:'filetes-trad', name:'Chuleta de Bolillo',                      price:6800,  unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Corte transversal de Bolillo que destaca por tener una textura densa y consistente. Ideal y especial para hacer empanizado.' },
+  { id:24, cat:'filetes-trad', name:'Filete de Bolillo',                       price:6800,  unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Filete limpio de Bolillo de textura densa. Recomendado especialmente para empanizado.' },
+  { id:25, cat:'filetes-trad', name:'Filete de Espada',                        price:8800,  unit:'/kg',       badge:'Especial · Tradicional',     preorder:false, desc:'Opción muy solicitada. Posee una textura media y un sabor ligero y agradable. Excelente para ceviche, empanizar o a la plancha.' },
+  { id:26, cat:'filetes-trad', name:'Lomitos de Espada',                       price:8800,  unit:'/kg',       badge:'Especial · Tradicional',     preorder:false, desc:'Trozos seleccionados de Espada de textura media y sabor ligero. Especiales para ceviche, empanizar o freidora de aire.' },
+  { id:27, cat:'filetes-trad', name:'Filete de Cola de Bagre',                 price:8800,  unit:'/kg',       badge:'Especial · Tradicional',     preorder:false, desc:'Opción muy especial de textura media y sabor agradable. Sumamente versátil: ceviche, empanizado, plancha o en salsa.' },
+  { id:28, cat:'filetes-trad', name:'Filete de Candado',                       price:10800, unit:'/kg',       badge:'Más Vendido',                preorder:false, desc:'Uno de los productos más vendidos del catálogo. Pertenece a la familia de la corvina, textura suave y sabor agradable. Especial para empanizar o ceviche.' },
+  { id:29, cat:'filetes-trad', name:'Filete de Marlin Blanco',                 price:13000, unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Opción muy común de textura firme y sabor agradable. Ideal y especial para ceviche, empanizar o hacer a la plancha.' },
+  { id:30, cat:'filetes-trad', name:'Filete de Marlin Rosado',                 price:8000,  unit:'/kg',       badge:'Tradicional',                preorder:false, desc:'Mismas propiedades del Marlin Blanco (textura firme, sabor agradable) pero con su coloración rosada natural. Especial para ceviche, empanizar o plancha.' },
+  { id:31, cat:'filetes-trad', name:'Filete de Tilapia',                       price:null,  unit:'/kg',       badge:'Más Vendido · Nacional',     preorder:false, desc:'Uno de los más vendidos. Cultivado nacional de textura suave, libre de químicos, procesado sin hielo y empacado al vacío. Ceviche, empanizado, plancha o al ajillo.' },
+  { id:32, cat:'pescado-entero', name:'Pescado Entero Corriente',              price:5000,  unit:'/kg',       badge:'Artesanal · Nacional',       preorder:false, desc:'Pescado entero de variedad comercial, capturado de manera artesanal. Fresco y económico, ideal para preparaciones tradicionales.' },
+  { id:33, cat:'pescado-entero', name:'Pescado Entero Corvina PP',             price:8500,  unit:'/kg',       badge:'Artesanal · Nacional',       preorder:false, desc:'Corvina entera pequeña/mediana (PP) de pesca artesanal nacional. Ideal para freír entera o preparar al horno.' },
+  { id:34, cat:'pescado-entero', name:'Pescado Entero Pargo',                  price:9000,  unit:'/kg',       badge:'Artesanal · Nacional',       preorder:false, desc:'El clásico pargo entero nacional, muy cotizado por la calidad de su carne. Perfecto para frituras, al horno o a la plancha.' },
+  { id:35, cat:'picadura', name:'Picadura de Dorado',                          price:13000, unit:'/kg',       badge:'Ceviche · Premium',          preorder:false, desc:'Carne picada en dados de Dorado de calidad premium, lista para marinar directamente. Ideal para un ceviche de sabor equilibrado.' },
+  { id:36, cat:'picadura', name:'Picadura de Marlin Rosado',                   price:8000,  unit:'/kg',       badge:'Ceviche · Nacional',         preorder:false, desc:'Dados de Marlin Rosado limpios y listos para marinar. Aportan gran firmeza y coloración atractiva al ceviche.' },
+  { id:37, cat:'picadura', name:'Picadura de Cola de Bagre',                   price:8800,  unit:'/kg',       badge:'Ceviche · Nacional',         preorder:false, desc:'Picadura limpia de Bagre, ideal para un ceviche de textura media, sabor agradable y buen rendimiento.' },
+  { id:38, cat:'picadura', name:'Picadura de Espada',                          price:8800,  unit:'/kg',       badge:'Ceviche · Nacional',         preorder:false, desc:'Dados de Espada perfectos para lograr un ceviche de sabor ligero y muy agradable al paladar.' },
+  { id:39, cat:'picadura', name:'Picadura de Vela',                            price:6000,  unit:'/kg',       badge:'Ceviche · Económico',        preorder:false, desc:'Opción picada económica y rendidora para ceviches tradicionales. Textura densa que aguanta bien el marinado.' },
+  { id:40, cat:'picadura', name:'Picadura de Corvina',                         price:13500, unit:'/kg',       badge:'Ceviche · Clásico',          preorder:false, desc:'La picadura clásica por excelencia, sumamente suave y la preferida para el ceviche tradicional costarricense.' },
+  { id:41, cat:'mariscos', name:'Almeja Blanca',                               price:5500,  unit:'/kg',       badge:'Mariscos',                   preorder:false, desc:'Almejas seleccionadas limpias con su concha. Perfectas al vapor, en salsa de vino blanco o para enriquecer sopas y arroces.' },
+  { id:42, cat:'mariscos', name:'Mejillón Chileno Media Concha Grande',        price:9600,  unit:'/kg',       badge:'Importado · Chileno',        preorder:false, desc:'Mejillón importado de gran tamaño presentado en media concha. Presentación espectacular para parrillas y mariscadas.' },
+  { id:43, cat:'mariscos', name:'Mejillón Chileno Concha Entera',              price:5600,  unit:'/kg',       badge:'Importado · Chileno',        preorder:false, desc:'Presentación económica del mejillón chileno con la concha cerrada completa. Ideal para sopas, arroces y mariscadas.' },
+  { id:44, cat:'mariscos', name:'Mejillón Nueva Zelanda',                      price:14600, unit:'/kg',       badge:'Importado · Premium',        preorder:false, desc:'Mejillón premium de labios verdes de importación. Reconocido mundialmente por su tamaño excepcional y sabor suave.' },
+  { id:45, cat:'mariscos', name:'Almeja Nacional',                             price:6000,  unit:'/kg',       badge:'Nacional',                   preorder:false, desc:'Almeja fresca capturada en aguas locales costarricenses. Sabor auténtico del mar.' },
+  { id:46, cat:'mariscos', name:'Jaivas',                                      price:6400,  unit:'/kg',       badge:'Nacional',                   preorder:false, desc:'Cangrejos enteros perfectos para enriquecer sopas, mariscadas y arroces con su sabor dulce y concentrado.' },
+  { id:47, cat:'mariscos', name:'Carne de Mejillón Precocido',                 price:7000,  unit:'/kg',       badge:'Listo para cocinar',         preorder:false, desc:'Solo la carne del mejillón, limpia y cocida al vapor. Sin concha, lista para agregar directamente a sus recetas.' },
+  { id:48, cat:'mariscos', name:'Aros de Calamar Empanizado',                  price:9800,  unit:'/kg',       badge:'Listo para freír',           preorder:false, desc:'Calamar en aros cubierto de un empanizado crujiente, listo para freír o airfryer. Fácil, rápido y delicioso.' },
+  { id:49, cat:'mariscos', name:'Calamar Limpio',                              price:6500,  unit:'/kg',       badge:'Mariscos',                   preorder:false, desc:'Tubo de calamar blanco totalmente limpio de piel e interiores. Listo para rellenar, anillas o plancha.' },
+  { id:50, cat:'mariscos', name:'Calamar Tentáculo Precocido',                 price:7200,  unit:'/kg',       badge:'Listo para cocinar',         preorder:false, desc:'Tentáculos de calamar precocidos, suaves y listos para usar en ensaladas, arroces o mariscadas.' },
+  { id:51, cat:'mariscos', name:'Calamar Tubo Sucio',                          price:6600,  unit:'/kg',       badge:'Mariscos',                   preorder:false, desc:'Calamar entero sin limpiar, ideal para quienes prefieren procesarlo en casa y aprovechar cada parte.' },
+  { id:52, cat:'mariscos', name:'Aros de Calamar',                             price:7800,  unit:'/kg',       badge:'Mariscos',                   preorder:false, desc:'Aros limpios de calamar listos para cocinar al ajillo, a la romana, en salsa o incluir en mariscadas.' },
+  { id:53, cat:'mariscos', name:'Pulpo Grande Importado',                      price:11600, unit:'/kg',       badge:'Importado',                  preorder:false, desc:'Pulpo de gran tamaño seleccionado internacionalmente por su ternura. Ideal para pulpo a la gallega, plancha o ceviche.' },
+  { id:54, cat:'mariscos', name:'Pulpo Nacional Mediano',                      price:11800, unit:'/kg',       badge:'Nacional',                   preorder:false, desc:'Pulpo local fresco de tamaño mediano. Sabor auténtico costarricense. Ideal para diversas preparaciones gourmet.' },
+  { id:55, cat:'mariscos', name:'Pianguas',                                    price:9000,  unit:'/100 uds',  badge:'Tradicional · Nacional',     preorder:false, desc:'Molusco tradicional de manglar, extraído localmente de manera artesanal. Muy apreciado en la gastronomía costarricense. El precio es por cada 100 unidades.' },
+  { id:56, cat:'mariscos', name:'Colas de Langosta',                           price:30000, unit:'/kg',       badge:'Premium · Pedido previo',    preorder:true,  desc:'Solo las colas limpias del crustáceo más premium. Carne blanca, firme y de sabor incomparable. Ideal para parrillas o preparaciones gourmet. Pedido con una semana de anticipación.' },
+  { id:57, cat:'mariscos', name:'Langosta Entera',                             price:16800, unit:'/kg',       badge:'Premium · Pedido previo',    preorder:true,  desc:'Pieza entera de langosta, ideal para parrilladas gourmet y presentaciones espectaculares. Pedido con una semana de anticipación.' },
+  { id:58, cat:'mariscos', name:'Ostras Nacionales',                           price:13600, unit:'/10 uds',   badge:'Gourmet · Pedido previo',    preorder:true,  desc:'Ostras frescas de las costas del país, seleccionadas por su frescura y tamaño. El precio es por cada 10 unidades. Pedido con una semana de anticipación.' },
+  { id:59, cat:'mariscadas', name:"Paella Chus's Fish",                        price:19000, unit:'/ combo',   badge:'Paella · 4-5 personas',      preorder:false, desc:'Paella gigante de 2.4 kg, ideal para 4-5 personas. Incluye: Aros de Calamar, Tentáculo, Mejillón chileno media concha, Mejillón media concha grande, Camarón Jumbo con cabeza, Camarón Juvenil Grande, Almeja Blanca, Pescado y Carne de Mejillón.' },
+  { id:60, cat:'mariscadas', name:'Mariscada Premium',                         price:17500, unit:'/ combo',   badge:'Premium · 2-3 personas',     preorder:false, desc:'Para los que quieren subir de nivel. 1.5 kg para 2 o 3 personas. Incluye: Aros de Calamar, Tentáculo, Mejillón media concha grande, Cola de Langosta, Camarón Juvenil Grande, Almeja Blanca, Pescado y Jaivas.' },
+  { id:61, cat:'mariscadas', name:'Mariscada Junior Posta',                    price:8500,  unit:'/ combo',   badge:'Económica · 2-3 personas',   preorder:false, desc:'1 kg práctico, económico y balanceado para 2-3 personas. 100% consumible sin conchas. Incluye: Aros de Calamar, Tentáculo, Camarón Mediano, Pescado y Carne de Mejillón.' },
+  { id:62, cat:'mariscadas', name:'Mariscada Junior Mariscos',                 price:8000,  unit:'/ combo',   badge:'Tradicional · 2-3 personas', preorder:false, desc:'Combo con concha de 1 kg para 2-3 personas. Incluye: Aros de Calamar, Tentáculo, Camarón mediano, Pescado, Jaivas, Mejillón Negro entero, Mejillón real largo y Almeja.' },
+  { id:63, cat:'gourmet', name:'Porción Salmón Chileno Salar',                 price:12000, unit:'/kg',       badge:'Gourmet · Importado',        preorder:false, desc:'Porciones individuales de Salmón Chileno especie Salar (Atlántico). Calidad premium importado, sabor rico en grasa natural y color rosado intenso.' },
+  { id:64, cat:'gourmet', name:'Porción Salmón Chileno Coho',                  price:13000, unit:'/kg',       badge:'Gourmet · Importado',        preorder:false, desc:'Filetes premium en porciones de Salmón Coho (Pacífico), reconocido internacionalmente por su excelente coloración, sabor y textura.' },
+  { id:65, cat:'gourmet', name:'Lonja Salmón Chileno Salar',                   price:11500, unit:'/kg',       badge:'Gourmet · Importado',        preorder:false, desc:'Pieza entera o lonja de Salmón especie Salar importado de Chile. Ideal para cortar las porciones al gusto del cliente.' },
+  { id:66, cat:'gourmet', name:'Tortas de Atún',                               price:7200,  unit:'/ paquete', badge:'Gourmet · Nacional',         preorder:false, desc:'Producto nacional premium elaborado a base de atún fresco. Cada paquete contiene 4 unidades preparadas, listas para armar hamburguesas saludables.' },
+  { id:67, cat:'gourmet', name:'Chorizo de Atún',                              price:7200,  unit:'/ paquete', badge:'Gourmet · Nacional',         preorder:false, desc:'Embutido premium artesanal de atún, una alternativa marina nacional deliciosa y ligera. El paquete incluye 5 unidades.' },
+  { id:68, cat:'gourmet', name:'Pop-Corn de Atún',                             price:7800,  unit:'/ paquete', badge:'Gourmet · Nacional',         preorder:false, desc:'Pequeñas esferas o bocaditos crujientes de atún, sumamente rendidores. El paquete contiene 25 unidades. Perfecto para piqueos y eventos.' },
+];
+
+/* ════════════════════════════════════════════
+   ESTADO
+════════════════════════════════════════════ */
+let products       = [];
+let currentView    = 'dashboard';
+let editingId      = null;
+let deletingId     = null;
+let tblSearch      = '';
+let tblCatFilter   = 'all';
+let pendingImgFile = null;   // File a subir a Cloudinary
+let imgCleared     = false;  // usuario limpió la imagen existente
+
+/* ════════════════════════════════════════════
+   STORAGE — Firebase + Cloudinary
+════════════════════════════════════════════ */
+function getImage(id) {
+  return products.find(x => x.id === id)?.img || null;
+}
+
+async function loadProducts() {
+  /* 1. Intentar Firestore primero */
+  try {
+    const snap = await DOC_REF.get();
+    if (snap.exists && snap.data().products?.length) {
+      const data = snap.data().products;
+      localStorage.setItem(STORE_KEY, JSON.stringify(data));
+      return data;
+    }
+    /* Firestore existe pero está vacío → sembrar defaults */
+    const seed = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+    DOC_REF.set({ products: seed, createdAt: new Date().toISOString() })
+      .catch(e => console.warn('No se pudo sembrar Firestore:', e.message));
+    return seed;
+  } catch(e) {
+    console.warn('Firestore no disponible:', e.message);
+  }
+  /* 2. Caché localStorage */
+  try {
+    const d = localStorage.getItem(STORE_KEY);
+    if (d) return JSON.parse(d);
+  } catch(e) {}
+  /* 3. Defaults hardcoded */
+  return JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+}
+
+async function saveProducts() {
+  try {
+    await DOC_REF.set({ products, updatedAt: new Date().toISOString() });
+    localStorage.setItem(STORE_KEY, JSON.stringify(products));
+  } catch(e) {
+    console.error('Firestore error:', e);
+    localStorage.setItem(STORE_KEY, JSON.stringify(products));
+    toast('Sin conexión — guardado localmente');
+  }
+}
+
+async function resetToDefaults() {
+  products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+  await saveProducts();
+  renderAll();
+  toast('Productos restablecidos a valores por defecto');
+}
+
+/* ════════════════════════════════════════════
+   AUTH
+════════════════════════════════════════════ */
+async function login(email, pass) {
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, pass);
+    return true;
+  } catch (error) {
+    console.error("Error al iniciar sesión:", error);
+    let errorMsg = 'Error al iniciar sesión.';
+    if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+      errorMsg = 'Usuario o contraseña incorrectos.';
+    } else if (error.code === 'auth/invalid-email') {
+      errorMsg = 'El correo electrónico no es válido.';
+    } else if (error.code === 'auth/user-disabled') {
+      errorMsg = 'Esta cuenta ha sido inhabilitada.';
+    } else {
+      errorMsg = error.message;
+    }
+    if (error.code) {
+      errorMsg += ` (${error.code})`;
+    }
+    document.getElementById('login-err').textContent = errorMsg;
+    return false;
+  }
+}
+async function logout() {
+  try {
+    await firebase.auth().signOut();
+  } catch (e) {
+    console.warn("Sign out error:", e);
+  }
+  localStorage.removeItem(AUTH_KEY);
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+  if (document.getElementById('login-email')) {
+    document.getElementById('login-email').value = '';
+  }
+}
+
+/* ════════════════════════════════════════════
+   FORMAT
+════════════════════════════════════════════ */
+function fmt(price) {
+  if (price === null || price === undefined) return 'Consultar';
+  return '₡' + price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/* ════════════════════════════════════════════
+   VIEWS
+════════════════════════════════════════════ */
+function showView(name) {
+  currentView = name;
+  document.querySelectorAll('.view').forEach(v => v.style.display = 'none');
+  document.querySelectorAll('.sb-item[data-view]').forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('view-' + name);
+  if (el) el.style.display = '';
+  const btn = document.querySelector(`.sb-item[data-view="${name}"]`);
+  if (btn) btn.classList.add('active');
+  const titles = { dashboard: 'Dashboard', productos: 'Productos', categorias: 'Categorías' };
+  document.getElementById('tb-title').textContent = titles[name] || name;
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'productos')  renderTable();
+  if (name === 'categorias') renderCategories();
+}
+
+function renderAll() {
+  if (currentView === 'dashboard')  renderDashboard();
+  if (currentView === 'productos')  renderTable();
+  if (currentView === 'categorias') renderCategories();
+}
+
+/* ════════════════════════════════════════════
+   DASHBOARD
+════════════════════════════════════════════ */
+function renderDashboard() {
+  const total      = products.length;
+  const noImg      = products.filter(p => !p.img).length;
+  const noPrice    = products.filter(p => p.price === null || p.price === undefined).length;
+  const preorder   = products.filter(p => p.preorder).length;
+  const categories = CAT_ORDER.filter(c => products.some(p => p.cat === c)).length;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total productos</div><div class="stat-value gold">${total}</div><div class="stat-sub">en el catálogo</div></div>
+    <div class="stat-card"><div class="stat-label">Sin imagen</div><div class="stat-value amber">${noImg}</div><div class="stat-sub">sin foto asignada</div></div>
+    <div class="stat-card"><div class="stat-label">Sin precio</div><div class="stat-value red">${noPrice}</div><div class="stat-sub">muestran "Consultar"</div></div>
+    <div class="stat-card"><div class="stat-label">Pedido previo</div><div class="stat-value blue">${preorder}</div><div class="stat-sub">requieren anticipación</div></div>
+    <div class="stat-card"><div class="stat-label">Categorías</div><div class="stat-value green">${categories}</div><div class="stat-sub">activas</div></div>
+  `;
+
+  const maxCount = Math.max(...CAT_ORDER.map(c => products.filter(p => p.cat === c).length), 1);
+  document.getElementById('cat-bars').innerHTML = CAT_ORDER.map(cat => {
+    const count = products.filter(p => p.cat === cat).length;
+    const pct   = Math.round((count / maxCount) * 100);
+    return `<div class="cat-bar-row">
+      <span class="cat-bar-label">${CAT_NAMES[cat]}</span>
+      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%"></div></div>
+      <span class="cat-bar-count">${count}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   PRODUCTS TABLE
+════════════════════════════════════════════ */
+function renderTable() {
+  const filtered = products.filter(p => {
+    const catOk  = tblCatFilter === 'all' || p.cat === tblCatFilter;
+    const nameOk = (p.name + ' ' + p.desc).toLowerCase().includes(tblSearch.toLowerCase());
+    return catOk && nameOk;
+  });
+
+  document.getElementById('table-count').textContent = `${filtered.length} productos`;
+
+  const tbody = document.getElementById('products-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <p>No hay productos con esos filtros</p>
+    </div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(p => {
+    const img     = p.img || null;
+    const hasImg  = !!img;
+    const hasPrice = p.price !== null && p.price !== undefined;
+    const thumbHtml = hasImg
+      ? `<div class="td-thumb"><img src="${img}" alt="${p.name}" /></div>`
+      : `<div class="td-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>`;
+
+    const flags = [
+      hasImg   ? `<span class="flag flag-ok">Imagen ✓</span>` : `<span class="flag flag-warn">Sin imagen</span>`,
+      hasPrice ? '' : `<span class="flag flag-red">Sin precio</span>`,
+      p.preorder ? `<span class="flag flag-info">Pedido previo</span>` : '',
+    ].filter(Boolean).join('');
+
+    return `<tr>
+      <td class="td-c-id" style="color:var(--muted);font-size:0.68rem">${p.id}</td>
+      <td class="td-c-img td-img">${thumbHtml}</td>
+      <td class="td-c-name"><div class="td-name">${p.name}</div></td>
+      <td class="td-c-cat"><span class="td-cat">${CAT_NAMES[p.cat] || p.cat}</span></td>
+      <td class="td-c-price"><span class="td-price">${fmt(p.price)}</span> <small style="font-size:0.6rem;color:var(--muted)">${p.unit||''}</small></td>
+      <td class="td-c-flags"><div class="td-flags">${flags}</div></td>
+      <td class="td-c-acts"><div class="td-actions">
+        <button class="act-btn act-edit" data-edit="${p.id}" title="Editar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </button>
+        <button class="act-btn act-del" data-del="${p.id}" title="Eliminar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+        </button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   CATEGORIES
+════════════════════════════════════════════ */
+function renderCategories() {
+  document.getElementById('cat-grid').innerHTML = CAT_ORDER.map(cat => {
+    const count   = products.filter(p => p.cat === cat).length;
+    const withImg = products.filter(p => p.cat === cat && p.img).length;
+    return `<div class="cat-card">
+      <div class="cat-card-title">${CAT_NAMES[cat]}</div>
+      <div class="cat-card-count">${count}</div>
+      <div class="cat-card-sub">${withImg} con imagen · ${count - withImg} sin imagen</div>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   PRODUCT MODAL (ADD/EDIT)
+════════════════════════════════════════════ */
+function openProductModal(id = null) {
+  editingId      = id;
+  pendingImgFile = null;
+  imgCleared     = false;
+  const modal = document.getElementById('product-modal');
+  document.getElementById('modal-title').textContent = id ? 'Editar Producto' : 'Nuevo Producto';
+
+  if (id) {
+    const p = products.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('f-id').value       = p.id;
+    document.getElementById('f-name').value     = p.name;
+    document.getElementById('f-cat').value      = p.cat;
+    document.getElementById('f-price').value    = p.price ?? '';
+    document.getElementById('f-unit').value     = p.unit || '/kg';
+    document.getElementById('f-badge').value    = p.badge || '';
+    document.getElementById('f-desc').value     = p.desc || '';
+    document.getElementById('f-preorder').checked = !!p.preorder;
+    updateUnitHint();
+
+    if (p.img) {
+      showImgPreview(p.img);
+    } else {
+      clearImgPreview();
+    }
+  } else {
+    document.getElementById('f-id').value       = '';
+    document.getElementById('f-name').value     = '';
+    document.getElementById('f-cat').value      = 'camarones-imp';
+    document.getElementById('f-price').value    = '';
+    document.getElementById('f-unit').value     = '/kg';
+    document.getElementById('f-badge').value    = '';
+    document.getElementById('f-desc').value     = '';
+    document.getElementById('f-preorder').checked = false;
+    updateUnitHint();
+    clearImgPreview();
+  }
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeProductModal() {
+  document.getElementById('product-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  pendingImgFile = null;
+  imgCleared     = false;
+  document.getElementById('f-img').value = '';
+}
+
+async function saveProductModal() {
+  const name     = document.getElementById('f-name').value.trim();
+  const cat      = document.getElementById('f-cat').value;
+  const priceRaw = document.getElementById('f-price').value.trim();
+  const unit     = document.getElementById('f-unit').value.trim() || '/kg';
+  const badge    = document.getElementById('f-badge').value.trim();
+  const desc     = document.getElementById('f-desc').value.trim();
+  const preorder = document.getElementById('f-preorder').checked;
+
+  if (!name) { alert('El nombre es obligatorio.'); return; }
+  if (!desc)  { alert('La descripción es obligatoria.'); return; }
+
+  const price   = priceRaw === '' ? null : parseInt(priceRaw, 10);
+  const saveBtn = document.getElementById('modal-save');
+  saveBtn.disabled = true;
+
+  try {
+    /* Subir imagen a Cloudinary si hay archivo pendiente */
+    let imgUrl = undefined; // undefined = no cambiar; null = borrar; string = nueva URL
+    if (pendingImgFile) {
+      saveBtn.textContent = 'Subiendo imagen…';
+      imgUrl = await uploadToCloudinary(pendingImgFile);
+    } else if (imgCleared) {
+      imgUrl = null;
+    }
+
+    saveBtn.textContent = 'Guardando…';
+
+    if (editingId) {
+      const idx = products.findIndex(p => p.id === editingId);
+      if (idx !== -1) {
+        products[idx] = { ...products[idx], name, cat, price, unit, badge, desc, preorder };
+        if (imgUrl !== undefined) products[idx].img = imgUrl;
+      }
+      toast(`"${name}" actualizado correctamente`);
+    } else {
+      const newId = products.length ? Math.max(...products.map(p => p.id)) + 1 : 1;
+      const newP  = { id: newId, name, cat, price, unit, badge, desc, preorder };
+      if (imgUrl) newP.img = imgUrl;
+      products.push(newP);
+      toast(`"${name}" agregado al catálogo`);
+    }
+
+    await saveProducts();
+    closeProductModal();
+    renderAll();
+  } catch(e) {
+    console.error(e);
+    toast('Error: ' + e.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Guardar';
+  }
+}
+
+/* ════════════════════════════════════════════
+   DELETE
+════════════════════════════════════════════ */
+function openConfirmDelete(id) {
+  deletingId = id;
+  const p = products.find(x => x.id === id);
+  document.getElementById('confirm-text').textContent =
+    `¿Seguro que deseas eliminar "${p ? p.name : 'este producto'}"? Esta acción no se puede deshacer.`;
+  document.getElementById('confirm-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeConfirmDelete() {
+  document.getElementById('confirm-modal').classList.remove('open');
+  document.body.style.overflow = '';
+  deletingId = null;
+}
+async function confirmDelete() {
+  if (!deletingId) return;
+  const name = products.find(p => p.id === deletingId)?.name || 'Producto';
+  products = products.filter(p => p.id !== deletingId);
+  closeConfirmDelete();
+  await saveProducts();
+  renderAll();
+  toast(`"${name}" eliminado`);
+}
+
+/* ════════════════════════════════════════════
+   IMAGE UPLOAD (Cloudinary — compresión en la nube)
+════════════════════════════════════════════ */
+
+function showImgPreview(src) {
+  const preview = document.getElementById('img-preview');
+  const icon    = document.querySelector('.img-upload-icon');
+  const text    = document.querySelector('.img-upload-text');
+  const sub     = document.querySelector('.img-upload-sub');
+  const clearBtn = document.getElementById('clear-img-btn');
+  preview.src = src; preview.style.display = 'block';
+  icon.style.display = 'none'; text.style.display = 'none'; sub.style.display = 'none';
+  clearBtn.style.display = 'inline-block';
+}
+function clearImgPreview() {
+  const preview  = document.getElementById('img-preview');
+  const icon     = document.querySelector('.img-upload-icon');
+  const text     = document.querySelector('.img-upload-text');
+  const sub      = document.querySelector('.img-upload-sub');
+  const clearBtn = document.getElementById('clear-img-btn');
+  preview.src = ''; preview.style.display = 'none';
+  icon.style.display = ''; text.style.display = ''; sub.style.display = '';
+  clearBtn.style.display = 'none';
+  pendingImgFile = null;
+}
+
+/* ════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════ */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ════════════════════════════════════════════
+   EVENT LISTENERS
+════════════════════════════════════════════ */
+/* login */
+document.getElementById('login-btn').addEventListener('click', async () => {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  
+  if (!email || !pass) {
+    document.getElementById('login-err').textContent = 'Por favor, ingresa tu correo y contraseña.';
+    return;
+  }
+  
+  const loginBtn = document.getElementById('login-btn');
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Ingresando…';
+  document.getElementById('login-err').textContent = '';
+  
+  const success = await login(email, pass);
+  
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'Ingresar';
+  
+  if (!success) {
+    document.getElementById('login-pass').value = '';
+  }
+});
+document.getElementById('login-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-pass').focus();
+});
+document.getElementById('login-pass').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('login-btn').click();
+});
+
+/* logout */
+document.getElementById('logout-btn').addEventListener('click', logout);
+
+/* sidebar nav */
+document.querySelectorAll('.sb-item[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => showView(btn.dataset.view));
+});
+
+/* add buttons */
+['tb-add-btn','sb-add-btn','qa-add'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('click', () => openProductModal(null));
+});
+
+/* qa-products */
+const qaProd = document.getElementById('qa-products');
+if (qaProd) qaProd.addEventListener('click', () => showView('productos'));
+
+
+/* table clicks (edit / delete) */
+document.getElementById('products-tbody').addEventListener('click', e => {
+  const editBtn = e.target.closest('[data-edit]');
+  const delBtn  = e.target.closest('[data-del]');
+  if (editBtn) openProductModal(parseInt(editBtn.dataset.edit));
+  if (delBtn)  openConfirmDelete(parseInt(delBtn.dataset.del));
+});
+
+/* table search & filter */
+document.getElementById('tbl-search').addEventListener('input', e => {
+  tblSearch = e.target.value;
+  renderTable();
+});
+document.getElementById('tbl-cat-filter').addEventListener('change', e => {
+  tblCatFilter = e.target.value;
+  renderTable();
+});
+
+/* modal close */
+document.getElementById('modal-close').addEventListener('click', closeProductModal);
+document.getElementById('modal-cancel').addEventListener('click', closeProductModal);
+document.getElementById('product-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('product-modal')) closeProductModal();
+});
+
+/* modal save */
+document.getElementById('modal-save').addEventListener('click', saveProductModal);
+
+/* image upload */
+document.getElementById('f-img').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  pendingImgFile = file;
+  imgCleared     = false;
+  showImgPreview(URL.createObjectURL(file));
+});
+document.getElementById('clear-img-btn').addEventListener('click', () => {
+  clearImgPreview();
+  document.getElementById('f-img').value = '';
+  pendingImgFile = null;
+  imgCleared     = true;
+});
+
+/* drag & drop on image area */
+const uploadArea = document.getElementById('img-upload-area');
+uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.style.borderColor = 'var(--gold)'; });
+uploadArea.addEventListener('dragleave', () => { uploadArea.style.borderColor = ''; });
+uploadArea.addEventListener('drop', e => {
+  e.preventDefault(); uploadArea.style.borderColor = '';
+  const file = e.dataTransfer.files[0];
+  if (!file || !file.type.startsWith('image/')) return;
+  pendingImgFile = file;
+  imgCleared     = false;
+  showImgPreview(URL.createObjectURL(file));
+});
+
+/* confirm delete */
+document.getElementById('confirm-cancel').addEventListener('click', closeConfirmDelete);
+document.getElementById('confirm-ok').addEventListener('click', confirmDelete);
+document.getElementById('confirm-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('confirm-modal')) closeConfirmDelete();
+});
+
+/* ESC key */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeProductModal(); closeConfirmDelete(); closeMobileSidebar(); }
+});
+
+/* ── UNIDAD HINT ───────────────────────── */
+function updateUnitHint() {
+  const unit = document.getElementById('f-unit').value;
+  const hint = document.getElementById('unit-hint');
+  if (!hint) return;
+  if (unit.includes('kg')) {
+    hint.textContent = '⚖ El cliente pedirá en pasos de 0.5 kg (mín. 0.5 kg)';
+  } else if (unit.includes('g') || unit.includes('libra')) {
+    hint.textContent = '⚖ Venta por peso — el cliente pedirá en cantidades enteras';
+  } else if (unit.includes('uds')) {
+    hint.textContent = '🔢 El cliente elegirá múltiplos de la cantidad fija indicada';
+  } else {
+    hint.textContent = '📦 El cliente pedirá en unidades enteras (mín. 1)';
+  }
+}
+
+/* ── SIDEBAR MÓVIL ─────────────────────── */
+function openMobileSidebar() {
+  document.getElementById('sidebar').classList.add('mob-open');
+  document.getElementById('sidebar-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+function closeMobileSidebar() {
+  document.getElementById('sidebar').classList.remove('mob-open');
+  document.getElementById('sidebar-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+document.getElementById('mob-menu-btn').addEventListener('click', openMobileSidebar);
+/* cerrar sidebar al navegar en móvil */
+document.querySelectorAll('.sb-item[data-view], #logout-btn').forEach(el => {
+  el.addEventListener('click', () => {
+    if (window.innerWidth <= 768) closeMobileSidebar();
+  });
+});
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+(async function init() {
+  /* Deshabilitar login mientras carga para evitar condición de carrera */
+  const loginBtn = document.getElementById('login-btn');
+  loginBtn.disabled = true;
+  loginBtn.textContent = 'Conectando…';
+
+  products = await loadProducts();
+
+  loginBtn.disabled = false;
+  loginBtn.textContent = 'Ingresar';
+
+  // Suscribirse al estado de autenticación de Firebase
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      localStorage.setItem(AUTH_KEY, '1');
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      showView(currentView || 'dashboard');
+    } else {
+      localStorage.removeItem(AUTH_KEY);
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-screen').style.display = 'flex';
+    }
+  });
+})();
+
+/* ── Service Worker ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
