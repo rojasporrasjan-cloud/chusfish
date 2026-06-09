@@ -2488,7 +2488,7 @@ function showBanner(msg) {
       }
     }
     /* ═══ ESPECIAL DE LA SEMANA ═══ */
-    if (cfg.especial && cfg.especial.productId) {
+    if (cfg.especial && cfg.especial.productId && cfg.especial.enabled !== false) {
       const esp = cfg.especial;
       const prod = PRODUCTS.find(p => p.id === +esp.productId);
       if (prod) {

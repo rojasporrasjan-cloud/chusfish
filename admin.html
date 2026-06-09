@@ -1274,6 +1274,15 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               Especial de la semana
             </div>
+            <div class="config-field" style="margin-bottom:1rem">
+              <div class="toggle-row">
+                <span class="toggle-label">Mostrar especial en el catálogo</span>
+                <label class="toggle">
+                  <input type="checkbox" id="cfg-especial-enabled">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
             <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">Destacá un producto con precio especial. Aparece con banner en el catálogo.</p>
             <div class="form-group">
               <label class="form-label">Producto destacado</label>
@@ -2698,7 +2707,7 @@ function updateBannerPreview() {
   var bWrap   = document.getElementById('adm-banner-live-wrap');
   if (!wrap || !track || !textEl) return;
 
-  if (!msg) { wrap.style.display = 'none'; return; }
+  if (!msg || !enabled) { wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
 
   // Color de fondo + texto auto
@@ -2851,6 +2860,10 @@ function populateEspecialSelect() {
     if (appConfig.especial && +appConfig.especial.productId === p.id) opt.selected = true;
     sel.appendChild(opt);
   });
+  const especialEnabledEl = document.getElementById('cfg-especial-enabled');
+  if (especialEnabledEl) {
+    especialEnabledEl.checked = appConfig.especial ? appConfig.especial.enabled !== false : false;
+  }
   if (appConfig.especial) {
     document.getElementById('especial-price').value = appConfig.especial.price || '';
     document.getElementById('especial-msg').value = appConfig.especial.msg || '';
@@ -2881,7 +2894,10 @@ document.getElementById('cfg-save-especial').addEventListener('click', async () 
   const price = document.getElementById('especial-price').value;
   const msg = document.getElementById('especial-msg').value.trim();
   const p = products.find(x => x.id === productId);
-  appConfig.especial = productId ? { productId, productName: p ? p.name : '', price: price ? parseInt(price) : null, msg } : null;
+  const especialEnabled = !!(document.getElementById('cfg-especial-enabled') || {}).checked;
+  appConfig.especial = productId
+    ? { productId, productName: p ? p.name : '', price: price ? parseInt(price) : null, msg, enabled: especialEnabled }
+    : null;
   try {
     await CFG_REF.set(appConfig, { merge: true });
     toast('Especial de la semana guardado');
