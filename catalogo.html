@@ -180,7 +180,7 @@
       display: flex; align-items: center; gap: 0.55rem;
     }
     .nav-logo img { height: 44px; width: auto; border-radius: 8px; display: block; flex-shrink: 0; }
-    .nav-logo span { font-style: italic; font-weight: 300; }
+    .nav-logo span { font-style: italic; font-weight: 300; letter-spacing: 0.01em; }
     .nav-back {
       display: inline-flex; align-items: center; gap: 0.5rem;
       font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
@@ -859,18 +859,52 @@
       margin-bottom: 1.4rem;
     }
     .order-form-summary {
-      background: rgba(200,169,110,0.06);
-      border: 1px solid rgba(200,169,110,0.15);
-      border-radius: 12px; padding: 0.9rem 1rem;
+      background: linear-gradient(135deg, rgba(200,169,110,0.07) 0%, rgba(10,22,40,0.5) 100%);
+      border: 1px solid rgba(200,169,110,0.22);
+      border-radius: 14px; padding: 1rem 1.1rem;
       margin-bottom: 1.4rem;
     }
-    .order-form-summary-title {
-      font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 0.6rem;
+    .ofs-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.85rem; padding-bottom: 0.7rem;
+      border-bottom: 1px solid rgba(200,169,110,0.12);
     }
-    .order-form-summary-item {
-      font-size: 0.76rem; color: var(--text); line-height: 1.65;
+    .ofs-icon { font-size: 1rem; }
+    .ofs-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 600; color: var(--gold); flex: 1;
     }
+    .ofs-count {
+      font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--muted); background: rgba(200,169,110,0.1);
+      padding: 0.2rem 0.55rem; border-radius: 20px;
+    }
+    .ofs-items { margin-bottom: 0.75rem; }
+    .ofs-item {
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 0.5rem; padding: 0.28rem 0;
+    }
+    .ofs-item-name { font-size: 0.76rem; color: var(--text); line-height: 1.5; flex: 1; }
+    .ofs-item-price { font-size: 0.76rem; color: var(--gold-lt); white-space: nowrap; font-weight: 500; }
+    .ofs-item-tag { font-size: 0.65rem; color: var(--gold-lt); }
+    .ofs-totals {
+      border-top: 1px solid rgba(200,169,110,0.14);
+      padding-top: 0.65rem; margin-top: 0.1rem;
+    }
+    .ofs-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.75rem; color: var(--muted); padding: 0.18rem 0;
+    }
+    .ofs-row-total {
+      display: flex; justify-content: space-between;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; color: var(--gold);
+      padding: 0.45rem 0 0.1rem; margin-top: 0.25rem;
+      border-top: 1px solid rgba(200,169,110,0.18);
+    }
+    .ofs-note { font-size: 0.62rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.5; }
+    .order-form-summary-title { display: none; }
+    .order-form-summary-item { display: none; }
     .order-form-summary-total {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.05rem; color: var(--gold);
@@ -1755,6 +1789,18 @@ async function initCatalog() {
   wrap.insertAdjacentHTML('afterbegin', CAT_ORDER.map(buildGroup).join(''));
 
   updateCounts();
+
+  // Activar filtro desde URL param (?cat=camarones, ?cat=filetes-premium, etc.)
+  const _urlCat = new URLSearchParams(window.location.search).get('cat');
+  if (_urlCat) {
+    activeCat = _urlCat;
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    const _pill = document.querySelector(`.filter-pill[data-cat="${_urlCat}"]`);
+    if (_pill) _pill.classList.add('active');
+    const _mf = document.getElementById('mobile-filter');
+    if (_mf) _mf.value = _urlCat;
+  }
+
   applyFilter();
   restoreCart();
 }
@@ -1784,6 +1830,8 @@ function applyFilter() {
       const pid = parseInt(card.dataset.id);
       const p = PRODUCTS.find(x => x.id === pid);
       catOk = p && p.badge && p.badge.toLowerCase().includes('más vendido');
+    } else if (activeCat === 'camarones') {
+      catOk = card.dataset.cat === 'camarones-imp' || card.dataset.cat === 'camarones-nac';
     } else {
       catOk = card.dataset.cat === activeCat;
     }
@@ -2400,7 +2448,11 @@ function showBanner(msg) {
         document.getElementById('of-zone-field').style.display = '';
       }
     }
-    if (cfg.deliveryDays && cfg.deliveryDays.length > 0) {
+    if (typeof cfg.shippingFee === 'number' && cfg.shippingFee > 0) {
+      updateDeliveryFee(cfg.shippingFee);
+    }
+
+        if (cfg.deliveryDays && cfg.deliveryDays.length > 0) {
       const DAY_NAMES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
       const MON_NAMES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
       const dateChipsWrap = document.getElementById('of-date-chips');
@@ -2509,19 +2561,40 @@ function openCartOrderForm() {
   const summary = document.getElementById('order-form-summary');
   summary.style.display = 'block';
 
-  let itemsHtml = cartItems.map(i => {
-    let line = '⬢ ' + fmtQty(i.qty, i.product.unit) + ' de ' + i.product.name;
-    if (i.product.price) line += ' ₡ ' + fmt(i.product.price * i.qty);
-    if (i.product.preorder) line += ' <span style="color:var(--gold-lt);font-size:0.7em">· Previo</span>';
-    return '<div class="order-form-summary-item">' + line + '</div>';
+  const itemCount = cartItems.length;
+  const itemsHtml = cartItems.map(i => {
+    const priceHtml = i.product.price
+      ? '<span class="ofs-item-price">₡ ' + fmt(i.product.price * i.qty) + '</span>'
+      : '';
+    const tag = i.product.preorder
+      ? ' <span class="ofs-item-tag">· Previo</span>'
+      : '';
+    return '<div class="ofs-item"><span class="ofs-item-name">' +
+      fmtQty(i.qty, i.product.unit) + ' ' + i.product.name + tag +
+      '</span>' + priceHtml + '</div>';
   }).join('');
 
+  let totalsHtml = '';
   if (total > 0) {
-    itemsHtml += '<div class="order-form-summary-total">Estimado: ' + fmt(total) + '*</div>';
+    const grandTotal = total + currentDeliveryFee;
+    totalsHtml = '<div class="ofs-totals">';
+    totalsHtml += '<div class="ofs-row"><span>Subtotal productos</span><span>₡ ' + fmt(total) + '</span></div>';
+    if (currentDeliveryFee > 0) {
+      totalsHtml += '<div class="ofs-row"><span>Envío</span><span>₡ ' + fmt(currentDeliveryFee) + '</span></div>';
+    }
+    totalsHtml += '<div class="ofs-row-total"><span>Total estimado</span><span>₡ ' + fmt(grandTotal) + '</span></div>';
+    totalsHtml += '</div>';
+    totalsHtml += '<p class="ofs-note">* Sujeto a disponibilidad. El total final se confirma por WhatsApp.</p>';
   }
 
   summary.innerHTML =
-    '<div class="order-form-summary-title">Resumen del pedido</div>' + itemsHtml;
+    '<div class="ofs-header">' +
+      '<span class="ofs-icon">🛒</span>' +
+      '<span class="ofs-title">Tu pedido</span>' +
+      '<span class="ofs-count">' + itemCount + (itemCount === 1 ? ' producto' : ' productos') + '</span>' +
+    '</div>' +
+    '<div class="ofs-items">' + itemsHtml + '</div>' +
+    totalsHtml;
 
   ['of-name','of-phone','of-address'].forEach(id => {
     const el = document.getElementById(id);
@@ -2601,7 +2674,8 @@ document.getElementById('order-form').addEventListener('submit', async function(
   finalMsg += '📋 *Mis datos:*\n';
   finalMsg += '*Nombre:* ' + name + '\n';
   finalMsg += '*Teléfono:* ' + phone + '\n';
-  if (zoneVisible && zone) finalMsg += '*Zona de entrega:* ' + zone + (currentDeliveryFee > 0 ? ` (envío ₡${currentDeliveryFee.toLocaleString()})` : '') + '\n';
+  if (zoneVisible && zone) finalMsg += '*Zona de entrega:* ' + zone + '\n';
+  if (currentDeliveryFee > 0) finalMsg += '*Costo de envío:* ₡' + currentDeliveryFee.toLocaleString() + '\n';
   if (dateVisible && fecha) finalMsg += '*Fecha de entrega:* ' + fecha + '\n';
   finalMsg += '*Dirección:* ' + address + '\n';
   finalMsg += '*Pago:* ' + payment + '\n\n';
@@ -2622,6 +2696,7 @@ document.getElementById('order-form').addEventListener('submit', async function(
     await db_cat.collection('orders').add({
       customer: { name, phone, address, zone: zone || null, fecha: fecha || null, payment },
       items: itemsForOrder,
+      deliveryFee: currentDeliveryFee || 0,
       status: 'pendiente',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });

@@ -1201,6 +1201,11 @@
               <input type="number" class="zone-new-price" id="zone-new-price" placeholder="₡ Envío" min="0" title="Costo de envío a esta zona">
               <button class="zone-add-btn" id="zone-add-btn">+ Agregar</button>
             </div>
+            <div class="config-field" style="margin-top:1.2rem">
+              <label style="display:block;margin-bottom:0.4rem;font-size:0.72rem;color:var(--muted);font-family:'Cormorant Garamond',serif;letter-spacing:0.04em">Precio de envío fijo (&#8353;)</label>
+              <input type="number" id="cfg-shipping-fee" placeholder="Ej: 2000" min="0" style="width:100%;background:rgba(6,14,28,0.6);border:1px solid var(--gb);border-radius:8px;padding:0.6rem 0.8rem;color:var(--text);font-size:0.82rem;outline:none;box-sizing:border-box">
+              <p style="font-size:0.65rem;color:var(--muted);margin-top:0.3rem;line-height:1.5">Precio base de envío para todos los pedidos. Las zonas con precio específico lo reemplazan al seleccionar.</p>
+            </div>
             <button class="config-save-btn" id="cfg-save-zones">Guardar zonas</button>
           </div>
 
@@ -1231,6 +1236,36 @@
               <div class="especial-preview-price" id="especial-preview-price"></div>
             </div>
             <button class="config-save-btn" id="cfg-save-especial" style="margin-top:1rem">Guardar especial</button>
+          </div>
+
+          <!-- Panel: Productos destacados en inicio -->
+          <div class="config-panel" style="grid-column:1/-1">
+            <div class="config-panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Productos destacados en inicio
+            </div>
+            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.6">
+              Elegí hasta 4 productos que aparecerán en la sección "Productos del mar" de la página principal. Si no elegís ninguno se usan los productos por defecto.
+            </p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;margin-bottom:1rem" id="featured-selects-wrap">
+              <div class="config-field">
+                <label class="config-label">Destacado 1</label>
+                <select id="feat-sel-0" class="config-input"><option value="">— Sin selección —</option></select>
+              </div>
+              <div class="config-field">
+                <label class="config-label">Destacado 2</label>
+                <select id="feat-sel-1" class="config-input"><option value="">— Sin selección —</option></select>
+              </div>
+              <div class="config-field">
+                <label class="config-label">Destacado 3</label>
+                <select id="feat-sel-2" class="config-input"><option value="">— Sin selección —</option></select>
+              </div>
+              <div class="config-field">
+                <label class="config-label">Destacado 4</label>
+                <select id="feat-sel-3" class="config-input"><option value="">— Sin selección —</option></select>
+              </div>
+            </div>
+            <button class="config-save-btn" id="cfg-save-featured">Guardar destacados</button>
           </div>
 
           <!-- Panel: Recetas de la semana -->
@@ -2529,7 +2564,40 @@ async function loadConfig() {
   renderConfig();
   renderRecipesAdmin();
   populateEspecialSelect();
+  populateFeaturedSelects();
+    const sfInput = document.getElementById('cfg-shipping-fee');
+    if (sfInput && typeof appConfig.shippingFee === 'number') sfInput.value = appConfig.shippingFee;
 }
+
+function populateFeaturedSelects() {
+  const featuredIds = appConfig.featuredIds || [];
+  for (let i = 0; i < 4; i++) {
+    const sel = document.getElementById('feat-sel-' + i);
+    if (!sel) continue;
+    sel.innerHTML = '<option value="">— Sin selección —</option>';
+    products.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id;
+      opt.textContent = p.name;
+      if (featuredIds[i] === p.id) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+document.getElementById('cfg-save-featured').addEventListener('click', async () => {
+  const ids = [];
+  for (let i = 0; i < 4; i++) {
+    const sel = document.getElementById('feat-sel-' + i);
+    const val = sel && sel.value !== '' ? parseInt(sel.value) : null;
+    if (val !== null && !isNaN(val)) ids.push(val);
+  }
+  appConfig.featuredIds = ids;
+  try {
+    await CFG_REF.set(appConfig, { merge: true });
+    toast('Productos destacados guardados');
+  } catch(e) { toast('Error al guardar: ' + e.message); }
+});
 
 function renderConfig() {
   const enabledEl = document.getElementById('cfg-banner-enabled');
@@ -2631,6 +2699,11 @@ document.getElementById('cfg-save-banner').addEventListener('click', async () =>
 
 document.getElementById('cfg-save-zones').addEventListener('click', async () => {
   try {
+    const sfEl = document.getElementById('cfg-shipping-fee');
+    if (sfEl) {
+      const sfVal = parseFloat(sfEl.value);
+      appConfig.shippingFee = (!isNaN(sfVal) && sfVal >= 0) ? sfVal : 0;
+    }
     await CFG_REF.set(appConfig, { merge: true });
     toast('Zonas guardadas correctamente');
   } catch(e) { toast('Error al guardar: ' + e.message); }

@@ -1,4 +1,4 @@
-�<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
@@ -179,11 +179,17 @@ function buildTimeline(currentStatus) {
       </div>
       <div class="tl-content">
         <div class="tl-label ${state}">${step.label}</div>
-        <div class="tl-sub">${active ? step.sub : (done ? '�S Completado' : 'Pendiente')}</div>
+        <div class="tl-sub">${active ? step.sub : (done ? '✅ Completado' : 'Pendiente')}</div>
       </div>
     </div>`;
   }).join('');
 }
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+window._pedItems = [];
 
 function renderOrders(ordersList) {
   if (!ordersList.length) {
@@ -199,40 +205,41 @@ function renderOrders(ordersList) {
     const zone    = o.customer?.zone  || o.zone  || '';
     const phone   = o.customer?.phone || o.phone || '';
     const address = o.customer?.address || o.address || '';
-    const date    = o.createdAt ? new Date(o.createdAt).toLocaleString('es-CR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '�';
+    const date    = o.createdAt ? new Date(o.createdAt).toLocaleString('es-CR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
     const total   = o.items ? o.items.reduce((s,i) => s + (parseFloat(i.price)||0)*(parseFloat(i.qty)||1), 0) : 0;
     const itemsHtml = (o.items||[]).map(i =>
-      `<div class="orc-item-row"><span class="orc-item-name">${i.name}</span><span class="orc-item-qty">${i.qty} ${i.unit||''}</span></div>`
+      `<div class="orc-item-row"><span class="orc-item-name">${esc(i.name)}</span><span class="orc-item-qty">${esc(i.qty)} ${esc(i.unit||'')}</span></div>`
     ).join('');
-    const waMsg = `Hola Chus's Fish �x�x, soy ${name} y quería consultar sobre mi pedido del ${date}.`;
+    const waMsg = `Hola Chus's Fish 🐟🐟, soy ${name} y quería consultar sobre mi pedido del ${date}.`;
     const waLink = `https://wa.me/50660017370?text=${encodeURIComponent(waMsg)}`;
     const cancelledBanner = status === 'cancelado'
       ? `<div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:0.7rem 1rem;font-size:0.75rem;color:#e74c3c;margin-bottom:1rem">Este pedido fue cancelado. Escribinos si tenés alguna consulta.</div>`
       : '';
+    const itemsIdx = window._pedItems.push(o.items) - 1;
     return `<div class="order-result-card">
       <div class="orc-header">
         <div>
-          <div class="orc-name">${name}</div>
+          <div class="orc-name">${esc(name)}</div>
           <div class="orc-date">Pedido recibido: ${date}</div>
         </div>
-        <span class="order-status ${status}">${status.replace('_',' ')}</span>
+        <span class="order-status ${esc(status)}">${esc(status.replace('_',' '))}</span>
       </div>
       ${cancelledBanner}
       ${status !== 'cancelado' ? `<div class="timeline">${buildTimeline(status)}</div>` : ''}
       ${itemsHtml ? `<div class="orc-items"><div class="orc-items-title">Productos</div>${itemsHtml}</div>` : ''}
-      ${total > 0 ? `<div class="orc-total">��${Math.round(total).toLocaleString()}</div>` : ''}
+      ${total > 0 ? `<div class="orc-total">₡${Math.round(total).toLocaleString()}</div>` : ''}
       <div class="orc-meta">
-        ${fecha ? `<span>�x& ${fecha}</span>` : ''}
-        ${zone  ? `<span>�x� ${zone}</span>`  : ''}
-        ${address ? `<span>�x�� ${address}</span>` : ''}
+        ${fecha ? `<span>📅 ${esc(fecha)}</span>` : ''}
+        ${zone  ? `<span>📍 ${esc(zone)}</span>`  : ''}
+        ${address ? `<span>🏠 ${esc(address)}</span>` : ''}
       </div>
       <div style="display:flex;gap:0.7rem;flex-wrap:wrap;margin-top:1rem">
         <a class="orc-wa-btn" href="${waLink}" target="_blank">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.553 4.1 1.524 5.823L0 24l6.266-1.499A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.655-.52-5.17-1.424l-.37-.22-3.72.889.917-3.617-.24-.38A9.958 9.958 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
           Consultar
         </a>
-        ${o.items && o.items.length ? `<button onclick="repeatOrder(${JSON.stringify(o.items).replace(/"/g,'&quot;')})" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.2rem;border-radius:20px;border:1px solid rgba(200,169,110,0.4);background:rgba(200,169,110,0.08);color:var(--gold);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s" onmouseover="this.style.background='rgba(200,169,110,0.16)'" onmouseout="this.style.background='rgba(200,169,110,0.08)'">
-          �x Repetir pedido
+        ${o.items && o.items.length ? `<button data-idx="${itemsIdx}" onclick="repeatOrder(window._pedItems[+this.dataset.idx])" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.2rem;border-radius:20px;border:1px solid rgba(200,169,110,0.4);background:rgba(200,169,110,0.08);color:var(--gold);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s" onmouseover="this.style.background='rgba(200,169,110,0.16)'" onmouseout="this.style.background='rgba(200,169,110,0.08)'">
+          🔄 Repetir pedido
         </button>` : ''}
       </div>
     </div>`;
@@ -299,7 +306,7 @@ function showRepeatToast() {
     t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--deep);padding:0.7rem 1.5rem;border-radius:30px;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;z-index:999';
     document.body.appendChild(t);
   }
-  t.textContent = '�S Cargando tu pedido anterior...';
+  t.textContent = '✅ Cargando tu pedido anterior...';
   t.style.display = 'block';
 }
 

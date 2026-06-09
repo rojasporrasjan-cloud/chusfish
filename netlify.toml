@@ -3,24 +3,15 @@
 # ════════════════════════════════════════════════════
 
 [build]
-  publish = "."   # la carpeta raíz del proyecto ES el sitio
+  publish = "."
 
-# ── Post-procesamiento automático en cada deploy ─────
+# Netlify aplica Brotli/Gzip automáticamente a todos los assets de texto.
+# La compresión de imágenes reduce PNG/JPEG sin pérdida visible.
 [build.processing]
   skip_processing = false
 
 [build.processing.images]
-  # Netlify comprime PNG/JPEG sin pérdida de calidad.
-  # logo.png puede bajar un 30-60% de peso sin verse diferente.
   compress = true
 
-[build.processing.css]
-  bundle = false
-  minify = false   # El CSS está inline en el HTML → Netlify no puede minificarlo aquí
-
-[build.processing.js]
-  bundle = false
-  minify = false   # Igual: el JS está inline
-
 [build.processing.html]
-  pretty_urls = true  # /catalogo → sirve catalogo.html (mejor UX y necesario para la PWA)
+  pretty_urls = true

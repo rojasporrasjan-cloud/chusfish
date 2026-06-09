@@ -210,7 +210,7 @@
       gap: 0.55rem;
     }
     .nav-logo img { height: 44px; width: auto; border-radius: 8px; display: block; flex-shrink: 0; }
-    .nav-logo span { font-style: italic; font-weight: 300; }
+    .nav-logo span { font-style: italic; font-weight: 300; letter-spacing: 0.01em; }
     .nav-links { display: flex; gap: 2.4rem; list-style: none; }
     .nav-links a {
       font-size: 0.72rem;
@@ -711,6 +711,42 @@
     .pillar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.55rem; color: var(--white); margin-bottom: 0.8rem; font-weight: 400; }
     .pillar-body { font-size: 0.78rem; color: var(--muted); font-weight: 300; line-height: 1.85; }
 
+    /* ── CATEGORÍAS GRID ───────────────────────── */
+    #categorias { padding: 7rem 0 6rem; background: var(--deep); }
+    .categorias-header { text-align: center; margin-bottom: 3.5rem; }
+    .categorias-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 300; color: var(--white); margin: 0 0 0.5rem; }
+    .categorias-title em { color: var(--gold); font-style: italic; }
+    .categorias-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.2rem;
+    }
+    .cat-card {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0.85rem; padding: 2rem 1.2rem 1.8rem;
+      background: rgba(255,255,255,0.028);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      text-decoration: none;
+      transition: background 0.35s, border-color 0.35s, transform 0.35s, box-shadow 0.35s;
+      cursor: pointer;
+    }
+    .cat-card:hover {
+      background: rgba(200,169,110,0.07);
+      border-color: rgba(200,169,110,0.32);
+      transform: translateY(-4px);
+      box-shadow: 0 16px 44px rgba(0,0,0,0.35);
+    }
+    .cat-card-icon { font-size: 2.4rem; line-height: 1; }
+    .cat-card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem; font-weight: 600; color: var(--white);
+      text-align: center; line-height: 1.2;
+    }
+    .cat-card-desc { font-size: 0.72rem; color: var(--muted); text-align: center; line-height: 1.6; }
+    @media (max-width: 900px) { .categorias-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px) { .categorias-grid { grid-template-columns: repeat(2, 1fr); gap: 0.85rem; } .cat-card { padding: 1.5rem 0.9rem 1.4rem; } .cat-card-icon { font-size: 2rem; } .cat-card-name { font-size: 1.05rem; } }
+
     /* ── MARQUEE ───────────────────────────────── */
     .marquee-strip {
       overflow: hidden; padding: 1.4rem 0;
@@ -817,7 +853,7 @@
       .identity-title { font-size: clamp(1.8rem, 6vw, 2.8rem); }
 
       /* catalog teaser */
-      .catalog-teaser-grid { grid-template-columns: 1fr; gap: 1rem; }
+      .catalog-teaser-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 
       /* pillars */
       .pillars-grid { grid-template-columns: 1fr; gap: 1rem; }
@@ -838,13 +874,14 @@
       .hero-features { gap: 1rem; }
       .feature-count { font-size: 1.7rem; }
 
-      /* tarjetas destacadas en móvil */
-      .card-body { padding: 1.1rem 1.1rem 0.5rem; }
-      .card-name { font-size: 1.1rem; }
-      .card-price-main { font-size: 1.4rem; }
-      .card-footer { padding: 0.7rem 1.1rem 1.1rem; }
-      .card-wa { font-size: 0.58rem; padding: 0.5rem 0.9rem; }
-      .card-skel { height: 320px; }
+      /* tarjetas destacadas en móvil — 1 columna centrada */
+      .catalog-teaser-grid { grid-template-columns: 1fr; max-width: 380px; margin-left: auto; margin-right: auto; }
+      .card-body { padding: 1.2rem 1.2rem 0.6rem; }
+      .card-name { font-size: 1.25rem; }
+      .card-price-main { font-size: 1.55rem; }
+      .card-footer { padding: 0.8rem 1.2rem 1.2rem; }
+      .card-wa { font-size: 0.6rem; padding: 0.55rem 1rem; }
+      .card-skel { height: 360px; max-width: 380px; margin: 0 auto; width: 100%; }
 
       /* footer */
       footer { padding: 3rem 1.2rem 2rem; }
@@ -926,10 +963,12 @@
     /* card clickable */
     .card { cursor: pointer; }
     @media (max-width: 768px) {
-      .prod-overlay { align-items: flex-end; padding: 0; }
-      .prod-box { border-radius: 20px 20px 0 0; max-width:100%; max-height:92vh; }
-      .prod-body { padding: 1.2rem 1.2rem 2rem; }
-      .prod-name { font-size:1.4rem; }
+      .prod-overlay { align-items: center; padding: 1rem; }
+      .prod-box { border-radius: 16px; max-width: 100%; max-height: 88vh; }
+      .prod-img-area { aspect-ratio: 16/8; }
+      .prod-body { padding: 1.2rem 1.2rem 1.6rem; }
+      .prod-name { font-size: 1.35rem; }
+      .prod-price { font-size: 1.7rem; }
     }
 
     /* ── ORDER FORM MODAL ──────────────────────── */
@@ -1032,51 +1071,6 @@
       .order-form-inner { padding: 1.5rem 1.2rem 2rem; }
     }
 
-    /* ── PWA INSTALL BANNER ─────────────────────── */
-    #pwa-banner {
-      position: fixed; bottom: 1.4rem; left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
-      width: min(430px, calc(100vw - 2rem));
-      background: linear-gradient(135deg, #0d2137 0%, #091520 100%);
-      border: 1px solid rgba(200,169,110,0.35);
-      border-radius: 18px;
-      padding: 0.9rem 1rem 0.9rem 0.9rem;
-      display: flex; align-items: center; gap: 0.85rem;
-      box-shadow: 0 12px 48px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.08);
-      animation: pwa-up 0.45s cubic-bezier(0.16,1,0.3,1);
-    }
-    @keyframes pwa-up {
-      from { opacity: 0; transform: translateX(-50%) translateY(24px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-    #pwa-banner img {
-      width: 52px; height: 52px; border-radius: 10px;
-      object-fit: cover; flex-shrink: 0;
-    }
-    .pwa-info { flex: 1; min-width: 0; }
-    .pwa-info strong {
-      display: block; font-size: 0.87rem; font-weight: 600;
-      color: #f0f4f8; letter-spacing: 0.02em; margin-bottom: 2px;
-    }
-    .pwa-info small {
-      font-size: 0.7rem; color: #7a95aa; line-height: 1.4;
-    }
-    #pwa-install-btn {
-      background: linear-gradient(135deg, #c8a96e 0%, #9a7a48 100%);
-      color: #060e1c; border: none; border-radius: 9px;
-      padding: 0.55rem 1rem; font-size: 0.73rem; font-weight: 700;
-      cursor: pointer; white-space: nowrap; flex-shrink: 0;
-      font-family: 'Montserrat', sans-serif; letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-    #pwa-install-btn:hover { filter: brightness(1.12); }
-    #pwa-dismiss-btn {
-      background: none; border: none; color: #4a657a;
-      font-size: 1.05rem; cursor: pointer; padding: 0.25rem 0.35rem;
-      line-height: 1; flex-shrink: 0;
-    }
-    #pwa-dismiss-btn:hover { color: #f0f4f8; }
 
     /* ══ NAV DRAWER ══════════════════════════════════════════ */
     .nav-overlay {
@@ -1220,7 +1214,7 @@
 
   <div class="hero-video-wrap">
     <!-- VIDEO DE FONDO — Agrega assets/hero.mp4 -->
-    <video autoplay muted loop playsinline preload="none" id="hero-video">
+    <video autoplay muted loop playsinline preload="auto" id="hero-video">
       <source src="assets/hero.mp4" type="video/mp4" />
     </video>
     <div class="hero-video-overlay"></div>
@@ -1299,9 +1293,61 @@
           En Chus's Fish cada pieza pasa por un proceso de selección riguroso. No compramos lo que llega — elegimos lo que merece llegar a tu mesa. Mariscos y productos del mar en su estado más puro, crudos y frescos, listos para que tú los conviertas en algo extraordinario.
         </p>
         <blockquote class="identity-quote reveal reveal-delay-3">
-          "La frescura no se promete.<br>Se reconoce."
+          "Porque la calidad no se dice,<br>se demuestra."
         </blockquote>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- NUESTRAS CATEGORÍAS -->
+<section id="categorias">
+  <div class="container">
+    <div class="categorias-header">
+      <p class="section-tag reveal">Nuestras categorías</p>
+      <h2 class="categorias-title reveal reveal-delay-1">Explora <em>el menú del mar</em></h2>
+    </div>
+    <div class="categorias-grid">
+      <a href="catalogo.html?cat=camarones" class="cat-card reveal">
+        <div class="cat-card-icon">🦐</div>
+        <div class="cat-card-name">Camarones</div>
+        <div class="cat-card-desc">Importados y nacionales</div>
+      </a>
+      <a href="catalogo.html?cat=filetes-premium" class="cat-card reveal reveal-delay-1">
+        <div class="cat-card-icon">🐟</div>
+        <div class="cat-card-name">Filetes Premium</div>
+        <div class="cat-card-desc">Corvina, mero, pargo</div>
+      </a>
+      <a href="catalogo.html?cat=filetes-trad" class="cat-card reveal reveal-delay-2">
+        <div class="cat-card-icon">🐡</div>
+        <div class="cat-card-name">Filetes Tradicionales</div>
+        <div class="cat-card-desc">Atún, espada, tilapia</div>
+      </a>
+      <a href="catalogo.html?cat=mariscos" class="cat-card reveal reveal-delay-3">
+        <div class="cat-card-icon">🦑</div>
+        <div class="cat-card-name">Mariscos Varios</div>
+        <div class="cat-card-desc">Calamar, pulpo, almeja</div>
+      </a>
+      <a href="catalogo.html?cat=picadura" class="cat-card reveal">
+        <div class="cat-card-icon">🥗</div>
+        <div class="cat-card-name">Picadura Ceviche</div>
+        <div class="cat-card-desc">Lista para marinar</div>
+      </a>
+      <a href="catalogo.html?cat=mariscadas" class="cat-card reveal reveal-delay-1">
+        <div class="cat-card-icon">🦀</div>
+        <div class="cat-card-name">Mariscadas</div>
+        <div class="cat-card-desc">Combos y paellas</div>
+      </a>
+      <a href="catalogo.html?cat=gourmet" class="cat-card reveal reveal-delay-2">
+        <div class="cat-card-icon">⭐</div>
+        <div class="cat-card-name">Gourmet</div>
+        <div class="cat-card-desc">Selección premium</div>
+      </a>
+      <a href="catalogo.html?cat=pescado-entero" class="cat-card reveal reveal-delay-3">
+        <div class="cat-card-icon">🐟</div>
+        <div class="cat-card-name">Pescado Entero</div>
+        <div class="cat-card-desc">Fresco del día</div>
+      </a>
     </div>
   </div>
 </section>
@@ -1592,9 +1638,14 @@
   (async function loadFeatured() {
     const grid = document.getElementById('featured-grid');
     try {
-      const snap = await _db.collection('chusfish').doc('catalog').get();
-      const all  = (snap.exists && snap.data().products) || [];
-      const featured = FEATURED_IDS.map(id => all.find(p => p.id === id)).filter(Boolean);
+      const [catSnap, cfgSnap] = await Promise.all([
+        _db.collection('chusfish').doc('catalog').get(),
+        _db.collection('chusfish').doc('config').get()
+      ]);
+      const all  = (catSnap.exists && catSnap.data().products) || [];
+      const cfgIds = cfgSnap.exists && cfgSnap.data().featuredIds;
+      const ids = (cfgIds && cfgIds.length) ? cfgIds : FEATURED_IDS;
+      const featured = ids.map(id => all.find(p => p.id === id)).filter(Boolean);
       if (!featured.length) return;
       grid.innerHTML = featured.map((p, i) => buildFeaturedCard(p, i + 1)).join('');
       /* activar reveal para las nuevas tarjetas */
@@ -1801,57 +1852,6 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
 });
 </script>
 
-<!-- ═══ PWA INSTALL BANNER ═══════════════════════════════ -->
-<div id="pwa-banner" style="display:none">
-  <img src="logo.jpeg" alt="Chus's Fish">
-  <div class="pwa-info">
-    <strong>Chus's Fish</strong>
-    <small>Instala la app para acceso rápido desde tu celular</small>
-  </div>
-  <button id="pwa-install-btn">Instalar</button>
-  <button id="pwa-dismiss-btn" aria-label="Cerrar">✕</button>
-</div>
-
-<script>
-/* ── PWA: install prompt + service worker ────────── */
-let _pwaPrompt = null;
-
-window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  _pwaPrompt = e;
-  if (!localStorage.getItem('pwa-dismissed')) {
-    setTimeout(() => {
-      const b = document.getElementById('pwa-banner');
-      if (b) b.style.display = 'flex';
-    }, 3500);
-  }
-});
-
-document.getElementById('pwa-install-btn').addEventListener('click', async () => {
-  document.getElementById('pwa-banner').style.display = 'none';
-  if (_pwaPrompt) {
-    _pwaPrompt.prompt();
-    await _pwaPrompt.userChoice;
-    _pwaPrompt = null;
-  }
-});
-
-document.getElementById('pwa-dismiss-btn').addEventListener('click', () => {
-  document.getElementById('pwa-banner').style.display = 'none';
-  localStorage.setItem('pwa-dismissed', '1');
-});
-
-window.addEventListener('appinstalled', () => {
-  document.getElementById('pwa-banner').style.display = 'none';
-  _pwaPrompt = null;
-});
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
-}
-</script>
 
 <!-- ═══ NAV OVERLAY + DRAWER ════════════════════════════════ -->
 <div class="nav-overlay" id="nav-overlay"></div>
@@ -1862,6 +1862,7 @@ if ('serviceWorker' in navigator) {
   </div>
   <div class="drawer-links">
     <a href="#identity"     class="drawer-link"><span class="drawer-link-icon">🐟</span> Nosotros</a>
+    <a href="#categorias"   class="drawer-link"><span class="drawer-link-icon">🦐</span> Categorías</a>
     <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">🛒</span> Catálogo</a>
     <a href="#catalog-teaser" class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
     <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
@@ -1915,12 +1916,16 @@ overlay.addEventListener('click', closeDrawer);
 drawer.querySelectorAll('.drawer-link').forEach(link => {
   link.addEventListener('click', e => {
     const href = link.getAttribute('href');
-    if (href && href.startsWith('#')) {
-      e.preventDefault();
+    if (!href) return;
+    e.preventDefault();
+    if (href.startsWith('#')) {
       const target = document.querySelector(href);
       closeDrawer();
       setTimeout(() => { if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 400);
-    } else { closeDrawer(); }
+    } else {
+      closeDrawer();
+      setTimeout(() => { window.location.href = href; }, 320);
+    }
   });
 });
 
@@ -1948,6 +1953,18 @@ document.getElementById('idx-pwa-no')?.addEventListener('click', () => {
 window.addEventListener('appinstalled', () => {
   document.getElementById('idx-pwa-banner')?.classList.remove('show');
   _deferredInstall = null;
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+
+// Forzar reproducción del video hero en iOS/móvil
+window.addEventListener('load', () => {
+  const v = document.getElementById('hero-video');
+  if (v) { v.muted = true; v.play().catch(() => {}); }
 });
 </script>
 </body>
