@@ -2490,7 +2490,7 @@ function showBanner(msg) {
     /* ═══ ESPECIAL DE LA SEMANA ═══ */
     if (cfg.especial && cfg.especial.productId) {
       const esp = cfg.especial;
-      const prod = PRODUCTS.find(p => p.id === esp.productId);
+      const prod = PRODUCTS.find(p => p.id === +esp.productId);
       if (prod) {
         const sec = document.getElementById('especial-section');
         const regularPrice = prod.price;
@@ -2508,7 +2508,7 @@ function showBanner(msg) {
               ${specialPrice ? `<div class="especial-price-new">₡${specialPrice.toLocaleString()}</div>` : ''}
               ${regularPrice ? `<div class="${specialPrice ? 'especial-price-old' : 'especial-price-new'}">₡${regularPrice.toLocaleString()} <small style="font-size:0.55em;opacity:0.7">${prod.unit}</small></div>` : ''}
             </div>
-            <button class="especial-cta" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id==='${prod.id}'});if(p)addToCart(p,getMin(p.unit));showToast('${prod.name.replace(/'/g,"\\'")} agregado al carrito ✅')})()">Agregar al carrito</button>
+            <button class="especial-cta" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id===${prod.id}});if(p)addToCart(p,getMin(p.unit));showToast('${prod.name.replace(/'/g,"\\'")} agregado al carrito ✅')})()">Agregar al carrito</button>
           </div>
         </div>`;
         sec.style.display = '';

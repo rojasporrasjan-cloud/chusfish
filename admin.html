@@ -2848,7 +2848,7 @@ function populateEspecialSelect() {
   products.forEach(p => {
     const opt = document.createElement('option');
     opt.value = p.id; opt.textContent = p.name;
-    if (appConfig.especial && appConfig.especial.productId === p.id) opt.selected = true;
+    if (appConfig.especial && +appConfig.especial.productId === p.id) opt.selected = true;
     sel.appendChild(opt);
   });
   if (appConfig.especial) {
@@ -2876,7 +2876,8 @@ document.getElementById('especial-product').addEventListener('change', updateEsp
 document.getElementById('especial-price').addEventListener('input', updateEspecialPreview);
 
 document.getElementById('cfg-save-especial').addEventListener('click', async () => {
-  const productId = document.getElementById('especial-product').value;
+  const productIdRaw = document.getElementById('especial-product').value;
+  const productId = productIdRaw ? parseInt(productIdRaw) : null;
   const price = document.getElementById('especial-price').value;
   const msg = document.getElementById('especial-msg').value.trim();
   const p = products.find(x => x.id === productId);
