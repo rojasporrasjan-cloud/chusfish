@@ -3,25 +3,112 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chus's Fish — Selección Marina Premium</title>
+  <title>Mariscos y Pescados Frescos a Domicilio | Chus's Fish Costa Rica</title>
 
   <!-- Favicon & PWA -->
-  <link rel="icon" href="logo.png" type="image/png">
-  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="icon" href="logo.jpeg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="logo.jpeg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a1628">
 
-  <!-- Open Graph — previsualización en WhatsApp y redes sociales -->
-  <!-- ⚠️ Reemplazar la URL con tu dominio real una vez subido a Netlify -->
+  <!-- SEO esencial -->
+  <link rel="canonical" href="https://chusfish.com/">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="author" content="Chus's Fish">
+  <meta name="description" content="Mariscos y pescados frescos con entrega a domicilio en Costa Rica. Camarones, corvina, pargo, atún, filetes y más al mejor precio. Pedí por WhatsApp al 6001-7370. Entrega rápida.">
+  <meta name="keywords" content="mariscos costa rica, pescados frescos costa rica, camarones a domicilio, corvina fresca, pargo fresco, mariscos entrega domicilio, pescadería costa rica, mariscos san josé, mariscos baratos costa rica, seafood costa rica, chus fish">
+  <meta name="geo.region" content="CR">
+  <meta name="geo.country" content="Costa Rica">
+  <meta name="geo.placename" content="Costa Rica">
+
+  <!-- Open Graph / Meta Ads -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Chus's Fish — Selección Marina Premium">
-  <meta property="og:description" content="Mariscos y pescados premium directo al consumidor en Costa Rica. Frescura garantizada.">
-  <meta property="og:image" content="https://chusfish.netlify.app/logo.png">
-  <meta property="og:url" content="https://chusfish.netlify.app">
+  <meta property="og:site_name" content="Chus's Fish">
+  <meta property="og:locale" content="es_CR">
+  <meta property="og:title" content="Mariscos y Pescados Frescos a Domicilio | Chus's Fish Costa Rica">
+  <meta property="og:description" content="Camarones, corvina, pargo, atún y filetes frescos con entrega a domicilio en Costa Rica. Sin intermediarios, precio directo. Pedí ahora por WhatsApp.">
+  <meta property="og:image" content="https://chusfish.com/facebook/portada_facebook.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+  <meta property="og:image:alt" content="Chus's Fish - Mariscos y Pescados Frescos a Domicilio en Costa Rica">
+  <meta property="og:url" content="https://chusfish.com/">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mariscos y Pescados Frescos | Chus's Fish Costa Rica">
+  <meta name="twitter:description" content="Camarones, corvina, pargo, atún y filetes frescos con entrega a domicilio en Costa Rica.">
+  <meta name="twitter:image" content="https://chusfish.com/facebook/portada_facebook.png">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "FoodEstablishment",
+        "@id": "https://chusfish.com/#business",
+        "name": "Chus's Fish",
+        "alternateName": "Chus Fish Costa Rica",
+        "description": "Pescadería premium con entrega a domicilio en Costa Rica. Camarones, corvina, pargo, atún, filetes y mariscos frescos al mejor precio, directo sin intermediarios.",
+        "url": "https://chusfish.com",
+        "telephone": "+50660017370",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://chusfish.com/logo.jpeg",
+          "width": 512,
+          "height": 512
+        },
+        "image": "https://chusfish.com/facebook/portada_facebook.png",
+        "servesCuisine": ["Mariscos", "Pescados", "Seafood"],
+        "priceRange": "$$",
+        "currenciesAccepted": "CRC",
+        "paymentAccepted": "Cash, SINPE Móvil, Transferencia",
+        "address": {
+          "@type": "PostalAddress",
+          "addressCountry": "CR",
+          "addressLocality": "Costa Rica"
+        },
+        "areaServed": {
+          "@type": "Country",
+          "name": "Costa Rica"
+        },
+        "hasOfferCatalog": {
+          "@type": "OfferCatalog",
+          "name": "Catálogo de Mariscos y Pescados",
+          "url": "https://chusfish.com/catalogo.html",
+          "itemListElement": [
+            { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Camarones Enteros Frescos" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Camarón Pelado" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Corvina Fresca" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Pargo Fresco" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Atún" } },
+            { "@type": "Offer", "itemOffered": { "@type": "Product", "name": "Filetes de Pescado" } }
+          ]
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+50660017370",
+          "contactType": "sales",
+          "availableLanguage": "Spanish",
+          "contactOption": "WhatsApp"
+        },
+        "sameAs": [
+          "https://wa.me/50660017370"
+        ]
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://chusfish.com/#website",
+        "url": "https://chusfish.com",
+        "name": "Chus's Fish",
+        "inLanguage": "es-CR",
+        "description": "Mariscos y pescados frescos con entrega a domicilio en Costa Rica",
+        "publisher": { "@id": "https://chusfish.com/#business" }
+      }
+    ]
+  }
+  </script>
 
   <!-- Rendimiento: recursos críticos above-the-fold -->
-  <link rel="preload" href="logo.png" as="image">
+  <link rel="preload" href="logo.jpeg" as="image">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="dns-prefetch" href="//firestore.googleapis.com">
@@ -990,6 +1077,110 @@
       line-height: 1; flex-shrink: 0;
     }
     #pwa-dismiss-btn:hover { color: #f0f4f8; }
+
+    /* ══ NAV DRAWER ══════════════════════════════════════════ */
+    .nav-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 198; backdrop-filter: blur(3px);
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .nav-overlay.open { opacity: 1; pointer-events: all; }
+    .nav-drawer {
+      position: fixed; top: 0; right: 0; bottom: 0;
+      width: min(290px, 80vw);
+      background: linear-gradient(180deg, #060e1c 0%, #0a1e35 100%);
+      border-left: 1px solid rgba(200,169,110,0.2);
+      z-index: 199; transform: translateX(100%);
+      transition: transform 0.38s cubic-bezier(0.4,0,0.2,1);
+      display: flex; flex-direction: column; overflow-y: auto;
+    }
+    .nav-drawer.open { transform: translateX(0); }
+    .drawer-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 1.6rem; border-bottom: 1px solid rgba(200,169,110,0.12);
+    }
+    .drawer-brand {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.3rem;
+      color: var(--gold); letter-spacing: 0.02em;
+    }
+    .drawer-brand em { font-style: italic; font-weight: 300; }
+    .drawer-close {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(200,169,110,0.08); border: 1px solid rgba(200,169,110,0.2);
+      color: var(--gold); font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .drawer-close:hover { background: rgba(200,169,110,0.18); transform: rotate(90deg); }
+    .drawer-links { padding: 1rem 0; flex: 1; }
+    .drawer-link {
+      display: flex; align-items: center; gap: 0.9rem;
+      padding: 0.9rem 1.6rem; color: var(--text); text-decoration: none;
+      font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase;
+      transition: background 0.18s, color 0.18s; border-left: 2px solid transparent;
+    }
+    .drawer-link:hover { background: rgba(200,169,110,0.07); color: var(--gold); border-left-color: var(--gold); }
+    .drawer-link-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+    .drawer-footer { padding: 1.2rem 1.6rem; border-top: 1px solid rgba(200,169,110,0.12); }
+    .drawer-wa-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; padding: 0.75rem; border-radius: 10px;
+      background: linear-gradient(135deg, #25d366, #128c3a);
+      color: #fff; font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+      transition: filter 0.2s;
+    }
+    .drawer-wa-btn:hover { filter: brightness(1.1); }
+
+    /* ══ CLOSING BANNER CON MARQUEE ══════════════════════════ */
+    #closing-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 201;
+      background: linear-gradient(90deg, var(--gold-dk) 0%, var(--gold) 50%, var(--gold-dk) 100%);
+      color: #060e1c; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      height: 42px; display: none; overflow: hidden;
+      align-items: center;
+      box-shadow: 0 2px 16px rgba(200,169,110,0.35);
+    }
+    #closing-banner.show { display: flex; }
+    #closing-banner-track {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      white-space: nowrap; padding: 0 1.5rem;
+      width: 100%; justify-content: center;
+    }
+    #closing-banner.scrolling #closing-banner-track {
+      width: auto; padding: 0 3rem;
+      animation: closing-scroll var(--banner-dur, 16s) linear infinite;
+    }
+    @keyframes closing-scroll {
+      0%   { transform: translateX(100vw); }
+      100% { transform: translateX(-100%); }
+    }
+    body.banner-visible nav { top: 42px; }
+    body.banner-visible .nav-drawer { top: 42px; }
+    body.banner-visible .nav-overlay { top: 42px; }
+
+    /* ══ PWA BANNER IDX ══════════════════════════════════════ */
+    .pwa-banner-idx {
+      position: fixed; bottom: 1.4rem; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      z-index: 9999; opacity: 0; pointer-events: none;
+      transition: opacity 0.4s, transform 0.4s;
+      background: linear-gradient(135deg, #0d2137 0%, #091520 100%);
+      border: 1px solid rgba(200,169,110,0.35); border-radius: 30px;
+      padding: 0.5rem 0.8rem 0.5rem 1.1rem;
+      display: flex; align-items: center; gap: 0.75rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      width: max-content; max-width: calc(100vw - 2rem);
+      font-family: 'Montserrat', sans-serif;
+    }
+    .pwa-banner-idx.show { opacity: 1; pointer-events: all; transform: translateX(-50%) translateY(0); }
+    .pwa-ok-idx {
+      padding: 0.34rem 0.9rem; background: #9a7a48; border: none;
+      border-radius: 30px; color: #fff; font-size: 0.67rem;
+      cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600;
+    }
+    .pwa-no-idx { background: none; border: none; cursor: pointer; color: #7a95aa; font-size: 0.9rem; padding: 0.15rem; }
   </style>
 </head>
 <body>
@@ -1002,7 +1193,7 @@
 
 <nav id="navbar">
   <a href="index.html" class="nav-logo">
-    <img src="logo.png" alt="Chus's Fish logo">
+    <img src="logo.jpeg" alt="Chus's Fish logo">
     Chus<span>'s Fish</span>
   </a>
   <ul class="nav-links">
@@ -1029,7 +1220,7 @@
 
   <div class="hero-video-wrap">
     <!-- VIDEO DE FONDO — Agrega assets/hero.mp4 -->
-    <video autoplay muted loop playsinline preload="auto" id="hero-video">
+    <video autoplay muted loop playsinline preload="none" id="hero-video">
       <source src="assets/hero.mp4" type="video/mp4" />
     </video>
     <div class="hero-video-overlay"></div>
@@ -1043,11 +1234,12 @@
 
     <h1 class="hero-title">
       Frescura que<br><em>habla sola.</em>
+      <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">— Mariscos y Pescados Frescos a Domicilio en Costa Rica</span>
     </h1>
 
     <p class="hero-sub">
-      Productos del mar cuidadosamente seleccionados.<br>
-      Entrega a domicilio · Crudo · Fresco · Premium.
+      Mariscos y pescados frescos seleccionados directamente para vos.<br>
+      Entrega a domicilio en Costa Rica · Camarones · Corvina · Pargo · Atún
     </p>
 
     <div class="hero-actions">
@@ -1095,7 +1287,7 @@
   <div class="container">
     <div class="identity-grid">
       <div class="identity-visual reveal">
-        <img src="logo.png" alt="Chus's Fish — Así o más rico"
+        <img src="logo.jpeg" alt="Chus's Fish — Así o más rico"
              style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">
       </div>
       <div class="identity-text">
@@ -1239,21 +1431,7 @@
     navbar.classList.toggle('scrolled', window.scrollY > 60);
   }, { passive: true });
 
-  /* HAMBURGER */
-  document.getElementById('hamburger').addEventListener('click', () => {
-    const links = document.querySelector('.nav-links');
-    const open = links.style.display === 'flex';
-    Object.assign(links.style, {
-      display: open ? 'none' : 'flex',
-      flexDirection: 'column',
-      position: 'absolute', top: '100%', left: 0, right: 0,
-      background: 'rgba(6,14,28,0.97)',
-      padding: '1.5rem 2rem', gap: '1.2rem',
-      backdropFilter: 'blur(16px)',
-      borderBottom: '1px solid rgba(200,169,110,0.18)',
-      zIndex: '99',
-    });
-  });
+  /* HAMBURGER — handled by drawer script below */
 
   /* REVEAL */
   const revealObs = new IntersectionObserver(entries => {
@@ -1339,6 +1517,29 @@
     appId:             '1:788310353696:web:16ca9bd3f934b915cb1945',
   });
   const _db = firebase.firestore();
+
+  /* ── Banner de cierre / horario (desde Firestore) ── */
+  (async function loadBanner() {
+    try {
+      const snap = await _db.collection('chusfish').doc('config').get();
+      if (!snap.exists) return;
+      const cfg = snap.data();
+      if (cfg.closingEnabled && cfg.closingMessage) {
+        const bannerEl    = document.getElementById('closing-banner');
+        const bannerTrack = document.getElementById('closing-banner-track');
+        document.getElementById('closing-banner-text').textContent = cfg.closingMessage;
+        bannerEl.classList.add('show');
+        document.body.classList.add('banner-visible');
+        requestAnimationFrame(() => {
+          if (bannerTrack.scrollWidth > bannerEl.clientWidth) {
+            const dur = Math.max(12, Math.round(cfg.closingMessage.length * 0.22));
+            bannerEl.style.setProperty('--banner-dur', dur + 's');
+            bannerEl.classList.add('scrolling');
+          }
+        });
+      }
+    } catch(e) {}
+  })();
 
   const FEATURED_IDS = [11, 7, 59, 13]; // Corvina PP · Camarón Yumbo · Paella · Mero
   const WA_N = '50660017370';
@@ -1602,7 +1803,7 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
 
 <!-- ═══ PWA INSTALL BANNER ═══════════════════════════════ -->
 <div id="pwa-banner" style="display:none">
-  <img src="logo.png" alt="Chus's Fish">
+  <img src="logo.jpeg" alt="Chus's Fish">
   <div class="pwa-info">
     <strong>Chus's Fish</strong>
     <small>Instala la app para acceso rápido desde tu celular</small>
@@ -1646,14 +1847,108 @@ window.addEventListener('appinstalled', () => {
 });
 
 if ('serviceWorker' in navigator) {
-  /* Forzar actualización del SW en cada carga */
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.update());
-  });
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => reg.update()).catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
+</script>
+
+<!-- ═══ NAV OVERLAY + DRAWER ════════════════════════════════ -->
+<div class="nav-overlay" id="nav-overlay"></div>
+<div class="nav-drawer" id="nav-drawer">
+  <div class="drawer-header">
+    <div class="drawer-brand">Chus<em>'s Fish</em></div>
+    <button class="drawer-close" id="drawer-close">✕</button>
+  </div>
+  <div class="drawer-links">
+    <a href="#identity"     class="drawer-link"><span class="drawer-link-icon">🐟</span> Nosotros</a>
+    <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">🛒</span> Catálogo</a>
+    <a href="#proceso"      class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
+    <a href="#zonas"        class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
+  </div>
+  <div class="drawer-footer">
+    <a href="https://wa.me/50660017370" target="_blank" class="drawer-wa-btn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      Pedir por WhatsApp
+    </a>
+  </div>
+</div>
+
+<!-- ═══ CLOSING BANNER ══════════════════════════════════════ -->
+<div id="closing-banner">
+  <div id="closing-banner-track">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <span id="closing-banner-text"></span>
+  </div>
+</div>
+
+<!-- ═══ PWA INSTALL BANNER ══════════════════════════════════ -->
+<div id="idx-pwa-banner" class="pwa-banner-idx">
+  <span style="font-size:0.72rem;color:#d4dde8;white-space:nowrap">📲 Instalá la app de Chus's Fish</span>
+  <button class="pwa-ok-idx" id="idx-pwa-ok">Instalar</button>
+  <button class="pwa-no-idx" id="idx-pwa-no">✕</button>
+</div>
+
+<script>
+/* ── Drawer ───────────────────────────────────────────────── */
+const hamburger   = document.getElementById('hamburger');
+const drawer      = document.getElementById('nav-drawer');
+const overlay     = document.getElementById('nav-overlay');
+const drawerClose = document.getElementById('drawer-close');
+const waFloat     = document.querySelector('.wa-float');
+
+function openDrawer() {
+  drawer.classList.add('open'); overlay.classList.add('open');
+  hamburger.classList.add('open'); document.body.style.overflow = 'hidden';
+  if (waFloat) waFloat.style.display = 'none';
+}
+function closeDrawer() {
+  drawer.classList.remove('open'); overlay.classList.remove('open');
+  hamburger.classList.remove('open'); document.body.style.overflow = '';
+  if (waFloat) waFloat.style.display = '';
+}
+if (hamburger) {
+  hamburger.addEventListener('click', () => { drawer.classList.contains('open') ? closeDrawer() : openDrawer(); });
+}
+drawerClose.addEventListener('click', closeDrawer);
+overlay.addEventListener('click', closeDrawer);
+drawer.querySelectorAll('.drawer-link').forEach(link => {
+  link.addEventListener('click', e => {
+    const href = link.getAttribute('href');
+    if (href && href.startsWith('#')) {
+      e.preventDefault();
+      const target = document.querySelector(href);
+      closeDrawer();
+      setTimeout(() => { if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 400);
+    } else { closeDrawer(); }
+  });
+});
+
+/* ── PWA install ──────────────────────────────────────────── */
+let _deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredInstall = e;
+  if (!localStorage.getItem('chusfish_pwa_dismissed')) {
+    setTimeout(() => document.getElementById('idx-pwa-banner')?.classList.add('show'), 5000);
+  }
+});
+document.getElementById('idx-pwa-ok')?.addEventListener('click', async () => {
+  if (!_deferredInstall) return;
+  _deferredInstall.prompt();
+  const { outcome } = await _deferredInstall.userChoice;
+  _deferredInstall = null;
+  document.getElementById('idx-pwa-banner')?.classList.remove('show');
+  if (outcome === 'accepted') localStorage.setItem('chusfish_pwa_dismissed', '1');
+});
+document.getElementById('idx-pwa-no')?.addEventListener('click', () => {
+  document.getElementById('idx-pwa-banner')?.classList.remove('show');
+  localStorage.setItem('chusfish_pwa_dismissed', '1');
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('idx-pwa-banner')?.classList.remove('show');
+  _deferredInstall = null;
+});
 </script>
 </body>
 </html>

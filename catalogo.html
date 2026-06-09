@@ -3,25 +3,89 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Catálogo — Chus's Fish</title>
+  <title>Camarones, Corvina y Mariscos Frescos | Catálogo Chus's Fish Costa Rica</title>
 
   <!-- Favicon & PWA -->
-  <link rel="icon" href="logo.png" type="image/png">
-  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="icon" href="logo.jpeg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="logo.jpeg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a1628">
 
-  <!-- Open Graph — previsualización en WhatsApp y redes sociales -->
-  <!-- ⚠️ Reemplazar la URL con tu dominio real una vez subido a Netlify -->
+  <!-- SEO esencial -->
+  <link rel="canonical" href="https://chusfish.com/catalogo.html">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="author" content="Chus's Fish">
+  <meta name="description" content="Catálogo completo de mariscos y pescados frescos en Costa Rica: camarones enteros, camarón pelado, corvina, pargo, atún, filetes y más. Precio directo sin intermediarios. Pedí por WhatsApp.">
+  <meta name="keywords" content="comprar camarones costa rica, corvina fresca costa rica, pargo fresco, mariscos frescos a domicilio, pescados frescos precio, camarón pelado, atún fresco, filetes de pescado, mariscos baratos costa rica, seafood delivery costa rica">
+  <meta name="geo.region" content="CR">
+  <meta name="geo.country" content="Costa Rica">
+
+  <!-- Open Graph / Meta Ads -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Catálogo — Chus's Fish · Mariscos Premium Costa Rica">
-  <meta property="og:description" content="Explora nuestro catálogo de pescados y mariscos premium. Pedidos por WhatsApp, entrega en Costa Rica.">
-  <meta property="og:image" content="https://chusfish.netlify.app/logo.png">
-  <meta property="og:url" content="https://chusfish.netlify.app/catalogo.html">
+  <meta property="og:site_name" content="Chus's Fish">
+  <meta property="og:locale" content="es_CR">
+  <meta property="og:title" content="Camarones, Corvina, Pargo y más | Catálogo Chus's Fish Costa Rica">
+  <meta property="og:description" content="Mariscos y pescados frescos a domicilio en Costa Rica. Camarones, corvina, pargo, atún, filetes. Precio directo sin intermediarios. Pedí por WhatsApp al 6001-7370.">
+  <meta property="og:image" content="https://chusfish.com/facebook/portada_facebook.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+  <meta property="og:image:alt" content="Catálogo de mariscos y pescados frescos - Chus's Fish Costa Rica">
+  <meta property="og:url" content="https://chusfish.com/catalogo.html">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mariscos Frescos a Domicilio | Catálogo Chus's Fish CR">
+  <meta name="twitter:description" content="Camarones, corvina, pargo, atún y filetes frescos en Costa Rica. Precio directo, entrega rápida.">
+  <meta name="twitter:image" content="https://chusfish.com/facebook/portada_facebook.png">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Inicio",
+            "item": "https://chusfish.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Catálogo",
+            "item": "https://chusfish.com/catalogo.html"
+          }
+        ]
+      },
+      {
+        "@type": "ItemList",
+        "name": "Catálogo de Mariscos y Pescados - Chus's Fish",
+        "description": "Mariscos y pescados frescos a domicilio en Costa Rica al mejor precio",
+        "url": "https://chusfish.com/catalogo.html",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Camarones Enteros Frescos", "url": "https://chusfish.com/catalogo.html" },
+          { "@type": "ListItem", "position": 2, "name": "Camarón Pelado", "url": "https://chusfish.com/catalogo.html" },
+          { "@type": "ListItem", "position": 3, "name": "Corvina Fresca", "url": "https://chusfish.com/catalogo.html" },
+          { "@type": "ListItem", "position": 4, "name": "Pargo Fresco", "url": "https://chusfish.com/catalogo.html" },
+          { "@type": "ListItem", "position": 5, "name": "Atún Fresco", "url": "https://chusfish.com/catalogo.html" },
+          { "@type": "ListItem", "position": 6, "name": "Filetes de Pescado", "url": "https://chusfish.com/catalogo.html" }
+        ]
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://chusfish.com/catalogo.html",
+        "url": "https://chusfish.com/catalogo.html",
+        "name": "Catálogo de Mariscos - Chus's Fish Costa Rica",
+        "isPartOf": { "@id": "https://chusfish.com/#website" },
+        "breadcrumb": { "@type": "BreadcrumbList" }
+      }
+    ]
+  }
+  </script>
 
   <!-- Rendimiento: recursos críticos above-the-fold -->
-  <link rel="preload" href="logo.png" as="image">
+  <link rel="preload" href="logo.jpeg" as="image">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="dns-prefetch" href="//firestore.googleapis.com">
@@ -51,6 +115,40 @@
     }
 
     html { scroll-behavior: smooth; }
+    /* �₡� PRELOADER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .preloader {
+      position: fixed; inset: 0; z-index: 9999;
+      background: linear-gradient(135deg, #0d2137 0%, #060e1c 100%);
+      display: flex; align-items: center; justify-content: center;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
+    .preloader.fade-out { opacity: 0; visibility: hidden; }
+    .preloader-content {
+      text-align: center;
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .preloader-logo-img {
+      width: 100px; 
+      height: auto;
+      margin-bottom: 0.8rem;
+      animation: pulse-logo 2s ease-in-out infinite;
+      filter: drop-shadow(0 0 15px rgba(200,169,110,0.4));
+    }
+    @keyframes pulse-logo {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 25px rgba(200,169,110,0.8)); }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+    .preloader-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.2rem; font-weight: 300; color: var(--gold-lt);
+      letter-spacing: 0.15em; line-height: 1; margin-bottom: 0.5rem;
+    }
+    .preloader-sub {
+      font-size: 0.65rem; letter-spacing: 0.4em; text-transform: uppercase;
+      color: var(--muted); font-weight: 500;
+    }
+
     body {
       font-family: 'Montserrat', sans-serif;
       background: var(--deep);
@@ -62,10 +160,10 @@
     ::-webkit-scrollbar-track { background: var(--deep); }
     ::-webkit-scrollbar-thumb { background: var(--gold-dk); border-radius: 3px; }
 
-    /* ── CANVAS ─────────────────────────────── */
+    /* �₡� CANVAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     #bg-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.55; }
 
-    /* ── NAV ────────────────────────────────── */
+    /* �₡� NAV �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     nav {
       position: fixed; top: 0; left: 0; right: 0;
       height: var(--nav-h); z-index: 200;
@@ -78,7 +176,7 @@
     .nav-logo {
       font-family: 'Cormorant Garamond', serif;
       font-size: 1.4rem; font-weight: 600;
-      color: var(--gold); letter-spacing: 0.06em; text-decoration: none;
+      color: var(--gold); letter-spacing: 0; text-decoration: none;
       display: flex; align-items: center; gap: 0.55rem;
     }
     .nav-logo img { height: 44px; width: auto; border-radius: 8px; display: block; flex-shrink: 0; }
@@ -102,7 +200,7 @@
     .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
     .hamburger span { display: block; width: 22px; height: 1.5px; background: var(--gold); }
 
-    /* ── CATALOG HERO ───────────────────────── */
+    /* �₡� CATALOG HERO �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .cat-hero {
       position: relative; z-index: 1;
       padding-top: var(--nav-h);
@@ -127,7 +225,7 @@
     .cat-title em { font-style: italic; color: var(--gold); }
     .cat-subtitle { font-size: 0.8rem; color: var(--muted); font-weight: 300; margin-top: 0.6rem; letter-spacing: 0.06em; }
 
-    /* ── FILTER BAR ─────────────────────────── */
+    /* �₡� FILTER BAR �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .filter-bar {
       position: sticky; top: var(--nav-h); z-index: 150;
       background: rgba(6,14,28,0.97);
@@ -164,14 +262,18 @@
     .filter-pill.active { background: linear-gradient(135deg, var(--gold-dk), var(--gold)); border-color: transparent; color: var(--deep); }
     .pill-count { font-size: 0.58rem; background: rgba(6,14,28,0.25); padding: 0.1rem 0.4rem; border-radius: 10px; }
     .filter-pill.active .pill-count { background: rgba(6,14,28,0.2); }
+    /* Fade derecho para indicar scroll en la barra */
+    .filter-bar::after { content:''; position:absolute; right:0; top:0; bottom:0; width:80px; background:linear-gradient(to left, rgba(6,14,28,0.97) 0%, transparent 100%); pointer-events:none; z-index:2; }
 
-    /* ── RESULTS BAR ────────────────────────── */
+    .mobile-filter { display: none; }
+
+    /* �₡� RESULTS BAR �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .results-bar { max-width: 1180px; margin: 0 auto; padding: 1rem 2rem 0; position: relative; z-index: 1; }
     .results-count { font-size: 0.68rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
     .results-count strong { color: var(--gold); }
     .no-results { display: none; text-align: center; padding: 5rem 2rem; font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-style: italic; color: var(--muted); }
 
-    /* ── CATALOG GRID ───────────────────────── */
+    /* �₡� CATALOG GRID �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .catalog-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 1.8rem 2rem 6rem; }
     .cat-group { margin-bottom: 3.5rem; }
     .cat-group-header { display: flex; align-items: center; gap: 1.4rem; margin-bottom: 1.6rem; }
@@ -181,45 +283,87 @@
     .cat-group-count { font-size: 0.62rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; white-space: nowrap; }
     .products-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.1rem; }
 
-    /* ── PRODUCT CARD ───────────────────────── */
+    /* �₡� PRODUCT CARD �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
     .p-card {
       background: var(--glass); border: 1px solid var(--glass-border);
       border-radius: var(--radius); overflow: hidden;
       display: flex; flex-direction: column;
       backdrop-filter: blur(10px); cursor: pointer;
-      transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s, border-color 0.4s;
+      transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s, border-color 0.5s;
       position: relative;
+      animation: slideInRight 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
     }
     .p-card.hidden { display: none; }
+    /* Favoritos y compartir */
+    .p-fav-btn {
+      position:absolute; top:8px; right:8px; z-index:4;
+      width:30px; height:30px; border-radius:50%; border:none; cursor:pointer;
+      background:rgba(6,14,28,0.7); backdrop-filter:blur(4px);
+      display:flex; align-items:center; justify-content:center;
+      transition:all 0.2s; padding:0;
+    }
+    .p-fav-btn svg { width:14px; height:14px; transition:all 0.2s; }
+    .p-fav-btn:hover { background:rgba(200,169,110,0.2); transform:scale(1.1); }
+    .p-fav-btn.active svg { fill:#e74c3c; stroke:#e74c3c; }
+    .p-share-btn {
+      background:none; border:none; cursor:pointer; color:var(--muted);
+      font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase;
+      display:flex; align-items:center; gap:0.3rem; padding:0.3rem 0;
+      transition:color 0.2s;
+    }
+    .p-share-btn:hover { color:var(--gold); }
+    .p-share-btn svg { width:12px; height:12px; }
+    .p-card.unavailable { opacity: 0.55; cursor: default; }
+    .p-card.unavailable:hover { transform: none; box-shadow: none; border-color: var(--glass-border); }
+    .p-card.unavailable:hover::after { opacity: 0; }
+    .p-unavail-tag {
+      position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center;
+      background: rgba(6,14,28,0.65); border-radius: var(--radius);
+    }
+    .p-unavail-tag span {
+      font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
+      color: #e74c3c; border: 1px solid rgba(231,76,60,0.5); padding: 0.3rem 0.8rem; border-radius: 20px;
+      background: rgba(231,76,60,0.1);
+    }
     .p-card::after {
       content: ''; position: absolute; inset: 0; border-radius: var(--radius);
-      background: linear-gradient(135deg, rgba(200,169,110,0.05) 0%, transparent 60%);
-      opacity: 0; transition: opacity 0.4s; pointer-events: none;
+      background: linear-gradient(135deg, rgba(200,169,110,0.1) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.5s; pointer-events: none;
     }
-    .p-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px var(--gold-dk); border-color: var(--gold-dk); }
+    .p-card:hover { 
+      transform: translateY(-8px) scale(1.02); 
+      box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(200,169,110,0.6); 
+      border-color: rgba(200,169,110,0.4); 
+    }
     .p-card:hover::after { opacity: 1; }
 
     .p-img {
       aspect-ratio: 1/1;
-      background: linear-gradient(135deg, var(--mid) 0%, var(--ocean) 100%);
+      background: transparent;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 0.5rem; position: relative; overflow: hidden;
     }
-    .p-img::before {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 100%, rgba(200,169,110,0.07) 0%, transparent 65%);
+    .p-img img { 
+      width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; 
+      transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
     }
-    .p-img img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
-    .p-img-placeholder { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; position: relative; }
-    .p-img-placeholder svg { opacity: 0.18; width: 36px; height: 36px; }
-    .p-img-placeholder span { font-size: 0.52rem; letter-spacing: 0.22em; color: var(--muted); text-transform: uppercase; }
+    .p-card:hover .p-img img {
+      transform: scale(1.08);
+    }
+    .p-img-placeholder { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; position: relative; z-index: 1; }
+    .p-img-placeholder svg { opacity: 0.25; width: 36px; height: 36px; color: var(--petrol); }
+    .p-img-placeholder span { font-size: 0.52rem; letter-spacing: 0.22em; color: var(--petrol); text-transform: uppercase; font-weight: 600; opacity: 0.5; }
     .p-badge {
       position: absolute; top: 0.6rem; right: 0.6rem;
       font-size: 0.48rem; letter-spacing: 0.14em; text-transform: uppercase;
       color: var(--gold); border: 1px solid var(--gold-dk);
       padding: 0.22rem 0.5rem; border-radius: 16px;
       background: rgba(6,14,28,0.8); backdrop-filter: blur(6px);
-      max-width: calc(100% - 1.2rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      max-width: calc(100% - 2.4rem); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .p-body { padding: 0.8rem 0.9rem 0; flex: 1; }
     .p-name { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 400; color: var(--white); line-height: 1.2; margin-bottom: 0.3rem; }
@@ -240,39 +384,43 @@
     }
     .p-detail-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,169,110,0.3); }
 
-    /* ── MODAL ──────────────────────────────── */
+    /* �₡� MODAL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 500;
       background: rgba(4,10,20,0.85);
       backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      padding: 1.5rem;
+      display: flex; align-items: stretch; justify-content: flex-end;
+      padding: 0;
       opacity: 0; pointer-events: none;
       transition: opacity 0.3s;
     }
     .modal-overlay.open { opacity: 1; pointer-events: all; }
     @keyframes modal-in {
-      from { opacity: 0; transform: translateY(40px) scale(0.93); }
-      to   { opacity: 1; transform: translateY(0)   scale(1); }
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
     }
     @keyframes overlay-in {
       from { opacity: 0; } to { opacity: 1; }
     }
     .modal-box {
       background: linear-gradient(135deg, #0d2137 0%, #060e1c 100%);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px; width: 100%; max-width: 560px;
-      max-height: 90vh; overflow-y: auto;
-      transform: translateY(40px) scale(0.93); opacity: 0;
+      border-left: 1px solid var(--glass-border);
+      border-radius: 30px 0 0 30px; width: 100%; max-width: 480px;
+      height: 100vh; max-height: 100vh; overflow-y: auto;
+      transform: translateX(100%); opacity: 1;
       position: relative;
+      display: flex; flex-direction: column;
+      box-shadow: -10px 0 50px rgba(0,0,0,0.5);
     }
-    .modal-overlay.open { animation: overlay-in 0.25s ease forwards; }
+    .modal-overlay.open { animation: overlay-in 0.3s ease forwards; }
     .modal-overlay.open .modal-box {
-      animation: modal-in 0.42s cubic-bezier(0.34, 1.45, 0.64, 1) forwards;
+      animation: modal-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
-    /* ── CLOSE BUTTON — visible sobre la imagen ── */
+    /* �₡� CLOSE BUTTON � visible sobre la imagen �₡� */
     .modal-close {
-      position: absolute; top: 0.8rem; right: 0.8rem;
+      position: absolute; 
+      top: calc(0.8rem + env(safe-area-inset-top, 0px)); 
+      right: calc(0.8rem + env(safe-area-inset-right, 0px));
       width: 36px; height: 36px; border-radius: 50%;
       background: rgba(6,14,28,0.82); border: 1px solid var(--gold-dk);
       color: var(--gold-lt); font-size: 1rem; cursor: pointer;
@@ -282,27 +430,29 @@
     }
     .modal-close:hover { background: rgba(200,169,110,0.25); transform: scale(1.12); }
     .modal-icon-area {
-      aspect-ratio: 16/7;
+      aspect-ratio: 1/1;
       background: linear-gradient(135deg, var(--mid), var(--ocean));
       display: flex; align-items: center; justify-content: center;
-      border-radius: 20px 20px 0 0; position: relative; overflow: hidden;
+      border-radius: 30px 0 0 0; position: relative; overflow: hidden;
+      flex-shrink: 0;
     }
     .modal-icon-area::before {
       content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 50% 100%, rgba(200,169,110,0.08) 0%, transparent 70%);
+      background: linear-gradient(to top, #0d2137 0%, transparent 40%);
+      z-index: 5;
     }
     .modal-icon-area img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
     .modal-icon-area svg { opacity: 0.2; width: 64px; height: 64px; position: relative; }
-    .modal-body { padding: 1.6rem 2rem 2rem; }
+    .modal-body { padding: 0 2.5rem 2.5rem; flex: 1; display: flex; flex-direction: column; position: relative; z-index: 10; margin-top: -3rem; }
     .modal-badge {
-      display: inline-block;
-      font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase;
-      color: var(--gold); border: 1px solid var(--gold-dk);
-      padding: 0.25rem 0.7rem; border-radius: 20px;
-      background: rgba(200,169,110,0.06); margin-bottom: 0.8rem;
+      display: inline-block; align-self: flex-start;
+      font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase;
+      color: #fff; border: 1px solid rgba(200,169,110,0.5);
+      padding: 0.35rem 0.9rem; border-radius: 20px;
+      background: rgba(4,10,20,0.7); backdrop-filter: blur(8px); margin-bottom: 1.2rem;
     }
-    .modal-name { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 400; color: var(--white); line-height: 1.2; margin-bottom: 1rem; }
-    .modal-desc { font-size: 0.82rem; color: var(--muted); font-weight: 300; line-height: 1.8; margin-bottom: 1.4rem; }
+    .modal-name { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 300; color: var(--gold-lt); line-height: 1.1; margin-bottom: 1.2rem; }
+    .modal-desc { font-size: 0.88rem; color: #a9b8c9; font-weight: 300; line-height: 1.7; margin-bottom: 2rem; flex: 1; }
     .modal-preorder {
       display: flex; align-items: center; gap: 0.6rem;
       background: rgba(200,169,110,0.06); border: 1px solid rgba(200,169,110,0.2);
@@ -352,9 +502,9 @@
     .btn-wa-direct svg { width: 14px; height: 14px; }
     .btn-wa-direct:hover { background: rgba(37,211,102,0.08); }
 
-    /* ── CART FLOAT ─────────────────────────── */
+    /* �₡� CART FLOAT �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .cart-float {
-      position: fixed; bottom: calc(2rem + 52px + 0.75rem); right: 2rem; z-index: 300;
+      position: fixed; bottom: calc(1.2rem + 52px + 0.6rem); right: 1.2rem; z-index: 300;
       width: 52px; height: 52px; border-radius: 50%;
       background: linear-gradient(135deg, var(--gold-dk), var(--gold));
       display: flex; align-items: center; justify-content: center;
@@ -373,7 +523,7 @@
       border: 2px solid var(--deep);
     }
 
-    /* ── CART PANEL ─────────────────────────── */
+    /* �₡� CART PANEL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .cart-backdrop {
       position: fixed; inset: 0; z-index: 400;
       background: rgba(4,10,20,0.6);
@@ -471,7 +621,7 @@
     .btn-wa-cart:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(37,211,102,0.3); }
     .cart-note { font-size: 0.6rem; color: var(--muted); text-align: center; opacity: 0.7; }
 
-    /* ── TOAST ──────────────────────────────── */
+    /* �₡� TOAST �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .toast {
       position: fixed; bottom: 6rem; left: 50%; transform: translateX(-50%) translateY(20px);
       background: linear-gradient(135deg, var(--gold-dk), var(--gold));
@@ -482,9 +632,9 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ── WA FLOAT ───────────────────────────── */
+    /* �₡� WA FLOAT �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .wa-float {
-      position: fixed; bottom: 2rem; right: 2rem; z-index: 300;
+      position: fixed; bottom: 1.2rem; right: 1.2rem; z-index: 300;
       width: 52px; height: 52px; border-radius: 50%;
       background: linear-gradient(135deg,#1da851,#25d366);
       display: flex; align-items: center; justify-content: center;
@@ -499,7 +649,7 @@
       50%      { box-shadow: 0 8px 40px rgba(37,211,102,0.6); }
     }
 
-    /* ── FOOTER ─────────────────────────────── */
+    /* �₡� FOOTER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     footer {
       text-align: center; padding: 3rem 2rem;
       background: var(--ocean); border-top: 1px solid var(--glass-border);
@@ -511,7 +661,7 @@
     .footer-quote { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-style: italic; color: var(--gold); opacity: 0.75; margin-bottom: 1rem; }
     .footer-copy { font-size: 0.6rem; letter-spacing: 0.14em; color: var(--muted); opacity: 0.45; }
 
-    /* ── RESPONSIVE ─────────────────────────── */
+    /* �₡� RESPONSIVE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     @media (max-width: 1200px) { .products-grid { grid-template-columns: repeat(4,1fr); } }
     @media (max-width: 960px)  { .products-grid { grid-template-columns: repeat(3,1fr); } }
 
@@ -528,13 +678,27 @@
       .cat-title { font-size: clamp(1.9rem, 7vw, 3rem); }
       .cat-subtitle { font-size: 0.7rem; }
 
-      /* filter bar — pills en línea, scroll horizontal */
-      .filter-bar { padding: 0 0; }
-      .filter-inner { padding: 0.7rem 1rem; gap: 0.5rem; flex-wrap: nowrap; }
+      /* filter bar � Dropdown en móvil */
+      .filter-bar { position: static; padding: 0; height: auto; overflow: visible; }
+      .filter-inner { 
+        padding: 0.7rem 1rem; gap: 0.5rem; 
+        flex-direction: column;
+        align-items: stretch;
+      }
       .filter-sep { display: none; }
-      .search-wrap { flex-shrink: 0; }
-      .search-wrap input { width: 140px; font-size: 0.72rem; }
-      .filter-pill { flex-shrink: 0; font-size: 0.6rem; padding: 0.35rem 0.75rem; letter-spacing: 0.12em; }
+      .search-wrap { width: 100%; margin-bottom: 0.2rem; }
+      .search-wrap input { width: 100%; font-size: 0.75rem; padding: 0.5rem 1rem; }
+      
+      .filter-pill { display: none; } /* Ocultamos botones */
+      
+      .mobile-filter { 
+        display: block; width: 100%; 
+        background: linear-gradient(135deg, rgba(6,14,28,0.9), rgba(13,33,55,0.9)); 
+        color: var(--white); border: 1px solid var(--gold-dk);
+        padding: 0.6rem 1rem; border-radius: 10px;
+        font-family: 'Montserrat', sans-serif; font-size: 0.75rem;
+        appearance: none; outline: none; cursor: pointer;
+      }
       .pill-count { font-size: 0.58rem; }
 
       /* results */
@@ -551,17 +715,50 @@
       .p-name { font-size: 0.78rem; }
       .p-price { font-size: 1rem; }
 
-      /* modal — bottom sheet */
-      .modal-overlay { align-items: flex-end; padding: 0; }
-      .modal-box {
-        border-radius: 20px 20px 0 0;
-        max-width: 100%; max-height: 90vh;
+      /* modal � panel de pantalla completa en móvil */
+      .modal-overlay { 
+        align-items: flex-end; 
+        justify-content: center;
+        padding: 0; 
       }
-      .modal-icon-area { aspect-ratio: 16/7; }
-      .modal-body { padding: 1.1rem 1.1rem 1.5rem; }
-      .modal-name { font-size: 1.3rem; }
-      .modal-desc { font-size: 0.78rem; }
-      .modal-price-row { flex-wrap: wrap; gap: 0.8rem; }
+      .modal-box {
+        border-radius: 0;
+        border: none;
+        width: 100%; max-width: 100%; 
+        height: 100dvh; max-height: 100dvh;
+        transform: translateY(100%);
+        overflow: hidden; /* Evitar scroll general */
+        display: flex; flex-direction: column;
+      }
+      @keyframes modal-in-mobile {
+        from { transform: translateY(100%); }
+        to   { transform: translateY(0); }
+      }
+      .modal-overlay.open .modal-box {
+        animation: modal-in-mobile 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      }
+      
+      /* La foto toma el espacio sobrante */
+      .modal-icon-area { 
+        flex: 1; 
+        aspect-ratio: auto; 
+        height: auto; 
+        min-height: 30vh;
+        border-radius: 0; 
+      }
+      
+      /* Área de texto que se ajusta a lo necesario */
+      .modal-body { 
+        flex-shrink: 0; 
+        padding: 0 1.2rem 1.2rem; 
+        margin-top: -1.5rem; 
+        overflow-y: auto; 
+      }
+      .modal-badge { font-size: 0.5rem; padding: 0.25rem 0.7rem; margin-bottom: 0.8rem; }
+      .modal-name { font-size: 1.5rem; margin-bottom: 0.5rem; }
+      .modal-desc { font-size: 0.8rem; margin-bottom: 1rem; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+      .modal-price-row { flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; }
+      .modal-price { font-size: 1.5rem; }
 
       /* carrito */
       .cart-panel { max-width: 100%; }
@@ -573,13 +770,13 @@
       .nav-wa { display: none; }
       .hamburger { display: flex; }
 
-      .products-grid { grid-template-columns: repeat(2,1fr); gap: 0.5rem; }
-      .p-img { aspect-ratio: 4/3; }
-      .p-detail-btn { font-size: 0.58rem; padding: 0.4rem 0.8rem; }
+      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+      .p-img { aspect-ratio: 1/1; }
+      .p-detail-btn { font-size: 0.58rem; padding: 0.4rem 0.6rem; }
 
-      /* modal acciones en columna */
-      .modal-actions { flex-direction: column; }
-      .btn-add-cart, .btn-wa-direct { flex: none; width: 100%; justify-content: center; }
+      /* modal acciones en columna en celulares muy pequeños */
+      .modal-actions { flex-direction: column; gap: 0.5rem; }
+      .btn-add-cart, .btn-wa-direct { flex: none; width: 100%; justify-content: center; padding: 0.7rem; font-size: 0.75rem; }
 
       /* carrito compacto */
       .cart-header { padding: 1rem 1.2rem; }
@@ -590,7 +787,8 @@
       .btn-wa-cart { font-size: 0.65rem; padding: 0.7rem; }
 
       /* footer */
-      footer { padding: 2.5rem 1.2rem; }
+      footer { padding: 2.5rem 1.2rem 5.5rem; }
+      .footer-copy { padding-right: 4rem; }
     }
 
     @media (max-width: 380px) {
@@ -598,7 +796,7 @@
       .cat-title { font-size: 1.7rem; }
     }
 
-    /* ── ORDER FORM MODAL ──────────────────────── */
+    /* �₡� ORDER FORM MODAL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .order-form-overlay {
       position: fixed; inset: 0; z-index: 700;
       background: rgba(4,10,20,0.9);
@@ -699,15 +897,309 @@
       margin-top: 0.7rem; opacity: 0.6;
     }
     @media (max-width: 768px) {
-      .order-form-overlay { align-items: flex-end; padding: 0; }
-      .order-form-box { border-radius: 20px 20px 0 0; max-width: 100%; max-height: 92vh; }
+      .order-form-overlay { align-items: center; padding: 1rem; }
+      .order-form-box { border-radius: 20px; max-width: 100%; max-height: 88vh; }
       .order-form-inner { padding: 1.5rem 1.2rem 2rem; }
     }
+    .order-field select {
+      width: 100%; background: rgba(18,40,64,0.8);
+      border: 1px solid rgba(200,169,110,0.18);
+      border-radius: 10px; padding: 0.7rem 1rem;
+      color: var(--text); font-family: 'Montserrat', sans-serif;
+      font-size: 0.82rem; outline: none;
+      transition: border-color 0.3s; cursor: pointer;
+      -webkit-appearance: none; appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a95aa' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 1rem center;
+    }
+    .order-field select:focus { border-color: var(--gold-dk); }
+    .order-field select option { background: #0d2137; color: #d4dde8; }
+    .order-field select.of-error { border-color: #e74c3c; }
+
+    /* �₡� ZONE CHIPS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .zone-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.3rem; }
+    .zone-chip {
+      flex: 1 1 auto; min-width: 110px;
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 1rem; border-radius: 50px; cursor: pointer;
+      border: 1.5px solid rgba(200,169,110,0.2);
+      background: rgba(18,40,64,0.6); color: var(--muted);
+      font-size: 0.78rem; font-weight: 500; transition: all 0.18s;
+      user-select: none;
+    }
+    .zone-chip svg { flex-shrink: 0; opacity: 0.4; transition: opacity 0.18s; }
+    .zone-chip:hover { border-color: rgba(200,169,110,0.5); color: var(--text); background: rgba(18,40,64,0.9); }
+    .zone-chip:hover svg { opacity: 0.7; }
+    .zone-chip.selected {
+      border-color: var(--gold); background: rgba(200,169,110,0.12);
+      color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,110,0.08);
+    }
+    .zone-chip.selected svg { opacity: 1; }
+    .zone-chips.of-error .zone-chip:not(.selected) { border-color: rgba(231,76,60,0.5); }
+
+    /* �₡� DATE CHIPS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .date-chips {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 0.5rem; margin-top: 0.3rem;
+    }
+    .date-chip {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 0.7rem 0.3rem; border-radius: 12px; cursor: pointer;
+      border: 1.5px solid rgba(200,169,110,0.2);
+      background: rgba(18,40,64,0.6); color: var(--muted);
+      font-size: 0.7rem; text-align: center; gap: 0.05rem; transition: all 0.18s;
+      user-select: none;
+    }
+    .date-chip .dc-day { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.15rem; }
+    .date-chip .dc-num { font-size: 1.5rem; font-weight: 700; line-height: 1; color: var(--text); }
+    .date-chip .dc-mon { font-size: 0.6rem; opacity: 0.55; margin-top: 0.1rem; }
+    .date-chip:hover { border-color: rgba(200,169,110,0.5); background: rgba(18,40,64,0.9); }
+    .date-chip.selected {
+      border-color: var(--gold); background: rgba(200,169,110,0.12);
+      color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,110,0.08);
+    }
+    .date-chip.selected .dc-num { color: var(--gold); }
+    .date-chips.of-error .date-chip:not(.selected) { border-color: rgba(231,76,60,0.5); }
+
+    /* �₡� SEPARADOR DE SECCIONES �₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .section-sep {
+      max-width:1180px; margin:0 auto; padding:0 2rem;
+      display:flex; align-items:center; gap:1.2rem; margin-bottom:1.4rem;
+    }
+    .section-sep-line { flex:1; height:1px; background:linear-gradient(90deg,transparent,rgba(200,169,110,0.2),transparent); }
+    .section-sep-label {
+      font-size:0.6rem; letter-spacing:0.24em; text-transform:uppercase; color:var(--gold-dk);
+      font-weight:600; white-space:nowrap;
+    }
+
+    /* �₡� ESPECIAL DE LA SEMANA �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .especial-section { max-width:1180px; margin:0 auto; padding:0 2rem 2rem; }
+    .especial-card {
+      display:flex; align-items:center; gap:2rem;
+      background:linear-gradient(135deg, rgba(154,122,72,0.2) 0%, rgba(200,169,110,0.06) 60%, rgba(13,33,55,0.4) 100%);
+      border:1px solid rgba(200,169,110,0.45); border-radius:20px; padding:1.8rem 2rem;
+      position:relative; overflow:hidden;
+      box-shadow: 0 8px 40px rgba(200,169,110,0.08), inset 0 1px 0 rgba(200,169,110,0.15);
+    }
+    .especial-card::before {
+      content:''; position:absolute; top:-60px; right:-60px;
+      width:260px; height:260px; border-radius:50%;
+      background:radial-gradient(circle, rgba(200,169,110,0.1) 0%, transparent 65%);
+      pointer-events:none;
+    }
+    .especial-card::after {
+      content:''; position:absolute; bottom:-30px; left:30%;
+      width:120px; height:120px; border-radius:50%;
+      background:radial-gradient(circle, rgba(200,169,110,0.05) 0%, transparent 70%);
+      pointer-events:none;
+    }
+    .especial-badge {
+      font-size:0.55rem; letter-spacing:0.22em; text-transform:uppercase; font-weight:700;
+      background:linear-gradient(135deg, var(--gold-dk), var(--gold)); color:var(--deep);
+      padding:0.25rem 0.7rem; border-radius:20px; display:inline-block; margin-bottom:0.5rem;
+    }
+    .especial-name { font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--white); line-height:1.2; }
+    .especial-msg  { font-size:0.75rem; color:var(--gold-lt); margin-top:0.4rem; }
+    .especial-price-wrap { margin-top:0.6rem; display:flex; align-items:baseline; gap:0.7rem; }
+    .especial-price-new { font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold); }
+    .especial-price-old { font-size:0.85rem; color:var(--muted); text-decoration:line-through; }
+    .especial-img { width:110px; height:110px; border-radius:14px; object-fit:cover; flex-shrink:0; box-shadow:0 8px 24px rgba(0,0,0,0.4); }
+    .especial-img-placeholder { width:110px; height:110px; border-radius:14px; background:rgba(200,169,110,0.1); border:1px solid rgba(200,169,110,0.2); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--gold-dk); font-size:2rem; }
+    .especial-cta { margin-top:1rem; padding:0.65rem 1.4rem; border-radius:20px; border:none; background:linear-gradient(135deg,var(--gold-dk),var(--gold)); color:var(--deep); font-size:0.7rem; letter-spacing:0.14em; text-transform:uppercase; font-weight:700; cursor:pointer; transition:all 0.25s; font-family:'Montserrat',sans-serif; }
+    .especial-cta:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(200,169,110,0.35); }
+    @media(max-width:600px){ .especial-card { flex-direction:column; align-items:flex-start; } .especial-img,.especial-img-placeholder { width:80px; height:80px; } }
+
+
+    /* �₡� RECETAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .recetas-section { max-width:1180px; margin:0 auto; padding:0 2rem 2.5rem; }
+    .recetas-title { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300; color:var(--white); margin-bottom:0.3rem; }
+    .recetas-sub { font-size:0.72rem; color:var(--muted); margin-bottom:1.4rem; letter-spacing:0.06em; }
+    .recetas-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
+    .receta-card {
+      background:var(--glass); border:1px solid var(--gb); border-radius:16px; padding:1.5rem;
+      transition:border-color 0.25s, transform 0.25s; display:flex; flex-direction:column;
+    }
+    .receta-card:hover { border-color:rgba(200,169,110,0.35); transform:translateY(-2px); }
+    .receta-header-icon { font-size:1.6rem; margin-bottom:0.6rem; }
+    .receta-card-title { font-family:'Cormorant Garamond',serif; font-size:1.25rem; color:var(--white); margin-bottom:0.3rem; }
+    .receta-card-desc { font-size:0.74rem; color:var(--muted); margin-bottom:1rem; line-height:1.6; flex:1; }
+    .receta-ingredientes-label { font-size:0.58rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-dk); margin-bottom:0.5rem; }
+    .receta-ingredientes { display:flex; flex-direction:column; gap:0; margin-bottom:1.2rem; }
+    .receta-ing-row { display:flex; justify-content:space-between; font-size:0.76rem; padding:0.4rem 0; border-bottom:1px solid rgba(200,169,110,0.07); }
+    .receta-ing-row:last-child { border-bottom:none; }
+    .receta-ing-name { color:var(--text); }
+    .receta-ing-qty { color:var(--gold-dk); font-weight:600; }
+    .receta-add-btn { width:100%; padding:0.6rem; border-radius:20px; border:1px solid rgba(200,169,110,0.3); background:rgba(200,169,110,0.08); color:var(--gold); font-size:0.67rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:700; cursor:pointer; transition:all 0.2s; font-family:'Montserrat',sans-serif; }
+    .receta-add-btn:hover { background:rgba(200,169,110,0.18); border-color:var(--gold); transform:translateY(-1px); }
+
+    /* �₡� SCHEDULE CHIP �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .schedule-chip {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.32rem 0.9rem; border-radius: 30px;
+      font-size: 0.67rem; letter-spacing: 0.1em; font-weight: 500;
+      margin-top: 0.85rem; cursor: default;
+    }
+    .schedule-chip.open  { background: rgba(37,211,102,0.1); border: 1px solid rgba(37,211,102,0.25); color: #4ade80; }
+    .schedule-chip.closed{ background: rgba(200,169,110,0.08); border: 1px solid rgba(200,169,110,0.2); color: var(--gold); }
+    .sched-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .schedule-chip.open  .sched-dot { background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,0.7); animation: sched-blink 2s ease-in-out infinite; }
+    .schedule-chip.closed .sched-dot { background: var(--gold); }
+    @keyframes sched-blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
+
+    /* �₡� CALCULADORA MODAL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .calc-trigger-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: none; border: 1px solid rgba(200,169,110,0.22); border-radius: 30px;
+      color: var(--gold-dk); font-family:'Montserrat',sans-serif; font-size: 0.64rem;
+      letter-spacing: 0.1em; padding: 0.3rem 0.8rem; cursor: pointer;
+      transition: all 0.2s; margin-top: 0.85rem; flex-shrink: 0;
+    }
+    .calc-trigger-btn:hover { background: rgba(200,169,110,0.1); border-color: var(--gold); color: var(--gold); }
+    .calc-overlay {
+      position: fixed; inset: 0; background: rgba(6,14,28,0.88); z-index: 800;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .calc-overlay.open { opacity: 1; pointer-events: all; }
+    .calc-box {
+      background: linear-gradient(155deg, #122840 0%, #0a1628 100%);
+      border: 1px solid var(--glass-border); border-radius: var(--radius);
+      padding: 2rem 2rem 1.8rem; width: 92%; max-width: 430px; position: relative;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+    .calc-title { font-family:'Cormorant Garamond',serif; font-size:1.55rem; font-weight:300; color:var(--gold-lt); margin-bottom:1.3rem; }
+    .calc-lbl { font-size:0.65rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:0.45rem; display:block; }
+    .calc-num {
+      width:100%; background:rgba(18,40,64,0.8); border:1px solid var(--glass-border);
+      border-radius:10px; padding:0.6rem 1rem; color:var(--white);
+      font-family:'Montserrat',sans-serif; font-size:1.1rem; outline:none; margin-bottom:1.2rem;
+      transition: border-color 0.2s;
+    }
+    .calc-num:focus { border-color:var(--gold-dk); }
+    .calc-types { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.4rem; }
+    .calc-type {
+      padding:0.38rem 0.85rem; border-radius:30px; border:1px solid var(--glass-border);
+      background:none; color:var(--text); font-size:0.68rem; cursor:pointer;
+      font-family:'Montserrat',sans-serif; transition:all 0.2s;
+    }
+    .calc-type.active { background:var(--gold-dk); border-color:var(--gold-dk); color:#fff; }
+    .calc-result { background:rgba(200,169,110,0.05); border:1px solid var(--glass-border); border-radius:10px; padding:1rem; }
+    .calc-row { display:flex; justify-content:space-between; padding:0.38rem 0; border-bottom:1px solid rgba(200,169,110,0.07); font-size:0.76rem; }
+    .calc-row:last-child { border-bottom:none; }
+    .calc-rl { color:var(--muted); }
+    .calc-rv { color:var(--gold); font-weight:600; }
+    .calc-x {
+      position:absolute; top:0.75rem; right:0.9rem;
+      background:none; border:none; cursor:pointer; color:var(--muted); font-size:1.1rem;
+      transition:color 0.2s; line-height:1;
+    }
+    .calc-x:hover { color:var(--gold); }
+
+    /* �₡� NOTIFY ME �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .notify-box {
+      margin-top:1rem; padding:0.9rem 1rem; border-radius:10px;
+      background:rgba(200,169,110,0.05); border:1px solid rgba(200,169,110,0.14);
+      display:none;
+    }
+    .notify-box.show { display:block; }
+    .notify-lbl { font-size:0.7rem; color:var(--muted); margin-bottom:0.55rem; }
+    .notify-row { display:flex; gap:0.5rem; }
+    .notify-tel {
+      flex:1; background:rgba(18,40,64,0.8); border:1px solid var(--glass-border);
+      border-radius:8px; padding:0.52rem 0.8rem; color:var(--white);
+      font-family:'Montserrat',sans-serif; font-size:0.76rem; outline:none;
+    }
+    .notify-tel:focus { border-color:var(--gold-dk); }
+    .notify-go {
+      padding:0.52rem 1rem; background:var(--gold-dk); border:none; border-radius:8px;
+      color:#fff; font-size:0.7rem; cursor:pointer; font-family:'Montserrat',sans-serif;
+      white-space:nowrap; transition:background 0.2s; font-weight:600;
+    }
+    .notify-go:hover { background:var(--gold); }
+
+    /* �₡� PWA BANNER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .pwa-banner {
+      position:fixed; bottom:5rem; left:50%; transform:translateX(-50%) translateY(12px);
+      background:linear-gradient(135deg,#0d2137,#122840);
+      border:1px solid var(--glass-border); border-radius:40px;
+      padding:0.6rem 0.9rem 0.6rem 1.3rem;
+      display:flex; align-items:center; gap:0.75rem;
+      box-shadow:0 8px 32px rgba(0,0,0,0.45); z-index:350;
+      font-size:0.71rem; color:var(--text); white-space:nowrap;
+      opacity:0; pointer-events:none; transition:opacity 0.4s, transform 0.4s;
+    }
+    .pwa-banner.show { opacity:1; pointer-events:all; transform:translateX(-50%) translateY(0); }
+    .pwa-ok {
+      padding:0.34rem 0.9rem; background:var(--gold-dk); border:none; border-radius:30px;
+      color:#fff; font-size:0.67rem; cursor:pointer; font-family:'Montserrat',sans-serif; font-weight:600;
+      transition:background 0.2s;
+    }
+    .pwa-ok:hover { background:var(--gold); }
+    .pwa-no { background:none; border:none; cursor:pointer; color:var(--muted); font-size:0.9rem; padding:0.15rem 0.2rem; line-height:1; }
+
+    /* �₡� TOP SELLERS BADGE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    .p-card[data-top="1"] .p-badge { display:flex !important; }
+
+    /* �₡� CLOSING BANNER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    #closing-banner {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 201;
+      background: linear-gradient(90deg, var(--gold-dk) 0%, var(--gold) 50%, var(--gold-dk) 100%);
+      color: #060e1c; font-size: 0.68rem; font-weight: 700;
+      letter-spacing: 0.13em; text-transform: uppercase;
+      height: 42px; display: none; overflow: hidden;
+      align-items: center;
+      box-shadow: 0 2px 16px rgba(200,169,110,0.35);
+    }
+    #closing-banner.show { display: flex; }
+    #closing-banner-track {
+      display: inline-flex; align-items: center; gap: 0.6rem;
+      white-space: nowrap; padding: 0 1.5rem;
+      width: 100%; justify-content: center;
+    }
+    #closing-banner.scrolling #closing-banner-track {
+      width: auto; padding: 0 3rem;
+      animation: closing-scroll var(--banner-dur, 16s) linear infinite;
+    }
+    @keyframes closing-scroll {
+      0%   { transform: translateX(100vw); }
+      100% { transform: translateX(-100%); }
+    }
+    body.banner-visible nav { top: 42px; }
+    body.banner-visible .filter-bar { top: calc(var(--nav-h) + 42px); }
+    body.banner-visible .cat-hero { padding-top: calc(var(--nav-h) + 42px); }
   </style>
+  <!-- Meta Pixel -->
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init','934181449682569');
+    fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=934181449682569&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel -->
 </head>
 <body>
-
+<!-- PRELOADER -->
+<div id="preloader" class="preloader">
+  <div class="preloader-content">
+    <img src="logo.jpeg" alt="Chus's Fish Logo" class="preloader-logo-img">
+    <div class="preloader-logo">CHUS'S FISH</div>
+    <div class="preloader-sub">Pescadería Premium</div>
+  </div>
+</div>
 <canvas id="bg-canvas"></canvas>
+
+<!-- CLOSING BANNER -->
+<div id="closing-banner">
+  <div id="closing-banner-track">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    <span id="closing-banner-text"></span>
+  </div>
+</div>
 
 <!-- WA FLOAT -->
 <a href="https://wa.me/50660017370" target="_blank" class="wa-float" aria-label="WhatsApp">
@@ -725,13 +1217,14 @@
 <!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">
-    <img src="logo.png" alt="Chus's Fish logo">
+    <img src="logo.jpeg" alt="Chus's Fish logo">
     Chus<span>'s Fish</span>
   </a>
   <a href="index.html" class="nav-back">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Inicio
   </a>
+  <a href="pedido.html" class="nav-wa" style="font-size:0.62rem;padding:0.45rem 1rem">📦 Mi pedido</a>
   <a href="https://wa.me/50660017370" target="_blank" class="nav-wa">Pedir Ahora</a>
   <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
 </nav>
@@ -743,6 +1236,10 @@
     <p class="cat-eyebrow">Chus's Fish · Distribuidora marina premium</p>
     <h1 class="cat-title">Catálogo <em>completo</em></h1>
     <p class="cat-subtitle">68 productos · Nacional e importado · Entrega a domicilio · Cadena de frío garantizada</p>
+    <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
+      <div id="schedule-chip" class="schedule-chip" style="display:none"></div>
+      <button class="calc-trigger-btn" onclick="openCalc()">🧮 ¿Cuánto necesito?</button>
+    </div>
   </div>
 </div>
 
@@ -754,7 +1251,23 @@
       <input type="text" id="search-input" placeholder="Buscar producto..." autocomplete="off" />
     </div>
     <div class="filter-sep"></div>
+    <!-- Dropdown exclusivo para móvil -->
+    <select id="mobile-filter" class="mobile-filter">
+      <option value="all">Ver Todo (68)</option>
+      <option value="camarones-imp">Camarones Importados (5)</option>
+      <option value="camarones-nac">Camarones Nacionales (5)</option>
+      <option value="filetes-premium">Filete Premium (8)</option>
+      <option value="filetes-trad">Filetes Tradicionales (13)</option>
+      <option value="pescado-entero">Pescado Entero (3)</option>
+      <option value="picadura">Picadura Ceviche (6)</option>
+      <option value="mariscos">Mariscos Varios (18)</option>
+      <option value="mariscadas">Mariscadas y Paellas (4)</option>
+      <option value="gourmet">Gourmet (6)</option>
+      <option value="marinados">Marinados y Empanizadores (9)</option>
+      <option value="top">🔥 Más vendidos</option>
+    </select>
     <button class="filter-pill active" data-cat="all">Todo <span class="pill-count" id="count-all">68</span></button>
+    <button class="filter-pill" data-cat="favs" style="color:var(--gold)">❤️ Favoritos</button>
     <button class="filter-pill" data-cat="camarones-imp">Camarones Importados <span class="pill-count" id="count-camarones-imp">5</span></button>
     <button class="filter-pill" data-cat="camarones-nac">Camarones Nacionales <span class="pill-count" id="count-camarones-nac">5</span></button>
     <button class="filter-pill" data-cat="filetes-premium">Filete Premium <span class="pill-count" id="count-filetes-premium">8</span></button>
@@ -764,7 +1277,31 @@
     <button class="filter-pill" data-cat="mariscos">Mariscos Varios <span class="pill-count" id="count-mariscos">18</span></button>
     <button class="filter-pill" data-cat="mariscadas">Mariscadas y Paellas <span class="pill-count" id="count-mariscadas">4</span></button>
     <button class="filter-pill" data-cat="gourmet">Gourmet <span class="pill-count" id="count-gourmet">6</span></button>
+    <button class="filter-pill" data-cat="marinados">Marinados y Empanizadores <span class="pill-count" id="count-marinados">0</span></button>
+    <div class="filter-sep" style="flex-shrink:0"></div>
+    <button class="filter-pill" data-cat="top">🔥 Más vendidos</button>
   </div>
+</div>
+
+<!-- ESPECIAL DE LA SEMANA -->
+<div id="especial-sep" style="display:none" class="section-sep">
+  <div class="section-sep-line"></div>
+  <div class="section-sep-label">⭐ Oferta especial</div>
+  <div class="section-sep-line"></div>
+</div>
+<div class="especial-section" id="especial-section" style="display:none"></div>
+
+
+<!-- RECETAS DE LA SEMANA -->
+<div id="recetas-sep" style="display:none" class="section-sep">
+  <div class="section-sep-line"></div>
+  <div class="section-sep-label">📖 Recetas de la semana</div>
+  <div class="section-sep-line"></div>
+</div>
+<div class="recetas-section" id="recetas-section" style="display:none">
+  <div class="recetas-title">Recetas de la semana</div>
+  <div class="recetas-sub">Inspiración fresca · Agregá todos los ingredientes al carrito con un solo click</div>
+  <div class="recetas-grid" id="recetas-grid"></div>
 </div>
 
 <!-- RESULTS BAR -->
@@ -783,6 +1320,17 @@
   <p class="footer-tagline">Selección Marina Premium</p>
   <div style="display:flex;justify-content:center;margin-bottom:1rem;">
     <img src="selorecomiendo.png" alt="Se lo recomiendo" style="width:140px;height:140px;object-fit:contain;border-radius:50%;opacity:0.92;">
+  </div>
+  <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:1.2rem;">
+    <a href="https://wa.me/50660017370" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+    </a>
+    <a href="https://instagram.com/chussfish" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    </a>
+    <a href="https://www.facebook.com/chussfish?locale=es_LA" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+    </a>
   </div>
   <p class="footer-copy">© 2025 Chus's Fish · Todos los derechos reservados · WhatsApp: 6001-7370</p>
 </footer>
@@ -805,9 +1353,16 @@
       <div class="modal-price-row">
         <div class="modal-price" id="modal-price"></div>
         <div class="modal-qty">
-          <button class="qty-btn" id="qty-minus">−</button>
+          <button class="qty-btn" id="qty-minus">₡</button>
           <span class="qty-val" id="qty-val">1</span>
           <button class="qty-btn" id="qty-plus">+</button>
+        </div>
+      </div>
+      <div id="notify-box" class="notify-box">
+        <p class="notify-lbl">🔔 ¿Querés que te avisemos cuando esté disponible?</p>
+        <div class="notify-row">
+          <input type="tel" id="notify-phone" class="notify-tel" placeholder="Número WhatsApp (ej. 8888-8888)">
+          <button class="notify-go" onclick="submitNotify()">Avisame</button>
         </div>
       </div>
       <div class="modal-actions">
@@ -838,6 +1393,7 @@
       <span>Estimado:</span>
       <strong id="cart-total-val">₡0</strong>
     </div>
+    <div id="cart-delivery-fee" style="display:none;font-size:0.72rem;color:var(--gold-dk);text-align:right;margin-top:-0.8rem;margin-bottom:0.8rem"></div>
     <button id="cart-wa-btn" class="btn-wa-cart" type="button">
       <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
       Finalizar pedido
@@ -850,7 +1406,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-/* ── FIREBASE ───────────────────────────── */
+/* �₡� FIREBASE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 firebase.initializeApp({
   apiKey:            'AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk',
   authDomain:        'chus-fish.firebaseapp.com',
@@ -867,7 +1423,6 @@ async function loadFromFirestore() {
     const snap = await DOC_REF_CAT.get();
     if (snap.exists && snap.data().products?.length) return snap.data().products;
   } catch(e) {
-    console.warn('Firestore no disponible, usando caché o defaults');
     try {
       const d = localStorage.getItem('chusfish_products');
       if (d) return JSON.parse(d);
@@ -877,12 +1432,12 @@ async function loadFromFirestore() {
 }
 function getStoredImage(id) { return null; } // imágenes ahora en p.img (Cloudinary)
 
-/* ═══════════════════════════════════════════
-   PRODUCTOS REALES — Chus's Fish
-═══════════════════════════════════════════ */
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
+   PRODUCTOS REALES � Chus's Fish
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
 const PRODUCTS_DEFAULT = [
 
-  /* ── CAMARONES IMPORTADOS ──────────────── */
+  /* �₡� CAMARONES IMPORTADOS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:1, cat:'camarones-imp', name:'Camarón Pelado Cultivado Semi-Mediano', price:8500, unit:'/kg', badge:'Importado',
     desc:'Producto cultivado de tamaño semi-mediano. Viene completamente pelado, listo para cocinar directamente sin preparación previa. Ideal para arroces, pastas y salteados.' },
   { id:2, cat:'camarones-imp', name:'Camarón Cultivado Tailón Grande', price:11000, unit:'/kg', badge:'Importado',
@@ -894,7 +1449,7 @@ const PRODUCTS_DEFAULT = [
   { id:5, cat:'camarones-imp', name:'Camarón Cultivo Agua Salada Tailón Extra-Grande', price:12000, unit:'/kg', badge:'Importado',
     desc:'Camarón de agua salada en su formato de tamaño máximo disponible ("extra-grande"). El de mayor impacto visual para presentaciones especiales y eventos.' },
 
-  /* ── CAMARONES NACIONALES ──────────────── */
+  /* �₡� CAMARONES NACIONALES �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:6, cat:'camarones-nac', name:'Camarón con Cabeza Yumbo', price:21600, unit:'/kg', badge:'Nacional · Sin químicos',
     desc:'Camarón entero gigante (tamaño Yumbo) que rinde exactamente 14 piezas por kilo. 100% nacional y libre de químicos. Ideal para sopas, fondos marinos y presentaciones enteras que impresionen.' },
   { id:7, cat:'camarones-nac', name:'Camarón Yumbo', price:25500, unit:'/kg', badge:'Nacional · Sin químicos',
@@ -906,7 +1461,7 @@ const PRODUCTS_DEFAULT = [
   { id:10, cat:'camarones-nac', name:'Camarón Pinki pequeño para arroz', price:9600, unit:'/kg', badge:'Nacional · Sin químicos',
     desc:'Variedad nacional pequeña, idónea y muy buscada para mezclar de forma uniforme en arroces con mariscos. 100% libre de químicos. El tamaño ideal para que cada cucharada tenga camarón.' },
 
-  /* ── FILETE PREMIUM ────────────────────── */
+  /* �₡� FILETE PREMIUM �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:11, cat:'filetes-premium', name:'Filete de Corvina P.P.', price:18500, unit:'/kg', badge:'Premium · Nacional',
     desc:'El premium más solicitado del catálogo. Sumamente buscado porque queda muy suave y delicioso al cocinar. Perfecto para empanizar o para preparar un ceviche de lujo. Nacional, libre de químicos, procesado higiénicamente.' },
   { id:12, cat:'filetes-premium', name:'Filete de Corvina Reina P.G.', price:13500, unit:'/kg', badge:'Premium · Nacional',
@@ -924,7 +1479,7 @@ const PRODUCTS_DEFAULT = [
   { id:18, cat:'filetes-premium', name:'Filete de Trucha con Piel', price:10000, unit:'/kg', badge:'Premium · Cultivo',
     desc:'Pescado premium de cultivo con un sabor suave y agradable. Alternativa muy fácil de preparar, ideal para una comida ligera y saludable. Recomendado especialmente al horno o empanizado.' },
 
-  /* ── FILETES TRADICIONALES ─────────────── */
+  /* �₡� FILETES TRADICIONALES �₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:19, cat:'filetes-trad', name:'Filete de Macarela con Piel', price:6000, unit:'/kg', badge:'Tradicional',
     desc:'Opción económica con un sabor diferenciado e intenso a pescado. Conserva la piel para aportarle un gusto similar al del pescado entero. Especial para hacer empanizado con ese sabor clásico que todos aman.' },
   { id:20, cat:'filetes-trad', name:'Filete de Macarela sin Piel', price:6000, unit:'/kg', badge:'Tradicional',
@@ -952,7 +1507,7 @@ const PRODUCTS_DEFAULT = [
   { id:31, cat:'filetes-trad', name:'Filete de Tilapia', price:null, unit:'/kg', badge:'Más Vendido · Nacional',
     desc:'Uno de los más vendidos. Cultivado nacional de textura suave, totalmente libre de químicos, procesado sin hielo y empacado al vacío. Permite variadas recetas: ceviche, empanizado, a la plancha o al ajillo. Consultar precio disponible.' },
 
-  /* ── PESCADO ENTERO ────────────────────── */
+  /* �₡� PESCADO ENTERO �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:32, cat:'pescado-entero', name:'Pescado Entero Corriente', price:5000, unit:'/kg', badge:'Artesanal · Nacional',
     desc:'Pescado entero de variedad comercial, capturado de manera artesanal. Fresco y económico, ideal para preparaciones tradicionales como frituras enteras o sudados.' },
   { id:33, cat:'pescado-entero', name:'Pescado Entero Corvina PP', price:8500, unit:'/kg', badge:'Artesanal · Nacional',
@@ -960,7 +1515,7 @@ const PRODUCTS_DEFAULT = [
   { id:34, cat:'pescado-entero', name:'Pescado Entero Pargo', price:9000, unit:'/kg', badge:'Artesanal · Nacional',
     desc:'El clásico pargo entero nacional, muy cotizado por la calidad de su carne y su sabor inconfundible. Perfecto para frituras, al horno o a la plancha en cocina artesanal.' },
 
-  /* ── PICADURA PARA CEVICHE ─────────────── */
+  /* �₡� PICADURA PARA CEVICHE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:35, cat:'picadura', name:'Picadura de Dorado', price:13000, unit:'/kg', badge:'Ceviche · Premium',
     desc:'Carne picada en dados de Dorado de calidad premium, lista para marinar directamente. Ideal para un ceviche de sabor equilibrado, firme y muy sabroso.' },
   { id:36, cat:'picadura', name:'Picadura de Marlin Rosado', price:8000, unit:'/kg', badge:'Ceviche · Nacional',
@@ -974,7 +1529,7 @@ const PRODUCTS_DEFAULT = [
   { id:40, cat:'picadura', name:'Picadura de Corvina', price:13500, unit:'/kg', badge:'Ceviche · Clásico',
     desc:'La picadura clásica por excelencia, sumamente suave y la preferida para el ceviche tradicional costarricense. Nacional, libre de químicos. El sabor de referencia.' },
 
-  /* ── MARISCOS VARIOS ───────────────────── */
+  /* �₡� MARISCOS VARIOS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:41, cat:'mariscos', name:'Almeja Blanca', price:5500, unit:'/kg', badge:'Mariscos',
     desc:'Almejas seleccionadas limpias con su concha. Perfectas al vapor, en salsa de vino blanco o para enriquecer sopas y arroces con un sabor auténtico al mar.' },
   { id:42, cat:'mariscos', name:'Mejillón Chileno Media Concha Grande', price:9600, unit:'/kg', badge:'Importado · Chileno',
@@ -1012,7 +1567,7 @@ const PRODUCTS_DEFAULT = [
   { id:58, cat:'mariscos', name:'Ostras Nacionales', price:13600, unit:'/10 uds', badge:'Gourmet · Pedido previo', preorder:true,
     desc:'Ostras frescas de las costas del país, seleccionadas por su frescura y tamaño. Una experiencia gourmet sin igual. El precio es por cada 10 unidades. Se solicitan con una semana de anticipación.' },
 
-  /* ── MARISCADAS Y PAELLAS ──────────────── */
+  /* �₡� MARISCADAS Y PAELLAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:59, cat:'mariscadas', name:"Paella Chus's Fish", price:19000, unit:'/ combo', badge:'Paella · 4-5 personas',
     desc:'Paella gigante de 2.4 kg, ideal para 4 a 5 personas. Completamente llena de sabores. Incluye: Aros de Calamar, Tentáculo, Mejillón media concha Chileno, Mejillón media concha grande, Camarón Jumbo con cabeza, Camarón Juvenil Grande, Almeja Blanca, Pescado y Carne de Mejillón.' },
   { id:60, cat:'mariscadas', name:'Mariscada Premium', price:17500, unit:'/ combo', badge:'Premium · 2-3 personas',
@@ -1022,7 +1577,7 @@ const PRODUCTS_DEFAULT = [
   { id:62, cat:'mariscadas', name:'Mariscada Junior Mariscos', price:8000, unit:'/ combo', badge:'Tradicional · 2-3 personas',
     desc:'Combo con concha de 1 kg para 2 o 3 personas. Opción tradicional accesible de excelente rendimiento. Incluye: Aros de Calamar, Tentáculo, Camarón mediano, Pescado, Jaivas, Mejillón Negro entero, Mejillón real largo y Almeja.' },
 
-  /* ── GOURMET ───────────────────────────── */
+  /* �₡� GOURMET �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
   { id:63, cat:'gourmet', name:'Porción Salmón Chileno Salar', price:12000, unit:'/kg', badge:'Gourmet · Importado',
     desc:'Porciones individuales de Salmón Chileno de la prestigiosa especie Salar (Atlántico). Calidad premium importado, con un sabor rico en grasa natural y color rosado intenso.' },
   { id:64, cat:'gourmet', name:'Porción Salmón Chileno Coho', price:13000, unit:'/kg', badge:'Gourmet · Importado',
@@ -1040,10 +1595,10 @@ const PRODUCTS_DEFAULT = [
 /* Se carga desde Firestore en initCatalog() */
 let PRODUCTS = [];
 
-/* ═══════════════════════════════════════════
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
    CATEGORÍAS
-═══════════════════════════════════════════ */
-const CAT_ORDER = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet'];
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+const CAT_ORDER = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
 
 const CAT_LABELS = {
   'camarones-imp':    'Camarones <em>Importados</em>',
@@ -1055,6 +1610,7 @@ const CAT_LABELS = {
   'mariscos':         'Mariscos <em>Varios</em>',
   'mariscadas':       'Mariscadas <em>y Paellas</em>',
   'gourmet':          'Productos <em>Gourmet</em>',
+  'marinados':        'Marinados <em>y Empanizadores</em>',
 };
 
 const CAT_ICONS = {
@@ -1067,20 +1623,21 @@ const CAT_ICONS = {
   'mariscos':        `<path d="M12 34 Q12 16 26 14 Q40 16 40 34 Q40 44 26 44 Q12 44 12 34Z" stroke="#c8a96e" stroke-width="1.2" fill="none"/><path d="M12 34 Q26 30 40 34" stroke="#c8a96e" stroke-width="0.8" fill="none" opacity="0.5"/>`,
   'mariscadas':      `<rect x="10" y="10" width="32" height="32" rx="4" stroke="#c8a96e" stroke-width="1.2" fill="none"/><path d="M18 26H34M26 18V34" stroke="#c8a96e" stroke-width="1" fill="none" opacity="0.7"/>`,
   'gourmet':         `<path d="M26 10L30 22L44 22L33 30L37 42L26 34L15 42L19 30L8 22L22 22Z" stroke="#c8a96e" stroke-width="1.2" fill="none" opacity="0.8"/>`,
+  'marinados':       `<rect x="12" y="12" width="28" height="28" rx="4" stroke="#c8a96e" stroke-width="1.2" fill="none"/><path d="M18 20L34 20M18 26L34 26M18 32L26 32" stroke="#c8a96e" stroke-width="1" fill="none" opacity="0.7"/>`,
 };
 
 const WA_NUM  = '50660017370';
 const WA_BASE = `https://wa.me/${WA_NUM}?text=`;
 const ICON_WA = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>`;
 
-/* ── FORMAT PRICE ───────────────────────── */
+/* �₡� FORMAT PRICE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 function fmt(price) {
   if (price === null || price === undefined) return 'Consultar';
   return '₡' + price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-/* ── BUILD CARD ─────────────────────────── */
-function buildCard(p) {
+/* �₡� BUILD CARD �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+function buildCard(p, index = 0) {
   const icon = `<svg width="36" height="36" viewBox="0 0 52 52" fill="none">${CAT_ICONS[p.cat]||''}</svg>`;
   const imgSrc = p.img || getStoredImage(p.id);
   const imgBlock = imgSrc
@@ -1090,23 +1647,35 @@ function buildCard(p) {
     ? `<span style="font-size:0.8rem;color:var(--muted)">Consultar</span>`
     : `<small>₡</small>${p.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')} <small style="font-size:0.55rem;color:var(--muted)">${p.unit}</small>`;
 
+  const unavailable = p.available === false || (p.stock != null && p.stock <= 0);
+  const lowStock = !unavailable && p.stock != null && p.stock > 0 && p.stock <= 3;
   return `
-  <div class="p-card" data-id="${p.id}" data-cat="${p.cat}" data-name="${p.name.toLowerCase()} ${(p.desc||'').toLowerCase()}">
-    <div class="p-img">
+  <div class="p-card${unavailable ? ' unavailable' : ''}" style="animation-delay: ${index * 0.05}s" data-id="${p.id}" data-cat="${p.cat}" data-name="${p.name.toLowerCase()} ${(p.desc||'').toLowerCase()}">
+    <div class="p-img ${p.cat === 'marinados' || p.cat === 'gourmet' ? 'p-img-halo' : ''}">
       <span class="p-badge">${p.badge}</span>
       ${imgBlock}
+      ${unavailable ? '<div class="p-unavail-tag"><span>No disponible esta semana</span></div>' : ''}
+      ${lowStock ? `<div style="position:absolute;bottom:6px;left:6px;z-index:3;font-size:0.55rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;background:rgba(243,156,18,0.9);color:#060e1c;padding:0.2rem 0.5rem;border-radius:10px">¡últimas ${p.stock} ${p.unit.replace('/','').trim()}!</div>` : ''}
     </div>
+    <button class="p-fav-btn${isFav(p.id) ? ' active' : ''}" data-fav="${p.id}" title="Guardar en favoritos" onclick="toggleFav('${p.id}',this);event.stopPropagation()">
+      <svg viewBox="0 0 24 24" fill="${isFav(p.id) ? '#e74c3c' : 'none'}" stroke="${isFav(p.id) ? '#e74c3c' : 'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </button>
     <div class="p-body">
       <h3 class="p-name">${p.name}</h3>
     </div>
     <div class="p-footer">
       <div class="p-price">${priceHtml}</div>
-      <button class="p-detail-btn" data-id="${p.id}">Ver más</button>
+      <div style="display:flex;align-items:center;gap:0.5rem">
+        <button class="p-share-btn" onclick="shareProduct('${p.id}');event.stopPropagation()" title="Compartir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </button>
+        <button class="p-detail-btn" data-id="${p.id}"${unavailable ? ' disabled style="opacity:0.4;cursor:not-allowed"' : ''}>Ver más</button>
+      </div>
     </div>
   </div>`;
 }
 
-/* ── BUILD GROUP ────────────────────────── */
+/* �₡� BUILD GROUP �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 function buildGroup(cat) {
   const items = PRODUCTS.filter(p => p.cat === cat);
   if (!items.length) return '';
@@ -1117,11 +1686,11 @@ function buildGroup(cat) {
       <div class="cat-group-line"></div>
       <span class="cat-group-count">${items.length} productos</span>
     </div>
-    <div class="products-grid">${items.map(buildCard).join('')}</div>
+    <div class="products-grid">${items.map((p, i) => buildCard(p, i)).join('')}</div>
   </div>`;
 }
 
-/* ── ACTUALIZAR CONTADORES DE PILLS ─────── */
+/* �₡� ACTUALIZAR CONTADORES DE PILLS �₡₡₡₡₡₡� */
 function updateCounts() {
   const total = PRODUCTS.length;
   const allEl = document.getElementById('count-all');
@@ -1135,13 +1704,13 @@ function updateCounts() {
   if (sub) sub.textContent = `${total} productos · Nacional e importado · Entrega a domicilio · Cadena de frío garantizada`;
 }
 
-/* ── RENDER CATALOG ─────────────────────── */
+/* �₡� RENDER CATALOG �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 const wrap = document.getElementById('catalog-wrap');
 
 async function initCatalog() {
   /* spinner mientras carga */
   wrap.insertAdjacentHTML('beforeend',
-    '<p id="cat-loading" style="text-align:center;color:var(--muted);padding:5rem 1rem;font-size:0.8rem;letter-spacing:0.1em">Cargando productos…</p>');
+    '<p id="cat-loading" style="text-align:center;color:var(--muted);padding:5rem 1rem;font-size:0.8rem;letter-spacing:0.1em">Cargando productos⬦</p>');
 
   PRODUCTS = (await loadFromFirestore()) || PRODUCTS_DEFAULT;
 
@@ -1154,19 +1723,37 @@ async function initCatalog() {
 
   updateCounts();
   applyFilter();
+  restoreCart();
 }
 initCatalog();
 
-/* ── FILTER & SEARCH ────────────────────── */
+/* �₡� FILTER & SEARCH �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 let activeCat = 'all';
 let searchQ   = '';
 
 function applyFilter() {
+  const catalogWrap = document.querySelector('.catalog-wrap');
+  const resultsBar  = document.querySelector('.results-bar');
+  if (catalogWrap) catalogWrap.style.display = '';
+  if (resultsBar)  resultsBar.style.display  = '';
+
   const cards = document.querySelectorAll('.p-card');
+  const favs = getFavs();
   let visible = 0;
 
   cards.forEach(card => {
-    const catOk  = activeCat === 'all' || card.dataset.cat === activeCat;
+    let catOk;
+    if (activeCat === 'all') {
+      catOk = true;
+    } else if (activeCat === 'favs') {
+      catOk = favs.includes(card.dataset.id);
+    } else if (activeCat === 'top') {
+      const pid = parseInt(card.dataset.id);
+      const p = PRODUCTS.find(x => x.id === pid);
+      catOk = p && p.badge && p.badge.toLowerCase().includes('más vendido');
+    } else {
+      catOk = card.dataset.cat === activeCat;
+    }
     const nameOk = card.dataset.name.includes(searchQ);
     const show   = catOk && nameOk;
     card.classList.toggle('hidden', !show);
@@ -1189,18 +1776,35 @@ document.querySelectorAll('.filter-pill').forEach(btn => {
     document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     activeCat = btn.dataset.cat;
+    
+    const mf = document.getElementById('mobile-filter');
+    if (mf) mf.value = activeCat;
+    
     applyFilter();
   });
 });
+
+const mobileFilterEl = document.getElementById('mobile-filter');
+if (mobileFilterEl) {
+  mobileFilterEl.addEventListener('change', (e) => {
+    activeCat = e.target.value;
+    
+    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
+    const matchingBtn = document.querySelector(`.filter-pill[data-cat="${activeCat}"]`);
+    if(matchingBtn) matchingBtn.classList.add('active');
+    
+    applyFilter();
+  });
+}
 
 document.getElementById('search-input').addEventListener('input', e => {
   searchQ = e.target.value.toLowerCase().trim();
   applyFilter();
 });
 
-/* ═══════════════════════════════════════════
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
    UNIT HELPERS
-═══════════════════════════════════════════ */
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
 function isKg(unit)    { return (unit || '').toLowerCase().includes('kg'); }
 function getStep(unit) { return isKg(unit) ? 0.5 : 1; }
 function getMin(unit)  { return isKg(unit) ? 0.5 : 1; }
@@ -1214,9 +1818,9 @@ function fmtQty(qty, unit) {
   return qty + (u ? ' ' + u : '');
 }
 
-/* ═══════════════════════════════════════════
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
    MODAL
-═══════════════════════════════════════════ */
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
 let modalQty = 0.5;
 let currentProduct = null;
 
@@ -1243,12 +1847,12 @@ function updateModalState() {
     modalPrice.innerHTML = `
       ${fmt(total)}<small style="font-size:0.52rem;opacity:0.65;margin-left:3px">${isKg(p.unit) ? 'total' : p.unit}</small>
       <div style="font-size:0.68rem;color:var(--muted);margin-top:5px;font-family:'Montserrat',sans-serif;font-weight:300;letter-spacing:0.04em">
-        ${fmt(p.price)}${p.unit} &nbsp;×&nbsp; ${fmtQty(modalQty, p.unit)}
+        ${fmt(p.price)}${p.unit} &nbsp;·&nbsp; ${fmtQty(modalQty, p.unit)}
       </div>`;
   }
   /* WA directo actualizado */
-  const waMsg = `Hola Chus's Fish! Quisiera pedir:\n• ${fmtQty(modalQty, p.unit)} de ${p.name}` +
-    (p.price ? ` → ${fmt(p.price * modalQty)} (${fmt(p.price)}${p.unit})` : '') +
+  const waMsg = `Hola Chus's Fish! Quisiera pedir:\n⬢ ${fmtQty(modalQty, p.unit)} de ${p.name}` +
+    (p.price ? ` ₡ ${fmt(p.price * modalQty)} (${fmt(p.price)}${p.unit})` : '') +
     `\n\nPor favor confirmar disponibilidad y coordinar entrega. ¡Gracias!`;
   btnWaDirect.href = WA_BASE + encodeURIComponent(waMsg);
 }
@@ -1258,6 +1862,7 @@ function openModal(id) {
   if (!p) return;
   currentProduct = p;
   modalQty = getMin(p.unit);
+  if (window.fbq) fbq('track','ViewContent',{ content_name: p.name, content_ids:[p.id], content_type:'product', value: p.price||0, currency:'CRC' });
 
   modalName.textContent  = p.name;
   modalBadge.textContent = p.badge;
@@ -1280,6 +1885,29 @@ function openModal(id) {
 
   modalPre.style.display = p.preorder ? 'flex' : 'none';
   updateModalState();
+
+  const addBtn = document.getElementById('btn-add-cart');
+  const notifyBox = document.getElementById('notify-box');
+  if (p.available === false) {
+    addBtn.disabled = true;
+    addBtn.textContent = 'No disponible esta semana';
+    addBtn.style.opacity = '0.4';
+    addBtn.style.cursor = 'not-allowed';
+    if (notifyBox) {
+      notifyBox.classList.add('show');
+      notifyBox.innerHTML = `<p class="notify-lbl">🔔 ¿Querés que te avisemos cuando esté disponible?</p>
+        <div class="notify-row">
+          <input type="tel" id="notify-phone" class="notify-tel" placeholder="Número WhatsApp (ej. 8888-8888)">
+          <button class="notify-go" onclick="submitNotify()">Avisame</button>
+        </div>`;
+    }
+  } else {
+    addBtn.disabled = false;
+    addBtn.textContent = 'Agregar al carrito';
+    addBtn.style.opacity = '';
+    addBtn.style.cursor = '';
+    if (notifyBox) notifyBox.classList.remove('show');
+  }
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1318,7 +1946,7 @@ document.getElementById('btn-add-cart').addEventListener('click', () => {
   if (!currentProduct) return;
   addToCart(currentProduct, modalQty);
   closeModal();
-  showToast(`${fmtQty(modalQty, currentProduct.unit)} de ${currentProduct.name} al carrito ✓`);
+  showToast(`${fmtQty(modalQty, currentProduct.unit)} de ${currentProduct.name} al carrito ✅`);
 });
 
 /* click en card */
@@ -1333,10 +1961,58 @@ document.addEventListener('click', e => {
   }
 });
 
-/* ═══════════════════════════════════════════
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
+   FAVORITOS
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+function getFavs() { try { return JSON.parse(localStorage.getItem('chusfish_favs') || '[]'); } catch(e) { return []; } }
+function saveFavs(favs) { try { localStorage.setItem('chusfish_favs', JSON.stringify(favs)); } catch(e) {} }
+function isFav(id) { return getFavs().includes(id); }
+function toggleFav(id, btn) {
+  let favs = getFavs();
+  if (favs.includes(id)) {
+    favs = favs.filter(f => f !== id);
+    btn.classList.remove('active');
+    btn.querySelector('svg').setAttribute('fill','none');
+    btn.querySelector('svg').setAttribute('stroke','currentColor');
+    if (activeCat === 'favs') { const card = document.querySelector(`.p-card[data-id="${id}"]`); if (card) card.classList.add('hidden'); applyFilter(); }
+  } else {
+    favs.push(id);
+    btn.classList.add('active');
+    btn.querySelector('svg').setAttribute('fill','#e74c3c');
+    btn.querySelector('svg').setAttribute('stroke','#e74c3c');
+  }
+  saveFavs(favs);
+}
+
+function shareProduct(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  const priceText = p.price ? `₡${p.price.toLocaleString()} ${p.unit}` : 'precio a consultar';
+  const msg = `🐟✨ *${p.name}* 💰 ${priceText}\n${p.desc ? p.desc.slice(0,80) + '...' : ''}\n\n🐟 Pedilo en Chus's Fish: ${location.href.split('?')[0]}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
    CARRITO
-═══════════════════════════════════════════ */
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
 let cart = [];
+
+function saveCart() {
+  try { localStorage.setItem('chusfish_cart', JSON.stringify(cart.map(i => ({ id: i.product.id, qty: i.qty })))); } catch(e) {}
+}
+
+function restoreCart() {
+  try {
+    const saved = localStorage.getItem('chusfish_cart');
+    if (!saved) return;
+    const entries = JSON.parse(saved);
+    entries.forEach(({ id, qty }) => {
+      const p = PRODUCTS.find(x => x.id === id);
+      if (p && p.available !== false) cart.push({ product: p, qty });
+    });
+    if (cart.length > 0) renderCartUI();
+  } catch(e) {}
+}
 
 function addToCart(product, qty) {
   const existing = cart.find(i => i.product.id === product.id);
@@ -1346,7 +2022,9 @@ function addToCart(product, qty) {
   } else {
     cart.push({ product, qty });
   }
+  saveCart();
   renderCartUI();
+  if (window.fbq) fbq('track','AddToCart',{ content_name: product.name, content_ids:[product.id], content_type:'product', value: (product.price||0)*qty, currency:'CRC' });
 }
 
 function updateCartQty(id, direction) {
@@ -1357,12 +2035,28 @@ function updateCartQty(id, direction) {
   const max  = getMax(item.product.unit);
   item.qty = Math.round((item.qty + direction * step) * 10) / 10;
   item.qty = Math.max(min, Math.min(item.qty, max));
+  saveCart();
   renderCartUI();
 }
 
 function removeFromCart(id) {
   cart = cart.filter(i => i.product.id !== id);
+  saveCart();
   renderCartUI();
+}
+
+let currentDeliveryFee = 0;
+
+function updateDeliveryFee(price) {
+  currentDeliveryFee = price || 0;
+  const el = document.getElementById('cart-delivery-fee');
+  if (!el) return;
+  if (currentDeliveryFee > 0) {
+    el.style.display = '';
+    el.textContent = `+ Envío zona: ₡${currentDeliveryFee.toLocaleString()}`;
+  } else {
+    el.style.display = 'none';
+  }
 }
 
 function renderCartUI() {
@@ -1373,7 +2067,8 @@ function renderCartUI() {
   const totalEl    = document.getElementById('cart-total-val');
   const waBtn      = document.getElementById('cart-wa-btn');
 
-  const total = cart.reduce((sum, i) => sum + (i.product.price || 0) * i.qty, 0);
+  const subtotal = cart.reduce((sum, i) => sum + (i.product.price || 0) * i.qty, 0);
+  const total = subtotal + currentDeliveryFee;
 
   badge.textContent   = cart.length; // nº de productos distintos en el carrito
   badge.style.display = cart.length > 0 ? 'flex' : 'none';
@@ -1408,10 +2103,10 @@ function renderCartUI() {
         ${showSub ? `<div style="font-size:0.64rem;color:var(--gold-lt);margin-top:2px">Total: ${subtotal}</div>` : ''}
       </div>
       <div class="cart-item-controls">
-        <button class="cart-qty-btn" data-action="dec" data-id="${p.id}">−</button>
+        <button class="cart-qty-btn" data-action="dec" data-id="${p.id}">₡</button>
         <span class="cart-qty-val">${fmtQty(item.qty, p.unit)}</span>
         <button class="cart-qty-btn" data-action="inc" data-id="${p.id}">+</button>
-        <button class="cart-remove" data-action="remove" data-id="${p.id}" title="Eliminar">×</button>
+        <button class="cart-remove" data-action="remove" data-id="${p.id}" title="Eliminar">·</button>
       </div>
     </div>`;
   }).join('');
@@ -1420,15 +2115,15 @@ function renderCartUI() {
 
   const hasPreorder = cart.some(i => i.product.preorder);
 
-  let msg = "Hola Chus's Fish! 🐟 Quiero hacer el siguiente pedido:\n\n";
+  let msg = "Hola Chus's Fish! 🛒🐟 Quiero hacer el siguiente pedido:\n\n";
   cart.forEach(i => {
-    msg += `• ${fmtQty(i.qty, i.product.unit)} de ${i.product.name}`;
-    if (i.product.price) msg += ` → ${fmt(i.product.price * i.qty)} (${fmt(i.product.price)}${i.product.unit})`;
-    else msg += ' — Consultar precio';
-    if (i.product.preorder) msg += ' ⚠️ (pedido previo)';
+    msg += `⬢ ${fmtQty(i.qty, i.product.unit)} de ${i.product.name}`;
+    if (i.product.price) msg += ` ₡ ${fmt(i.product.price * i.qty)} (${fmt(i.product.price)}${i.product.unit})`;
+    else msg += ' 💬 Consultar precio';
+    if (i.product.preorder) msg += ' 📅 (pedido previo)';
     msg += '\n';
   });
-  if (hasPreorder) msg += '\n⚠️ Algunos productos requieren pedido con 1 semana de anticipación.\n';
+  if (hasPreorder) msg += '\n📅 Algunos productos requieren pedido con 1 semana de anticipación.\n';
   if (total > 0) msg += `\nEstimado: ${fmt(total)}\n`;
   msg += '\nPor favor confirmar disponibilidad y coordinar entrega. ¡Muchas gracias!';
 
@@ -1438,6 +2133,10 @@ function renderCartUI() {
 document.getElementById('cart-wa-btn').addEventListener('click', function() {
   closeCart();
   openCartOrderForm();
+  if (window.fbq) {
+    const total = cart.reduce((s,i) => s + (i.product.price||0)*i.qty, 0);
+    fbq('track','InitiateCheckout',{ num_items: cart.length, value: total, currency:'CRC' });
+  }
 });
 
 document.getElementById('cart-items').addEventListener('click', e => {
@@ -1466,7 +2165,7 @@ document.getElementById('cart-float').addEventListener('click', openCart);
 document.getElementById('cart-close').addEventListener('click', closeCart);
 document.getElementById('cart-backdrop').addEventListener('click', closeCart);
 
-/* ── TOAST ──────────────────────────────── */
+/* �₡� TOAST �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1474,7 +2173,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-/* ── CANVAS ─────────────────────────────── */
+/* �₡� CANVAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 (function() {
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas.getContext('2d');
@@ -1521,25 +2220,22 @@ function showToast(msg) {
   init(); tick();
 })();
 
-/* ── HAMBURGER ──────────────────────────── */
+/* �₡� HAMBURGER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 document.getElementById('hamburger').addEventListener('click', () => {
   const back = document.querySelector('.nav-back');
   const hidden = window.getComputedStyle(back).display === 'none';
   back.style.display = hidden ? 'inline-flex' : 'none';
 });
 
-/* ── Service Worker ── */
+/* �₡� Service Worker �₡� */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.getRegistrations().then(regs => {
-      regs.forEach(r => r.update());
-    });
-    navigator.serviceWorker.register('/sw.js').then(reg => reg.update()).catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
 </script>
 
-<!-- ═══ ORDER FORM MODAL ════════════════════════════════ -->
+<!-- �"₡"₡"� ORDER FORM MODAL �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� -->
 <div id="order-form-overlay" class="order-form-overlay">
   <div class="order-form-box">
     <button class="order-form-close" id="order-form-close" aria-label="Cerrar">✕</button>
@@ -1557,9 +2253,31 @@ if ('serviceWorker' in navigator) {
           <label for="of-phone">Teléfono</label>
           <input type="tel" id="of-phone" placeholder="8888-8888" autocomplete="tel">
         </div>
+        <div class="order-field" id="of-zone-field" style="display:none">
+          <label>Zona de entrega</label>
+          <div class="zone-chips" id="of-zone-chips"></div>
+        </div>
+        <div class="order-field" id="of-date-field" style="display:none">
+          <label>Fecha de entrega</label>
+          <div class="date-chips" id="of-date-chips"></div>
+        </div>
         <div class="order-field">
           <label for="of-address">Dirección de entrega</label>
           <textarea id="of-address" placeholder="Provincia, cantón, distrito, señas exactas..." rows="3"></textarea>
+        </div>
+        <div class="order-field">
+          <label>Método de pago</label>
+          <div class="zone-chips" id="of-payment-chips">
+            <div class="zone-chip selected" data-value="SINPE Móvil">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>SINPE Móvil
+            </div>
+            <div class="zone-chip" data-value="Efectivo">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>Efectivo
+            </div>
+            <div class="zone-chip" data-value="Transferencia">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l4-4 4 4M7 5v14M21 15l-4 4-4-4M17 19V5"/></svg>Transferencia
+            </div>
+          </div>
         </div>
         <button type="submit" class="order-form-submit">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
@@ -1572,7 +2290,176 @@ if ('serviceWorker' in navigator) {
 </div>
 
 <script>
-/* ── ORDER FORM (carrito) ──────────────────────────── */
+/* �₡� CONFIG: Banner y Zonas de entrega �₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+function showBanner(msg) {
+  const bannerEl    = document.getElementById('closing-banner');
+  const bannerTrack = document.getElementById('closing-banner-track');
+  document.getElementById('closing-banner-text').textContent = msg;
+  bannerEl.classList.add('show');
+  document.body.classList.add('banner-visible');
+  requestAnimationFrame(() => {
+    if (bannerTrack.scrollWidth > bannerEl.clientWidth) {
+      const dur = Math.max(12, Math.round(msg.length * 0.22));
+      bannerEl.style.setProperty('--banner-dur', dur + 's');
+      bannerEl.classList.add('scrolling');
+    }
+  });
+}
+
+(async function loadSiteConfig() {
+  try {
+    const cfgSnap = await db_cat.collection('chusfish').doc('config').get();
+    if (!cfgSnap.exists) return;
+    const cfg = cfgSnap.data();
+
+    if (cfg.closingEnabled && cfg.closingMessage) {
+      showBanner(cfg.closingMessage);
+    }
+
+    startCountdown(cfg);
+
+    if (cfg.scheduleEnabled && cfg.openTime && cfg.closeTime) {
+      const now = new Date();
+      const [oh, om] = cfg.openTime.split(':').map(Number);
+      const [ch, cm] = cfg.closeTime.split(':').map(Number);
+      const nowMin  = now.getHours() * 60 + now.getMinutes();
+      const openMin = oh * 60 + om;
+      const closeMin = ch * 60 + cm;
+      const isClosed = nowMin < openMin || nowMin >= closeMin;
+      if (isClosed) {
+        const waBtn = document.getElementById('cart-wa-btn');
+        if (waBtn) {
+          waBtn.disabled = true;
+          waBtn.style.opacity = '0.45';
+          waBtn.style.cursor = 'not-allowed';
+          waBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Pedidos hasta las ${cfg.closeTime}`;
+        }
+        if (!cfg.closingEnabled) {
+          showBanner(`Pedidos cerrados · Horario: ${cfg.openTime} - ${cfg.closeTime}`);
+        }
+      }
+    }
+
+    if (cfg.zones && cfg.zones.length > 0) {
+      const activeZones = cfg.zones.filter(z => z.active !== false);
+      if (activeZones.length > 0) {
+        const chipsWrap = document.getElementById('of-zone-chips');
+        activeZones.forEach(z => {
+          const chip = document.createElement('div');
+          chip.className = 'zone-chip';
+          chip.dataset.value = z.name;
+          chip.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${z.name}`;
+          chip.addEventListener('click', () => {
+            chipsWrap.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+            chipsWrap.classList.remove('of-error');
+            updateDeliveryFee(z.price || 0);
+          });
+          chipsWrap.appendChild(chip);
+        });
+        document.getElementById('of-zone-field').style.display = '';
+      }
+    }
+    if (cfg.deliveryDays && cfg.deliveryDays.length > 0) {
+      const DAY_NAMES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+      const MON_NAMES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+      const dateChipsWrap = document.getElementById('of-date-chips');
+      const today = new Date(); today.setHours(0,0,0,0);
+      const dates = [];
+      for (let offset = 1; offset <= 14; offset++) {
+        const d = new Date(today); d.setDate(today.getDate() + offset);
+        if (cfg.deliveryDays.includes(d.getDay())) dates.push(d);
+      }
+      if (dates.length > 0) {
+        dates.forEach(d => {
+          const chip = document.createElement('div');
+          chip.className = 'date-chip';
+          const label = `${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON_NAMES[d.getMonth()]}`;
+          chip.dataset.value = label;
+          chip.innerHTML = `<span class="dc-day">${DAY_NAMES[d.getDay()]}</span><span class="dc-num">${d.getDate()}</span><span class="dc-mon">${MON_NAMES[d.getMonth()]}</span>`;
+          chip.addEventListener('click', () => {
+            dateChipsWrap.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
+            chip.classList.add('selected');
+            dateChipsWrap.classList.remove('of-error');
+          });
+          dateChipsWrap.appendChild(chip);
+        });
+        document.getElementById('of-date-field').style.display = '';
+      }
+    }
+    /* �₡� ESPECIAL DE LA SEMANA �₡� */
+    if (cfg.especial && cfg.especial.productId) {
+      const esp = cfg.especial;
+      const prod = PRODUCTS.find(p => p.id === esp.productId);
+      if (prod) {
+        const sec = document.getElementById('especial-section');
+        const regularPrice = prod.price;
+        const specialPrice = esp.price || null;
+        const imgHtml = (prod.img || getStoredImage(prod.id))
+          ? `<img class="especial-img" src="${prod.img || getStoredImage(prod.id)}" alt="${prod.name}">`
+          : '';
+        sec.innerHTML = `<div class="especial-card">
+          ${imgHtml}
+          <div style="flex:1">
+            <div class="especial-badge">⭐ Especial de la semana</div>
+            <div class="especial-name">${prod.name}</div>
+            ${esp.msg ? `<div class="especial-msg">${esp.msg}</div>` : ''}
+            <div class="especial-price-wrap">
+              ${specialPrice ? `<div class="especial-price-new">₡${specialPrice.toLocaleString()}</div>` : ''}
+              ${regularPrice ? `<div class="${specialPrice ? 'especial-price-old' : 'especial-price-new'}">₡${regularPrice.toLocaleString()} <small style="font-size:0.55em;opacity:0.7">${prod.unit}</small></div>` : ''}
+            </div>
+            <button class="especial-cta" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id==='${prod.id}'});if(p)addToCart(p,getMin(p.unit));showToast('${prod.name.replace(/'/g,"\\'")} agregado al carrito ✅')})()">Agregar al carrito</button>
+          </div>
+        </div>`;
+        sec.style.display = '';
+        const espSep = document.getElementById('especial-sep');
+        if (espSep) espSep.style.display = '';
+      }
+    }
+
+    /* �₡� RECETAS DE LA SEMANA �₡� */
+    if (cfg.recipes && cfg.recipes.length > 0) {
+      const grid = document.getElementById('recetas-grid');
+      grid.innerHTML = cfg.recipes.map((r, ri) => {
+        const ingsHtml = (r.ingredients || []).map(ing =>
+          `<div class="receta-ing-row"><span class="receta-ing-name">${ing.name}</span><span class="receta-ing-qty">${ing.qty}</span></div>`
+        ).join('');
+        const icons = ['🍤','🐟','🦐','🦑','🐙','🍽️','🐠'];
+        return `<div class="receta-card">
+          <div class="receta-header-icon">${icons[ri % icons.length]}</div>
+          <div class="receta-card-title">${r.name}</div>
+          ${r.desc ? `<div class="receta-card-desc">${r.desc}</div>` : ''}
+          <div class="receta-ingredientes-label">Ingredientes</div>
+          <div class="receta-ingredientes">${ingsHtml}</div>
+          <button class="receta-add-btn" onclick="addRecipeToCart(${ri})">+ Agregar ingredientes al carrito</button>
+        </div>`;
+      }).join('');
+      document.getElementById('recetas-section').style.display = '';
+      const recSep = document.getElementById('recetas-sep');
+      if (recSep) recSep.style.display = '';
+      window._recipes = cfg.recipes;
+    }
+
+  } catch(e) {
+  }
+})();
+
+
+function addRecipeToCart(recipeIdx) {
+  const r = (window._recipes || [])[recipeIdx];
+  if (!r || !r.ingredients) return;
+  let added = 0;
+  r.ingredients.forEach(ing => {
+    const p = PRODUCTS.find(x => x.name.toLowerCase().includes(ing.name.toLowerCase()));
+    if (p && p.available !== false) {
+      const qty = parseFloat(ing.qty) || getMin(p.unit);
+      addToCart(p, qty); added++;
+    }
+  });
+  showToast(added > 0 ? `${added} ingrediente${added>1?'s':''} de "${r.name}" al carrito ✅` : 'No se encontraron productos disponibles');
+}
+
+/* �₡� ORDER FORM (carrito) �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
 function openCartOrderForm() {
   const cartItems = cart; // cart is defined in the main script
   if (!cartItems || cartItems.length === 0) return;
@@ -1583,8 +2470,8 @@ function openCartOrderForm() {
   summary.style.display = 'block';
 
   let itemsHtml = cartItems.map(i => {
-    let line = '• ' + fmtQty(i.qty, i.product.unit) + ' de ' + i.product.name;
-    if (i.product.price) line += ' → ' + fmt(i.product.price * i.qty);
+    let line = '⬢ ' + fmtQty(i.qty, i.product.unit) + ' de ' + i.product.name;
+    if (i.product.price) line += ' ₡ ' + fmt(i.product.price * i.qty);
     if (i.product.preorder) line += ' <span style="color:var(--gold-lt);font-size:0.7em">· Previo</span>';
     return '<div class="order-form-summary-item">' + line + '</div>';
   }).join('');
@@ -1601,6 +2488,16 @@ function openCartOrderForm() {
     el.value = '';
     el.classList.remove('of-error');
   });
+  const zoneChips = document.getElementById('of-zone-chips');
+  if (zoneChips) { zoneChips.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected')); zoneChips.classList.remove('of-error'); }
+  const dateChips = document.getElementById('of-date-chips');
+  if (dateChips) { dateChips.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected')); dateChips.classList.remove('of-error'); }
+  // Default payment to SINPE
+  const payChips = document.getElementById('of-payment-chips');
+  if (payChips) {
+    payChips.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected'));
+    payChips.querySelector('.zone-chip').classList.add('selected');
+  }
 
   const ov = document.getElementById('order-form-overlay');
   ov.classList.add('open');
@@ -1613,6 +2510,14 @@ function closeOrderForm() {
   document.body.style.overflow = '';
 }
 
+// Payment chips click handler
+document.getElementById('of-payment-chips').addEventListener('click', e => {
+  const chip = e.target.closest('.zone-chip');
+  if (!chip) return;
+  document.querySelectorAll('#of-payment-chips .zone-chip').forEach(c => c.classList.remove('selected'));
+  chip.classList.add('selected');
+});
+
 document.getElementById('order-form-close').addEventListener('click', closeOrderForm);
 document.getElementById('order-form-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeOrderForm();
@@ -1621,11 +2526,24 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeOrderForm();
 });
 
-document.getElementById('order-form').addEventListener('submit', function(e) {
+document.getElementById('order-form').addEventListener('submit', async function(e) {
   e.preventDefault();
   const name    = document.getElementById('of-name').value.trim();
   const phone   = document.getElementById('of-phone').value.trim();
   const address = document.getElementById('of-address').value.trim();
+  const zoneField   = document.getElementById('of-zone-field');
+  const zoneChipsEl = document.getElementById('of-zone-chips');
+  const dateField   = document.getElementById('of-date-field');
+  const dateChipsEl = document.getElementById('of-date-chips');
+  const payChipsEl  = document.getElementById('of-payment-chips');
+  const zoneVisible = zoneField && zoneField.style.display !== 'none';
+  const dateVisible = dateField && dateField.style.display !== 'none';
+  const selectedZone    = zoneChipsEl ? zoneChipsEl.querySelector('.zone-chip.selected') : null;
+  const selectedDate    = dateChipsEl ? dateChipsEl.querySelector('.date-chip.selected') : null;
+  const selectedPayment = payChipsEl  ? payChipsEl.querySelector('.zone-chip.selected')  : null;
+  const payment = selectedPayment ? selectedPayment.dataset.value : 'SINPE Móvil';
+  const zone  = selectedZone ? selectedZone.dataset.value : '';
+  const fecha = selectedDate ? selectedDate.dataset.value : '';
 
   let valid = true;
   [['of-name', name], ['of-phone', phone], ['of-address', address]].forEach(([id, val]) => {
@@ -1633,29 +2551,308 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
     if (!val) { el.classList.add('of-error'); valid = false; }
     else el.classList.remove('of-error');
   });
+  if (zoneVisible && !zone) { if (zoneChipsEl) zoneChipsEl.classList.add('of-error'); valid = false; }
+  else if (zoneChipsEl) zoneChipsEl.classList.remove('of-error');
+  if (dateVisible && !fecha) { if (dateChipsEl) dateChipsEl.classList.add('of-error'); valid = false; }
+  else if (dateChipsEl) dateChipsEl.classList.remove('of-error');
   if (!valid) return;
 
-  let finalMsg = "Hola Chus's Fish! 🐟 Quiero hacer un pedido a domicilio:\n\n";
+  let finalMsg = "Hola Chus's Fish! 🛒🐟 Quiero hacer un pedido a domicilio:\n\n";
   finalMsg += '📋 *Mis datos:*\n';
   finalMsg += '*Nombre:* ' + name + '\n';
   finalMsg += '*Teléfono:* ' + phone + '\n';
-  finalMsg += '*Dirección de entrega:* ' + address + '\n\n';
-  finalMsg += '🛒 *Mi pedido:*\n';
+  if (zoneVisible && zone) finalMsg += '*Zona de entrega:* ' + zone + (currentDeliveryFee > 0 ? ` (envío ₡${currentDeliveryFee.toLocaleString()})` : '') + '\n';
+  if (dateVisible && fecha) finalMsg += '*Fecha de entrega:* ' + fecha + '\n';
+  finalMsg += '*Dirección:* ' + address + '\n';
+  finalMsg += '*Pago:* ' + payment + '\n\n';
+  finalMsg += '📦 *Mi pedido:*\n';
 
+  const itemsForOrder = [];
   if (window._cartWaMsg) {
-    // Append only the items part (skip the greeting already in _cartWaMsg)
     const itemsOnly = window._cartWaMsg
       .replace(/^Hola Chus's Fish!.*?\n\n/s, '')
       .replace(/\nPor favor confirmar.*$/s, '');
     finalMsg += itemsOnly;
   }
+  cart.forEach(i => itemsForOrder.push({ id: i.product.id, name: i.product.name, qty: i.qty, unit: i.product.unit, price: i.product.price }));
 
   finalMsg += '\nPor favor confirmar disponibilidad y coordinar la entrega. ¡Muchas gracias!';
 
+  try {
+    await db_cat.collection('orders').add({
+      customer: { name, phone, address, zone: zone || null, fecha: fecha || null, payment },
+      items: itemsForOrder,
+      status: 'pendiente',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    if (window.fbq) {
+      const orderTotal = itemsForOrder.reduce((s,i) => s + (i.price||0)*i.qty, 0);
+      fbq('track','Purchase',{ value: orderTotal, currency:'CRC', num_items: itemsForOrder.length });
+    }
+  } catch(err) {}
+
+  cart = [];
+  saveCart();
   closeOrderForm();
   window.open('https://wa.me/50660017370?text=' + encodeURIComponent(finalMsg), '_blank');
+});
+
+/* �₡� PRELOADER LOGIC �₡� */
+window.addEventListener('load', () => {
+  const preloader = document.getElementById('preloader');
+  if (preloader) {
+    // Delay de 2.5 segundos para garantizar que las imágenes JS tengan tiempo de cargar y que la animación se disfrute.
+    setTimeout(() => {
+      preloader.classList.add('fade-out');
+      setTimeout(() => preloader.remove(), 800); // Quitar del DOM tras la animación
+    }, 2500);
+  }
+});
+</script>
+
+<style>
+  @media print {
+    /* Ocultar elementos no deseados */
+    nav, .filter-bar, footer, .cart-float, .wa-float, .cat-hero, .mobile-filter, #toast, .modal-overlay, #preloader, .results-bar { display: none !important; }
+    
+    /* Configuración del fondo oscuro y colores originales */
+    body { 
+      background: #060e1c !important; 
+      color: #d4dde8 !important; 
+      -webkit-print-color-adjust: exact !important; 
+      print-color-adjust: exact !important; 
+      padding-top: 100px !important; 
+    }
+    
+    /* Header fijo que se repite en cada página */
+    #print-header {
+      display: flex !important;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 80px;
+      background: #060e1c !important;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      z-index: 9999;
+      border-bottom: 1px solid rgba(200,169,110,0.3);
+    }
+    #print-header img { height: 50px; border-radius: 8px; }
+    #print-header h2 { 
+      font-family: 'Cormorant Garamond', serif; 
+      font-size: 2rem; 
+      color: #c8a96e !important; 
+      margin: 0; font-weight: 600;
+    }
+    #print-header h2 em { font-style: italic; font-weight: 300; }
+
+    /* Estructura del contenido */
+    .catalog-wrap { padding: 0 !important; max-width: 100% !important; margin-top: 0 !important; }
+    .cat-group-title { color: #ffffff !important; border-bottom: 1px solid rgba(200,169,110,0.3) !important; padding-bottom: 0.5rem !important; }
+    .cat-group-title em { color: #c8a96e !important; }
+    .cat-group-line { display: none !important; }
+    
+    /* Tarjetas de productos */
+    .p-card { 
+      break-inside: avoid; 
+      box-shadow: none !important; 
+      border: 1px solid rgba(200,169,110,0.3) !important; 
+      background: rgba(13,33,55,0.55) !important;
+      transform: none !important;
+    }
+    .p-card::after { display: none !important; }
+    .p-detail-btn { display: none !important; }
+    .products-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 0.8rem !important; }
+    
+    /* Detalles de la tarjeta */
+    .p-img { aspect-ratio: 1/1; background: #0d2137 !important; }
+    .p-img-placeholder svg { color: #c8a96e !important; opacity: 0.3 !important; }
+    .p-img-placeholder span { color: #c8a96e !important; opacity: 0.5 !important; }
+    .p-name { font-size: 0.9rem !important; color: #ffffff !important; font-weight: 400 !important; margin-bottom: 0.2rem !important; }
+    .p-price { font-size: 1rem !important; color: #c8a96e !important; font-weight: 400 !important; }
+    .p-price small { color: #7a95aa !important; }
+    .p-badge { font-size: 0.5rem !important; background: rgba(6,14,28,0.8) !important; color: #c8a96e !important; border: 1px solid #9a7a48 !important; }
+    .p-footer { border-top: 1px solid rgba(200,169,110,0.15) !important; padding: 0.5rem 0.9rem !important; margin-top: 0.4rem !important; }
+    .cat-group { margin-bottom: 2.5rem !important; }
+  }
+</style>
+
+<!-- Header especial para impresión -->
+<div id="print-header" style="display: none;">
+  <img src="logo.jpeg" alt="Chus's Fish Logo">
+  <h2>Chus<em>'s Fish</em></h2>
+</div>
+
+<!-- CALCULADORA DE PORCIONES -->
+<div id="calc-overlay" class="calc-overlay" onclick="if(event.target===this)closeCalc()">
+  <div class="calc-box">
+    <button class="calc-x" onclick="closeCalc()">✕</button>
+    <h3 class="calc-title">🧮 ¿Cuánto necesito?</h3>
+    <label class="calc-lbl">¿Cuántas personas van a comer?</label>
+    <input type="number" id="calc-guests" class="calc-num" value="4" min="1" max="100">
+    <label class="calc-lbl">¿Cómo lo van a preparar?</label>
+    <div class="calc-types">
+      <button class="calc-type active" data-type="ceviche">🍋 Ceviche</button>
+      <button class="calc-type" data-type="frito">🍳 Frito / Apanado</button>
+      <button class="calc-type" data-type="parrilla">🔥 Parrilla / Grill</button>
+      <button class="calc-type" data-type="sopa">🍲 Sopa / Arroz</button>
+    </div>
+    <div id="calc-result" class="calc-result"></div>
+  </div>
+</div>
+
+<!-- PWA INSTALL BANNER -->
+<div id="pwa-banner" class="pwa-banner">
+  <span>📲 Instalá la app de Chus's Fish</span>
+  <button class="pwa-ok" id="pwa-install-btn">Instalar</button>
+  <button class="pwa-no" onclick="dismissPWA()">✕</button>
+</div>
+
+<script>
+  if (window.location.search.includes('print=true')) {
+    setTimeout(() => {
+      // Forzar carga de imágenes quitando el lazy loading
+      document.querySelectorAll('img').forEach(img => {
+        img.removeAttribute('loading');
+      });
+      
+      // Pequeño truco: hacer scroll hacia abajo para asegurar que el navegador registre las imágenes
+      window.scrollTo(0, document.body.scrollHeight);
+      
+      setTimeout(() => {
+        window.scrollTo(0, 0);
+        setTimeout(() => {
+          window.print();
+        }, 2000); // Dar 2 segundos para descargar las fotos
+      }, 500);
+    }, 3000); // Esperar a Firebase
+  }
+
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
+   COUNTDOWN DE HORARIO
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+function startCountdown(cfg) {
+  if (!cfg.scheduleEnabled || !cfg.openTime || !cfg.closeTime) return;
+  const chip = document.getElementById('schedule-chip');
+  if (!chip) return;
+
+  function tick() {
+    const now = new Date();
+    const [oh, om] = cfg.openTime.split(':').map(Number);
+    const [ch, cm] = cfg.closeTime.split(':').map(Number);
+    const openMins  = oh * 60 + om;
+    const closeMins = ch * 60 + cm;
+    const nowMins   = now.getHours() * 60 + now.getMinutes();
+
+    chip.style.display = 'inline-flex';
+    if (nowMins >= openMins && nowMins < closeMins) {
+      const rem = closeMins - nowMins;
+      const h = Math.floor(rem / 60), m = rem % 60;
+      chip.className = 'schedule-chip open';
+      chip.innerHTML = `<span class="sched-dot"></span> Pedidos abiertos · cierra en ${h > 0 ? h + 'h ' : ''}${m}m`;
+    } else {
+      chip.className = 'schedule-chip closed';
+      chip.innerHTML = `<span class="sched-dot"></span> Pedidos cerrados · Abrimos a las ${cfg.openTime}`;
+    }
+  }
+  tick();
+  setInterval(tick, 60000);
+}
+
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
+   CALCULADORA DE PORCIONES
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+const PORCIONES = {
+  ceviche:  { label: 'Ceviche / Tiradito',   g: 180 },
+  frito:    { label: 'Frito / Apanado',       g: 220 },
+  parrilla: { label: 'Parrilla / Grill',      g: 300 },
+  sopa:     { label: 'Sopa / Arroz marino',   g: 250 },
+};
+let calcType = 'ceviche';
+
+function openCalc() {
+  document.getElementById('calc-overlay').classList.add('open');
+  renderCalcResult();
+}
+function closeCalc() {
+  document.getElementById('calc-overlay').classList.remove('open');
+}
+function renderCalcResult() {
+  const guests = Math.max(1, parseInt(document.getElementById('calc-guests').value) || 1);
+  const p = PORCIONES[calcType];
+  const totalG = guests * p.g;
+  const label  = totalG >= 1000 ? (totalG / 1000).toFixed(2) + ' kg' : totalG + ' g';
+  document.getElementById('calc-result').innerHTML = `
+    <div class="calc-row"><span class="calc-rl">Preparación</span><span class="calc-rv">${p.label}</span></div>
+    <div class="calc-row"><span class="calc-rl">Personas</span><span class="calc-rv">${guests}</span></div>
+    <div class="calc-row"><span class="calc-rl">Porción recomendada</span><span class="calc-rv">${p.g} g c/u</span></div>
+    <div class="calc-row"><span class="calc-rl">Total a comprar</span><span class="calc-rv">${label}</span></div>
+    <div class="calc-row" style="font-size:0.62rem"><span class="calc-rl" style="color:rgba(122,149,170,0.65)">Para entrada, reducí un 30%</span><span></span></div>
+  `;
+}
+
+document.querySelectorAll('.calc-type').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.calc-type').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calcType = btn.dataset.type;
+    renderCalcResult();
+  });
+});
+document.getElementById('calc-guests').addEventListener('input', renderCalcResult);
+
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
+   AVISAME CUANDO EST�0 DISPONIBLE
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+async function submitNotify() {
+  const p = currentProduct;
+  if (!p) return;
+  const phone = (document.getElementById('notify-phone')?.value || '').trim();
+  if (!phone) { showToast('Ingresá tu número de WhatsApp'); return; }
+  try {
+    await db_cat.collection('notifications').add({
+      productId:   p.id || p.name,
+      productName: p.name,
+      phone,
+      createdAt:   new Date(),
+    });
+    const nb = document.getElementById('notify-box');
+    if (nb) nb.innerHTML = '<p style="color:#4ade80;font-size:0.78rem;text-align:center;padding:0.3rem 0">✅ ¡Listo! Te avisamos cuando vuelva a estar disponible.</p>';
+  } catch(e) {
+    showToast('Error al guardar. Intentá de nuevo.');
+  }
+}
+
+/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
+   PWA INSTALL PROMPT
+�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  if (!localStorage.getItem('chusfish_pwa_dismissed')) {
+    setTimeout(() => document.getElementById('pwa-banner')?.classList.add('show'), 4000);
+  }
+});
+function dismissPWA() {
+  document.getElementById('pwa-banner')?.classList.remove('show');
+  localStorage.setItem('chusfish_pwa_dismissed', '1');
+}
+document.getElementById('pwa-install-btn')?.addEventListener('click', async () => {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  const { outcome } = await deferredInstall.userChoice;
+  deferredInstall = null;
+  document.getElementById('pwa-banner')?.classList.remove('show');
+  if (outcome === 'accepted') localStorage.setItem('chusfish_pwa_dismissed', '1');
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('pwa-banner')?.classList.remove('show');
+  deferredInstall = null;
 });
 </script>
 
 </body>
 </html>
+
+

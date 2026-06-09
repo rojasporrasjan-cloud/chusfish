@@ -1,0 +1,311 @@
+�<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Mi Pedido - Chus's Fish</title>
+  <link rel="icon" href="logo.jpeg" type="image/jpeg">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a1628">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="canonical" href="https://chusfish.com/catalogo.html">
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --deep:#060e1c;--ocean:#0a1628;--petrol:#0d2137;
+      --gold:#c8a96e;--gold-lt:#e8c98a;--gold-dk:#9a7a48;
+      --text:#d4dde8;--muted:#7a95aa;
+      --glass:rgba(13,33,55,0.6);--gb:rgba(200,169,110,0.18);
+      --radius:12px;
+      --green:#27ae60;--amber:#f39c12;--blue:#2980b9;--red:#e74c3c;
+    }
+    html,body{min-height:100%;background:var(--deep);color:var(--text);font-family:'Montserrat',sans-serif}
+    body{background:radial-gradient(ellipse 100% 60% at 50% 0%,var(--petrol) 0%,var(--deep) 70%)}
+
+    /* NAV */
+    nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;border-bottom:1px solid var(--gb);position:sticky;top:0;background:rgba(6,14,28,0.85);backdrop-filter:blur(12px);z-index:10}
+    .nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);text-decoration:none}
+    .nav-logo em{font-style:italic;font-weight:300}
+    .nav-back{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:0.4rem;transition:color 0.2s}
+    .nav-back:hover{color:var(--gold)}
+
+    /* MAIN */
+    .page{max-width:560px;margin:0 auto;padding:3rem 1.5rem 6rem}
+    .page-title{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:var(--white);margin-bottom:0.3rem}
+    .page-sub{font-size:0.75rem;color:var(--muted);margin-bottom:2.5rem;letter-spacing:0.06em}
+
+    /* SEARCH BOX */
+    .search-box{display:flex;gap:0.6rem;margin-bottom:2rem}
+    .search-input{
+      flex:1;padding:0.85rem 1.1rem;
+      background:rgba(13,33,55,0.8);border:1.5px solid var(--gb);border-radius:30px;
+      color:var(--text);font-size:0.88rem;outline:none;transition:border-color 0.3s;
+      font-family:'Montserrat',sans-serif;
+    }
+    .search-input:focus{border-color:var(--gold-dk)}
+    .search-input::placeholder{color:var(--muted)}
+    .search-btn{
+      padding:0.85rem 1.5rem;border-radius:30px;border:none;
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold));
+      color:var(--deep);font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;
+      font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;
+      font-family:'Montserrat',sans-serif;
+    }
+    .search-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(200,169,110,0.3)}
+
+    /* RESULT */
+    #result{display:none}
+    .order-result-card{background:var(--glass);border:1px solid var(--gb);border-radius:16px;padding:1.6rem;margin-bottom:1rem}
+    .orc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.2rem;gap:1rem;flex-wrap:wrap}
+    .orc-name{font-size:1rem;font-weight:600;color:var(--white)}
+    .orc-date{font-size:0.68rem;color:var(--muted);margin-top:0.15rem}
+
+    /* STATUS PILL */
+    .order-status{display:inline-flex;align-items:center;gap:0.35rem;padding:0.3rem 0.8rem;border-radius:20px;font-size:0.62rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+    .order-status.pendiente  {background:rgba(243,156,18,0.15);color:var(--amber)}
+    .order-status.confirmado {background:rgba(41,128,185,0.15);color:var(--blue)}
+    .order-status.en_camino  {background:rgba(142,68,173,0.15);color:#9b59b6}
+    .order-status.entregado  {background:rgba(39,174,96,0.15); color:var(--green)}
+    .order-status.cancelado  {background:rgba(231,76,60,0.15); color:var(--red)}
+
+    /* TIMELINE */
+    .timeline{display:flex;flex-direction:column;gap:0;margin-bottom:1.4rem}
+    .tl-step{display:flex;gap:1rem;align-items:flex-start}
+    .tl-icon-wrap{display:flex;flex-direction:column;align-items:center;gap:0}
+    .tl-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;border:2px solid var(--gb);background:var(--petrol);color:var(--muted);transition:all 0.3s}
+    .tl-icon.done{background:rgba(39,174,96,0.2);border-color:var(--green);color:var(--green)}
+    .tl-icon.active{background:rgba(200,169,110,0.15);border-color:var(--gold);color:var(--gold)}
+    .tl-line{width:2px;height:28px;background:var(--gb);margin:2px 0}
+    .tl-line.done{background:rgba(39,174,96,0.3)}
+    .tl-content{padding-bottom:1.4rem}
+    .tl-label{font-size:0.78rem;font-weight:600;margin-bottom:0.1rem}
+    .tl-label.done{color:var(--green)}
+    .tl-label.active{color:var(--gold)}
+    .tl-label.pending{color:var(--muted)}
+    .tl-sub{font-size:0.66rem;color:var(--muted)}
+
+    .orc-items{margin-bottom:1rem}
+    .orc-items-title{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem}
+    .orc-item-row{display:flex;justify-content:space-between;font-size:0.78rem;padding:0.3rem 0;border-bottom:1px solid rgba(200,169,110,0.06)}
+    .orc-item-name{color:var(--text)}
+    .orc-item-qty{color:var(--muted)}
+    .orc-total{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);margin-bottom:0.5rem}
+    .orc-meta{font-size:0.72rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:0.8rem}
+    .orc-wa-btn{
+      display:inline-flex;align-items:center;gap:0.4rem;margin-top:1rem;
+      padding:0.55rem 1.2rem;border-radius:20px;border:1px solid rgba(37,211,102,0.4);
+      background:rgba(37,211,102,0.08);color:#25d366;
+      font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;
+      cursor:pointer;text-decoration:none;transition:all 0.2s;
+    }
+    .orc-wa-btn:hover{background:rgba(37,211,102,0.15)}
+
+    .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+    .empty-state svg{width:56px;height:56px;opacity:0.2;margin-bottom:1rem}
+    .empty-state p{font-size:0.85rem;line-height:1.6}
+
+    .loading-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 1.2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+  </style>
+  <!-- Meta Pixel -->
+  <script>
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+    n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+    document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init','934181449682569');
+    fbq('track','PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=934181449682569&ev=PageView&noscript=1"/></noscript>
+  <!-- End Meta Pixel -->
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html"><em>Chus's</em> Fish</a>
+  <a class="nav-back" href="catalogo.html">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Volver al catálogo
+  </a>
+</nav>
+
+<div class="page">
+  <h1 class="page-title">Mi pedido</h1>
+  <p class="page-sub">Ingresá tu número de teléfono para ver el estado de tus pedidos</p>
+
+  <div class="search-box">
+    <input class="search-input" type="tel" id="phone-input" placeholder="Ej: 8888-8888" maxlength="20">
+    <button class="search-btn" id="search-btn">Buscar</button>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk",
+  authDomain: "chus-fish.firebaseapp.com",
+  projectId: "chus-fish"
+});
+const db = firebase.firestore();
+
+const STEPS = [
+  { key: 'pendiente',  label: 'Pedido recibido',  sub: 'Tu pedido fue recibido y está siendo revisado', icon: '📦' },
+  { key: 'confirmado', label: 'Confirmado',        sub: 'Chus's Fish confirmó tu pedido', icon: '✅' },
+  { key: 'en_camino',  label: 'En camino',         sub: 'Tu pedido está en camino', icon: '🚚' },
+  { key: 'entregado',  label: 'Entregado',         sub: '¡Tu pedido fue entregado!', icon: '🎉' },
+];
+
+const STEP_ORDER = { pendiente: 0, confirmado: 1, en_camino: 2, entregado: 3 };
+
+function buildTimeline(currentStatus) {
+  const currentIdx = STEP_ORDER[currentStatus] ?? 0;
+  return STEPS.map((step, i) => {
+    const done   = i < currentIdx;
+    const active = i === currentIdx;
+    const state  = done ? 'done' : active ? 'active' : 'pending';
+    const isLast = i === STEPS.length - 1;
+    return `<div class="tl-step">
+      <div class="tl-icon-wrap">
+        <div class="tl-icon ${state}">${step.icon}</div>
+        ${!isLast ? `<div class="tl-line ${done ? 'done' : ''}"></div>` : ''}
+      </div>
+      <div class="tl-content">
+        <div class="tl-label ${state}">${step.label}</div>
+        <div class="tl-sub">${active ? step.sub : (done ? '�S Completado' : 'Pendiente')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderOrders(ordersList) {
+  if (!ordersList.length) {
+    return `<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <p>No encontramos pedidos con ese número.<br>Verificá que sea el mismo que usaste al hacer el pedido.</p>
+    </div>`;
+  }
+  return ordersList.map(o => {
+    const status  = o.status || 'pendiente';
+    const name    = o.customer?.name || o.name || 'Cliente';
+    const fecha   = o.customer?.fecha || o.fecha || '';
+    const zone    = o.customer?.zone  || o.zone  || '';
+    const phone   = o.customer?.phone || o.phone || '';
+    const address = o.customer?.address || o.address || '';
+    const date    = o.createdAt ? new Date(o.createdAt).toLocaleString('es-CR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '�';
+    const total   = o.items ? o.items.reduce((s,i) => s + (parseFloat(i.price)||0)*(parseFloat(i.qty)||1), 0) : 0;
+    const itemsHtml = (o.items||[]).map(i =>
+      `<div class="orc-item-row"><span class="orc-item-name">${i.name}</span><span class="orc-item-qty">${i.qty} ${i.unit||''}</span></div>`
+    ).join('');
+    const waMsg = `Hola Chus's Fish �x�x, soy ${name} y quería consultar sobre mi pedido del ${date}.`;
+    const waLink = `https://wa.me/50660017370?text=${encodeURIComponent(waMsg)}`;
+    const cancelledBanner = status === 'cancelado'
+      ? `<div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:8px;padding:0.7rem 1rem;font-size:0.75rem;color:#e74c3c;margin-bottom:1rem">Este pedido fue cancelado. Escribinos si tenés alguna consulta.</div>`
+      : '';
+    return `<div class="order-result-card">
+      <div class="orc-header">
+        <div>
+          <div class="orc-name">${name}</div>
+          <div class="orc-date">Pedido recibido: ${date}</div>
+        </div>
+        <span class="order-status ${status}">${status.replace('_',' ')}</span>
+      </div>
+      ${cancelledBanner}
+      ${status !== 'cancelado' ? `<div class="timeline">${buildTimeline(status)}</div>` : ''}
+      ${itemsHtml ? `<div class="orc-items"><div class="orc-items-title">Productos</div>${itemsHtml}</div>` : ''}
+      ${total > 0 ? `<div class="orc-total">��${Math.round(total).toLocaleString()}</div>` : ''}
+      <div class="orc-meta">
+        ${fecha ? `<span>�x& ${fecha}</span>` : ''}
+        ${zone  ? `<span>�x� ${zone}</span>`  : ''}
+        ${address ? `<span>�x�� ${address}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:0.7rem;flex-wrap:wrap;margin-top:1rem">
+        <a class="orc-wa-btn" href="${waLink}" target="_blank">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.553 4.1 1.524 5.823L0 24l6.266-1.499A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.655-.52-5.17-1.424l-.37-.22-3.72.889.917-3.617-.24-.38A9.958 9.958 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+          Consultar
+        </a>
+        ${o.items && o.items.length ? `<button onclick="repeatOrder(${JSON.stringify(o.items).replace(/"/g,'&quot;')})" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.55rem 1.2rem;border-radius:20px;border:1px solid rgba(200,169,110,0.4);background:rgba(200,169,110,0.08);color:var(--gold);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;cursor:pointer;font-family:inherit;transition:all 0.2s" onmouseover="this.style.background='rgba(200,169,110,0.16)'" onmouseout="this.style.background='rgba(200,169,110,0.08)'">
+          �x Repetir pedido
+        </button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function searchOrders() {
+  const raw   = document.getElementById('phone-input').value.trim();
+  const clean = raw.replace(/\D/g,'');
+  const res   = document.getElementById('result');
+  if (!clean || clean.length < 7) { return; }
+  res.style.display = 'block';
+  res.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--muted);font-size:0.8rem">Buscando <span class="loading-dot"></span></div>`;
+
+  try {
+    // Search by phone in customer.phone field
+    const snap = await db.collection('orders')
+      .where('customer.phone', '>=', clean.slice(-8))
+      .limit(20).get();
+
+    let found = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      const p = (d.customer?.phone || d.phone || '').replace(/\D/g,'');
+      if (p.includes(clean) || clean.includes(p.slice(-8))) found.push({ id: doc.id, ...d });
+    });
+
+    // Fallback: also try old phone field
+    if (!found.length) {
+      const snap2 = await db.collection('orders').limit(200).get();
+      snap2.forEach(doc => {
+        const d = doc.data();
+        const p = (d.customer?.phone || d.phone || '').replace(/\D/g,'');
+        if (p.includes(clean.slice(-8)) || clean.includes(p.slice(-8))) found.push({ id: doc.id, ...d });
+      });
+    }
+
+    found.sort((a,b) => {
+      const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return tb - ta;
+    });
+
+    res.innerHTML = renderOrders(found.slice(0,5));
+  } catch(e) {
+    res.innerHTML = `<div class="empty-state"><p>Error al buscar. Intentá de nuevo.</p></div>`;
+  }
+}
+
+function repeatOrder(items) {
+  try {
+    const cart = items.map(i => ({ id: i.id, qty: i.qty }));
+    localStorage.setItem('chusfish_cart', JSON.stringify(cart));
+    showRepeatToast();
+    setTimeout(() => { window.location.href = 'catalogo.html'; }, 1200);
+  } catch(e) { window.location.href = 'catalogo.html'; }
+}
+
+function showRepeatToast() {
+  let t = document.getElementById('repeat-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'repeat-toast';
+    t.style.cssText = 'position:fixed;bottom:2rem;left:50%;transform:translateX(-50%);background:var(--gold);color:var(--deep);padding:0.7rem 1.5rem;border-radius:30px;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;z-index:999';
+    document.body.appendChild(t);
+  }
+  t.textContent = '�S Cargando tu pedido anterior...';
+  t.style.display = 'block';
+}
+
+document.getElementById('search-btn').addEventListener('click', searchOrders);
+document.getElementById('phone-input').addEventListener('keydown', e => { if (e.key === 'Enter') searchOrders(); });
+</script>
+</body>
+</html>
+

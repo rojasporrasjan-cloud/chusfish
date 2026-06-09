@@ -1,0 +1,7 @@
+﻿User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /pedido.html
+
+Sitemap: https://chusfish.com/sitemap.xml
+
