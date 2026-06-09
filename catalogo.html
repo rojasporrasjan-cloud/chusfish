@@ -115,7 +115,7 @@
     }
 
     html { scroll-behavior: smooth; }
-    /* �₡� PRELOADER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ PRELOADER ═══ */
     .preloader {
       position: fixed; inset: 0; z-index: 9999;
       background: linear-gradient(135deg, #0d2137 0%, #060e1c 100%);
@@ -160,10 +160,10 @@
     ::-webkit-scrollbar-track { background: var(--deep); }
     ::-webkit-scrollbar-thumb { background: var(--gold-dk); border-radius: 3px; }
 
-    /* �₡� CANVAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ CANVAS ═══ */
     #bg-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.55; }
 
-    /* �₡� NAV �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ NAV ═══ */
     nav {
       position: fixed; top: 0; left: 0; right: 0;
       height: var(--nav-h); z-index: 200;
@@ -217,7 +217,7 @@
     .cat-drawer-wa { display: flex; align-items: center; justify-content: center; gap: 0.6rem; background: #25d366; color: #fff; border-radius: 30px; padding: 0.7rem 1.2rem; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; text-decoration: none; transition: filter 0.2s; }
     .cat-drawer-wa:hover { filter: brightness(1.1); }
 
-    /* �₡� CATALOG HERO �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ CATALOG HERO ═══ */
     .cat-hero {
       position: relative; z-index: 1;
       padding-top: var(--nav-h);
@@ -242,7 +242,7 @@
     .cat-title em { font-style: italic; color: var(--gold); }
     .cat-subtitle { font-size: 0.8rem; color: var(--muted); font-weight: 300; margin-top: 0.6rem; letter-spacing: 0.06em; }
 
-    /* �₡� FILTER BAR �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ FILTER BAR ═══ */
     .filter-bar {
       position: sticky; top: var(--nav-h); z-index: 150;
       background: rgba(6,14,28,0.97);
@@ -284,13 +284,13 @@
 
     .mobile-filter { display: none; }
 
-    /* �₡� RESULTS BAR �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ RESULTS BAR ═══ */
     .results-bar { max-width: 1180px; margin: 0 auto; padding: 1rem 2rem 0; position: relative; z-index: 1; }
     .results-count { font-size: 0.68rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
     .results-count strong { color: var(--gold); }
     .no-results { display: none; text-align: center; padding: 5rem 2rem; font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-style: italic; color: var(--muted); }
 
-    /* �₡� CATALOG GRID �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ CATALOG GRID ═══ */
     .catalog-wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 1.8rem 2rem 6rem; }
     .cat-group { margin-bottom: 3.5rem; }
     .cat-group-header { display: flex; align-items: center; gap: 1.4rem; margin-bottom: 1.6rem; }
@@ -300,7 +300,7 @@
     .cat-group-count { font-size: 0.62rem; letter-spacing: 0.2em; color: var(--muted); text-transform: uppercase; white-space: nowrap; }
     .products-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.1rem; }
 
-    /* �₡� PRODUCT CARD �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ PRODUCT CARD ═══ */
     @keyframes slideInRight {
       from { opacity: 0; transform: translateX(30px); }
       to { opacity: 1; transform: translateX(0); }
@@ -401,7 +401,7 @@
     }
     .p-detail-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,169,110,0.3); }
 
-    /* �₡� MODAL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ MODAL ═══ */
     .modal-overlay {
       position: fixed; inset: 0; z-index: 500;
       background: rgba(4,10,20,0.85);
@@ -433,7 +433,7 @@
     .modal-overlay.open .modal-box {
       animation: modal-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
-    /* �₡� CLOSE BUTTON � visible sobre la imagen �₡� */
+    /* ═══ CLOSE BUTTON ─ visible sobre la imagen ═══ */
     .modal-close {
       position: absolute; 
       top: calc(0.8rem + env(safe-area-inset-top, 0px)); 
@@ -519,7 +519,7 @@
     .btn-wa-direct svg { width: 14px; height: 14px; }
     .btn-wa-direct:hover { background: rgba(37,211,102,0.08); }
 
-    /* �₡� CART FLOAT �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ CART FLOAT ═══ */
     .cart-float {
       position: fixed; bottom: calc(1.2rem + 52px + 0.6rem); right: 1.2rem; z-index: 300;
       width: 52px; height: 52px; border-radius: 50%;
@@ -540,7 +540,7 @@
       border: 2px solid var(--deep);
     }
 
-    /* �₡� CART PANEL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ CART PANEL ═══ */
     .cart-backdrop {
       position: fixed; inset: 0; z-index: 400;
       background: rgba(4,10,20,0.6);
@@ -638,7 +638,7 @@
     .btn-wa-cart:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(37,211,102,0.3); }
     .cart-note { font-size: 0.6rem; color: var(--muted); text-align: center; opacity: 0.7; }
 
-    /* �₡� TOAST �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ TOAST ═══ */
     .toast {
       position: fixed; bottom: 6rem; left: 50%; transform: translateX(-50%) translateY(20px);
       background: linear-gradient(135deg, var(--gold-dk), var(--gold));
@@ -649,7 +649,7 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* �₡� WA FLOAT �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ WA FLOAT ═══ */
     .wa-float {
       position: fixed; bottom: 1.2rem; right: 1.2rem; z-index: 300;
       width: 52px; height: 52px; border-radius: 50%;
@@ -666,7 +666,7 @@
       50%      { box-shadow: 0 8px 40px rgba(37,211,102,0.6); }
     }
 
-    /* �₡� FOOTER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ FOOTER ═══ */
     footer {
       text-align: center; padding: 3rem 2rem;
       background: var(--ocean); border-top: 1px solid var(--glass-border);
@@ -678,7 +678,7 @@
     .footer-quote { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-style: italic; color: var(--gold); opacity: 0.75; margin-bottom: 1rem; }
     .footer-copy { font-size: 0.6rem; letter-spacing: 0.14em; color: var(--muted); opacity: 0.45; }
 
-    /* �₡� RESPONSIVE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ RESPONSIVE ═══ */
     @media (max-width: 1200px) { .products-grid { grid-template-columns: repeat(4,1fr); } }
     @media (max-width: 960px)  { .products-grid { grid-template-columns: repeat(3,1fr); } }
 
@@ -695,7 +695,7 @@
       .cat-title { font-size: clamp(1.9rem, 7vw, 3rem); }
       .cat-subtitle { font-size: 0.7rem; }
 
-      /* filter bar � Dropdown en móvil */
+      /* filter bar ─ Dropdown en móvil */
       .filter-bar { position: static; padding: 0; height: auto; overflow: visible; }
       .filter-inner { 
         padding: 0.7rem 1rem; gap: 0.5rem; 
@@ -732,7 +732,7 @@
       .p-name { font-size: 0.78rem; }
       .p-price { font-size: 1rem; }
 
-      /* modal � panel de pantalla completa en móvil */
+      /* modal ─ panel de pantalla completa en móvil */
       .modal-overlay { 
         align-items: flex-end; 
         justify-content: center;
@@ -813,7 +813,7 @@
       .cat-title { font-size: 1.7rem; }
     }
 
-    /* �₡� ORDER FORM MODAL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ ORDER FORM MODAL ═══ */
     .order-form-overlay {
       position: fixed; inset: 0; z-index: 700;
       background: rgba(4,10,20,0.9);
@@ -933,7 +933,7 @@
     .order-field select option { background: #0d2137; color: #d4dde8; }
     .order-field select.of-error { border-color: #e74c3c; }
 
-    /* �₡� ZONE CHIPS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ ZONE CHIPS ═══ */
     .zone-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.3rem; }
     .zone-chip {
       flex: 1 1 auto; min-width: 110px;
@@ -954,7 +954,7 @@
     .zone-chip.selected svg { opacity: 1; }
     .zone-chips.of-error .zone-chip:not(.selected) { border-color: rgba(231,76,60,0.5); }
 
-    /* �₡� DATE CHIPS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ DATE CHIPS ═══ */
     .date-chips {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
       gap: 0.5rem; margin-top: 0.3rem;
@@ -978,7 +978,7 @@
     .date-chip.selected .dc-num { color: var(--gold); }
     .date-chips.of-error .date-chip:not(.selected) { border-color: rgba(231,76,60,0.5); }
 
-    /* �₡� SEPARADOR DE SECCIONES �₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ SEPARADOR DE SECCIONES ═══ */
     .section-sep {
       max-width:1180px; margin:0 auto; padding:0 2rem;
       display:flex; align-items:center; gap:1.2rem; margin-bottom:1.4rem;
@@ -989,7 +989,7 @@
       font-weight:600; white-space:nowrap;
     }
 
-    /* �₡� ESPECIAL DE LA SEMANA �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ ESPECIAL DE LA SEMANA ═══ */
     .especial-section { max-width:1180px; margin:0 auto; padding:0 2rem 2rem; }
     .especial-card {
       display:flex; align-items:center; gap:2rem;
@@ -1027,7 +1027,7 @@
     @media(max-width:600px){ .especial-card { flex-direction:column; align-items:flex-start; } .especial-img,.especial-img-placeholder { width:80px; height:80px; } }
 
 
-    /* �₡� RECETAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ RECETAS ═══ */
     .recetas-section { max-width:1180px; margin:0 auto; padding:0 2rem 2.5rem; }
     .recetas-title { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300; color:var(--white); margin-bottom:0.3rem; }
     .recetas-sub { font-size:0.72rem; color:var(--muted); margin-bottom:1.4rem; letter-spacing:0.06em; }
@@ -1049,7 +1049,7 @@
     .receta-add-btn { width:100%; padding:0.6rem; border-radius:20px; border:1px solid rgba(200,169,110,0.3); background:rgba(200,169,110,0.08); color:var(--gold); font-size:0.67rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:700; cursor:pointer; transition:all 0.2s; font-family:'Montserrat',sans-serif; }
     .receta-add-btn:hover { background:rgba(200,169,110,0.18); border-color:var(--gold); transform:translateY(-1px); }
 
-    /* �₡� SCHEDULE CHIP �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ SCHEDULE CHIP ═══ */
     .schedule-chip {
       display: inline-flex; align-items: center; gap: 0.5rem;
       padding: 0.32rem 0.9rem; border-radius: 30px;
@@ -1063,7 +1063,7 @@
     .schedule-chip.closed .sched-dot { background: var(--gold); }
     @keyframes sched-blink { 0%,100%{opacity:1} 50%{opacity:0.35} }
 
-    /* �₡� CALCULADORA MODAL �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ CALCULADORA MODAL ═══ */
     .calc-trigger-btn {
       display: inline-flex; align-items: center; gap: 0.4rem;
       background: none; border: 1px solid rgba(200,169,110,0.22); border-radius: 30px;
@@ -1112,7 +1112,7 @@
     }
     .calc-x:hover { color:var(--gold); }
 
-    /* �₡� NOTIFY ME �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ NOTIFY ME ═══ */
     .notify-box {
       margin-top:1rem; padding:0.9rem 1rem; border-radius:10px;
       background:rgba(200,169,110,0.05); border:1px solid rgba(200,169,110,0.14);
@@ -1134,7 +1134,7 @@
     }
     .notify-go:hover { background:var(--gold); }
 
-    /* �₡� PWA BANNER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ PWA BANNER ═══ */
     .pwa-banner {
       position:fixed; bottom:5rem; left:50%; transform:translateX(-50%) translateY(12px);
       background:linear-gradient(135deg,#0d2137,#122840);
@@ -1154,10 +1154,10 @@
     .pwa-ok:hover { background:var(--gold); }
     .pwa-no { background:none; border:none; cursor:pointer; color:var(--muted); font-size:0.9rem; padding:0.15rem 0.2rem; line-height:1; }
 
-    /* �₡� TOP SELLERS BADGE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ TOP SELLERS BADGE ═══ */
     .p-card[data-top="1"] .p-badge { display:flex !important; }
 
-    /* �₡� CLOSING BANNER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+    /* ═══ CLOSING BANNER ═══ */
     #closing-banner {
       position: fixed; top: 0; left: 0; right: 0; z-index: 201;
       background: linear-gradient(90deg, var(--gold-dk) 0%, var(--gold) 50%, var(--gold-dk) 100%);
@@ -1390,7 +1390,7 @@
       <div class="modal-price-row">
         <div class="modal-price" id="modal-price"></div>
         <div class="modal-qty">
-          <button class="qty-btn" id="qty-minus">₡</button>
+          <button class="qty-btn" id="qty-minus">−</button>
           <span class="qty-val" id="qty-val">1</span>
           <button class="qty-btn" id="qty-plus">+</button>
         </div>
@@ -1443,7 +1443,7 @@
 <div id="toast" class="toast"></div>
 
 <script>
-/* �₡� FIREBASE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ FIREBASE ═══ */
 firebase.initializeApp({
   apiKey:            'AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk',
   authDomain:        'chus-fish.firebaseapp.com',
@@ -1469,12 +1469,10 @@ async function loadFromFirestore() {
 }
 function getStoredImage(id) { return null; } // imágenes ahora en p.img (Cloudinary)
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   PRODUCTOS REALES � Chus's Fish
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 const PRODUCTS_DEFAULT = [
 
-  /* �₡� CAMARONES IMPORTADOS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ CAMARONES IMPORTADOS ═══ */
   { id:1, cat:'camarones-imp', name:'Camarón Pelado Cultivado Semi-Mediano', price:8500, unit:'/kg', badge:'Importado',
     desc:'Producto cultivado de tamaño semi-mediano. Viene completamente pelado, listo para cocinar directamente sin preparación previa. Ideal para arroces, pastas y salteados.' },
   { id:2, cat:'camarones-imp', name:'Camarón Cultivado Tailón Grande', price:11000, unit:'/kg', badge:'Importado',
@@ -1486,7 +1484,7 @@ const PRODUCTS_DEFAULT = [
   { id:5, cat:'camarones-imp', name:'Camarón Cultivo Agua Salada Tailón Extra-Grande', price:12000, unit:'/kg', badge:'Importado',
     desc:'Camarón de agua salada en su formato de tamaño máximo disponible ("extra-grande"). El de mayor impacto visual para presentaciones especiales y eventos.' },
 
-  /* �₡� CAMARONES NACIONALES �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ CAMARONES NACIONALES ═══ */
   { id:6, cat:'camarones-nac', name:'Camarón con Cabeza Yumbo', price:21600, unit:'/kg', badge:'Nacional · Sin químicos',
     desc:'Camarón entero gigante (tamaño Yumbo) que rinde exactamente 14 piezas por kilo. 100% nacional y libre de químicos. Ideal para sopas, fondos marinos y presentaciones enteras que impresionen.' },
   { id:7, cat:'camarones-nac', name:'Camarón Yumbo', price:25500, unit:'/kg', badge:'Nacional · Sin químicos',
@@ -1498,7 +1496,7 @@ const PRODUCTS_DEFAULT = [
   { id:10, cat:'camarones-nac', name:'Camarón Pinki pequeño para arroz', price:9600, unit:'/kg', badge:'Nacional · Sin químicos',
     desc:'Variedad nacional pequeña, idónea y muy buscada para mezclar de forma uniforme en arroces con mariscos. 100% libre de químicos. El tamaño ideal para que cada cucharada tenga camarón.' },
 
-  /* �₡� FILETE PREMIUM �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ FILETE PREMIUM ═══ */
   { id:11, cat:'filetes-premium', name:'Filete de Corvina P.P.', price:18500, unit:'/kg', badge:'Premium · Nacional',
     desc:'El premium más solicitado del catálogo. Sumamente buscado porque queda muy suave y delicioso al cocinar. Perfecto para empanizar o para preparar un ceviche de lujo. Nacional, libre de químicos, procesado higiénicamente.' },
   { id:12, cat:'filetes-premium', name:'Filete de Corvina Reina P.G.', price:13500, unit:'/kg', badge:'Premium · Nacional',
@@ -1516,7 +1514,7 @@ const PRODUCTS_DEFAULT = [
   { id:18, cat:'filetes-premium', name:'Filete de Trucha con Piel', price:10000, unit:'/kg', badge:'Premium · Cultivo',
     desc:'Pescado premium de cultivo con un sabor suave y agradable. Alternativa muy fácil de preparar, ideal para una comida ligera y saludable. Recomendado especialmente al horno o empanizado.' },
 
-  /* �₡� FILETES TRADICIONALES �₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ FILETES TRADICIONALES ═══ */
   { id:19, cat:'filetes-trad', name:'Filete de Macarela con Piel', price:6000, unit:'/kg', badge:'Tradicional',
     desc:'Opción económica con un sabor diferenciado e intenso a pescado. Conserva la piel para aportarle un gusto similar al del pescado entero. Especial para hacer empanizado con ese sabor clásico que todos aman.' },
   { id:20, cat:'filetes-trad', name:'Filete de Macarela sin Piel', price:6000, unit:'/kg', badge:'Tradicional',
@@ -1544,7 +1542,7 @@ const PRODUCTS_DEFAULT = [
   { id:31, cat:'filetes-trad', name:'Filete de Tilapia', price:null, unit:'/kg', badge:'Más Vendido · Nacional',
     desc:'Uno de los más vendidos. Cultivado nacional de textura suave, totalmente libre de químicos, procesado sin hielo y empacado al vacío. Permite variadas recetas: ceviche, empanizado, a la plancha o al ajillo. Consultar precio disponible.' },
 
-  /* �₡� PESCADO ENTERO �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ PESCADO ENTERO ═══ */
   { id:32, cat:'pescado-entero', name:'Pescado Entero Corriente', price:5000, unit:'/kg', badge:'Artesanal · Nacional',
     desc:'Pescado entero de variedad comercial, capturado de manera artesanal. Fresco y económico, ideal para preparaciones tradicionales como frituras enteras o sudados.' },
   { id:33, cat:'pescado-entero', name:'Pescado Entero Corvina PP', price:8500, unit:'/kg', badge:'Artesanal · Nacional',
@@ -1552,7 +1550,7 @@ const PRODUCTS_DEFAULT = [
   { id:34, cat:'pescado-entero', name:'Pescado Entero Pargo', price:9000, unit:'/kg', badge:'Artesanal · Nacional',
     desc:'El clásico pargo entero nacional, muy cotizado por la calidad de su carne y su sabor inconfundible. Perfecto para frituras, al horno o a la plancha en cocina artesanal.' },
 
-  /* �₡� PICADURA PARA CEVICHE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ PICADURA PARA CEVICHE ═══ */
   { id:35, cat:'picadura', name:'Picadura de Dorado', price:13000, unit:'/kg', badge:'Ceviche · Premium',
     desc:'Carne picada en dados de Dorado de calidad premium, lista para marinar directamente. Ideal para un ceviche de sabor equilibrado, firme y muy sabroso.' },
   { id:36, cat:'picadura', name:'Picadura de Marlin Rosado', price:8000, unit:'/kg', badge:'Ceviche · Nacional',
@@ -1566,7 +1564,7 @@ const PRODUCTS_DEFAULT = [
   { id:40, cat:'picadura', name:'Picadura de Corvina', price:13500, unit:'/kg', badge:'Ceviche · Clásico',
     desc:'La picadura clásica por excelencia, sumamente suave y la preferida para el ceviche tradicional costarricense. Nacional, libre de químicos. El sabor de referencia.' },
 
-  /* �₡� MARISCOS VARIOS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ MARISCOS VARIOS ═══ */
   { id:41, cat:'mariscos', name:'Almeja Blanca', price:5500, unit:'/kg', badge:'Mariscos',
     desc:'Almejas seleccionadas limpias con su concha. Perfectas al vapor, en salsa de vino blanco o para enriquecer sopas y arroces con un sabor auténtico al mar.' },
   { id:42, cat:'mariscos', name:'Mejillón Chileno Media Concha Grande', price:9600, unit:'/kg', badge:'Importado · Chileno',
@@ -1604,7 +1602,7 @@ const PRODUCTS_DEFAULT = [
   { id:58, cat:'mariscos', name:'Ostras Nacionales', price:13600, unit:'/10 uds', badge:'Gourmet · Pedido previo', preorder:true,
     desc:'Ostras frescas de las costas del país, seleccionadas por su frescura y tamaño. Una experiencia gourmet sin igual. El precio es por cada 10 unidades. Se solicitan con una semana de anticipación.' },
 
-  /* �₡� MARISCADAS Y PAELLAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ MARISCADAS Y PAELLAS ═══ */
   { id:59, cat:'mariscadas', name:"Paella Chus's Fish", price:19000, unit:'/ combo', badge:'Paella · 4-5 personas',
     desc:'Paella gigante de 2.4 kg, ideal para 4 a 5 personas. Completamente llena de sabores. Incluye: Aros de Calamar, Tentáculo, Mejillón media concha Chileno, Mejillón media concha grande, Camarón Jumbo con cabeza, Camarón Juvenil Grande, Almeja Blanca, Pescado y Carne de Mejillón.' },
   { id:60, cat:'mariscadas', name:'Mariscada Premium', price:17500, unit:'/ combo', badge:'Premium · 2-3 personas',
@@ -1614,7 +1612,7 @@ const PRODUCTS_DEFAULT = [
   { id:62, cat:'mariscadas', name:'Mariscada Junior Mariscos', price:8000, unit:'/ combo', badge:'Tradicional · 2-3 personas',
     desc:'Combo con concha de 1 kg para 2 o 3 personas. Opción tradicional accesible de excelente rendimiento. Incluye: Aros de Calamar, Tentáculo, Camarón mediano, Pescado, Jaivas, Mejillón Negro entero, Mejillón real largo y Almeja.' },
 
-  /* �₡� GOURMET �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+  /* ═══ GOURMET ═══ */
   { id:63, cat:'gourmet', name:'Porción Salmón Chileno Salar', price:12000, unit:'/kg', badge:'Gourmet · Importado',
     desc:'Porciones individuales de Salmón Chileno de la prestigiosa especie Salar (Atlántico). Calidad premium importado, con un sabor rico en grasa natural y color rosado intenso.' },
   { id:64, cat:'gourmet', name:'Porción Salmón Chileno Coho', price:13000, unit:'/kg', badge:'Gourmet · Importado',
@@ -1632,9 +1630,7 @@ const PRODUCTS_DEFAULT = [
 /* Se carga desde Firestore en initCatalog() */
 let PRODUCTS = [];
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   CATEGORÍAS
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 const CAT_ORDER = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
 
 const CAT_LABELS = {
@@ -1667,13 +1663,13 @@ const WA_NUM  = '50660017370';
 const WA_BASE = `https://wa.me/${WA_NUM}?text=`;
 const ICON_WA = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>`;
 
-/* �₡� FORMAT PRICE �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ FORMAT PRICE ═══ */
 function fmt(price) {
   if (price === null || price === undefined) return 'Consultar';
   return '₡' + price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-/* �₡� BUILD CARD �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ BUILD CARD ═══ */
 function buildCard(p, index = 0) {
   const icon = `<svg width="36" height="36" viewBox="0 0 52 52" fill="none">${CAT_ICONS[p.cat]||''}</svg>`;
   const imgSrc = p.img || getStoredImage(p.id);
@@ -1712,7 +1708,7 @@ function buildCard(p, index = 0) {
   </div>`;
 }
 
-/* �₡� BUILD GROUP �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ BUILD GROUP ═══ */
 function buildGroup(cat) {
   const items = PRODUCTS.filter(p => p.cat === cat);
   if (!items.length) return '';
@@ -1727,7 +1723,7 @@ function buildGroup(cat) {
   </div>`;
 }
 
-/* �₡� ACTUALIZAR CONTADORES DE PILLS �₡₡₡₡₡₡� */
+/* ═══ ACTUALIZAR CONTADORES DE PILLS ═══ */
 function updateCounts() {
   const total = PRODUCTS.length;
   const allEl = document.getElementById('count-all');
@@ -1741,7 +1737,7 @@ function updateCounts() {
   if (sub) sub.textContent = `${total} productos · Nacional e importado · Entrega a domicilio · Cadena de frío garantizada`;
 }
 
-/* �₡� RENDER CATALOG �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ RENDER CATALOG ═══ */
 const wrap = document.getElementById('catalog-wrap');
 
 async function initCatalog() {
@@ -1764,7 +1760,7 @@ async function initCatalog() {
 }
 initCatalog();
 
-/* �₡� FILTER & SEARCH �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ FILTER & SEARCH ═══ */
 let activeCat = 'all';
 let searchQ   = '';
 
@@ -1839,9 +1835,7 @@ document.getElementById('search-input').addEventListener('input', e => {
   applyFilter();
 });
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   UNIT HELPERS
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 function isKg(unit)    { return (unit || '').toLowerCase().includes('kg'); }
 function getStep(unit) { return isKg(unit) ? 0.5 : 1; }
 function getMin(unit)  { return isKg(unit) ? 0.5 : 1; }
@@ -1855,9 +1849,7 @@ function fmtQty(qty, unit) {
   return qty + (u ? ' ' + u : '');
 }
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   MODAL
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 let modalQty = 0.5;
 let currentProduct = null;
 
@@ -1998,9 +1990,7 @@ document.addEventListener('click', e => {
   }
 });
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   FAVORITOS
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 function getFavs() { try { return JSON.parse(localStorage.getItem('chusfish_favs') || '[]'); } catch(e) { return []; } }
 function saveFavs(favs) { try { localStorage.setItem('chusfish_favs', JSON.stringify(favs)); } catch(e) {} }
 function isFav(id) { return getFavs().includes(id); }
@@ -2029,9 +2019,7 @@ function shareProduct(id) {
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   CARRITO
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 let cart = [];
 
 function saveCart() {
@@ -2140,7 +2128,7 @@ function renderCartUI() {
         ${showSub ? `<div style="font-size:0.64rem;color:var(--gold-lt);margin-top:2px">Total: ${subtotal}</div>` : ''}
       </div>
       <div class="cart-item-controls">
-        <button class="cart-qty-btn" data-action="dec" data-id="${p.id}">₡</button>
+        <button class="cart-qty-btn" data-action="dec" data-id="${p.id}">−</button>
         <span class="cart-qty-val">${fmtQty(item.qty, p.unit)}</span>
         <button class="cart-qty-btn" data-action="inc" data-id="${p.id}">+</button>
         <button class="cart-remove" data-action="remove" data-id="${p.id}" title="Eliminar">·</button>
@@ -2202,7 +2190,7 @@ document.getElementById('cart-float').addEventListener('click', openCart);
 document.getElementById('cart-close').addEventListener('click', closeCart);
 document.getElementById('cart-backdrop').addEventListener('click', closeCart);
 
-/* �₡� TOAST �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ TOAST ═══ */
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -2210,7 +2198,7 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2200);
 }
 
-/* �₡� CANVAS �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ CANVAS ═══ */
 (function() {
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas.getContext('2d');
@@ -2257,7 +2245,7 @@ function showToast(msg) {
   init(); tick();
 })();
 
-/* �₡� HAMBURGER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ HAMBURGER ═══ */
 const catDrawer  = document.getElementById('cat-drawer');
 const catOverlay = document.getElementById('cat-overlay');
 function openCatDrawer()  { catDrawer.classList.add('open'); catOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -2266,7 +2254,7 @@ document.getElementById('hamburger').addEventListener('click', openCatDrawer);
 document.getElementById('cat-drawer-close').addEventListener('click', closeCatDrawer);
 catOverlay.addEventListener('click', closeCatDrawer);
 
-/* �₡� Service Worker �₡� */
+/* ═══ Service Worker ═══ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
@@ -2329,7 +2317,7 @@ if ('serviceWorker' in navigator) {
 </div>
 
 <script>
-/* �₡� CONFIG: Banner y Zonas de entrega �₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ CONFIG: Banner y Zonas de entrega ═══ */
 function showBanner(msg) {
   const bannerEl    = document.getElementById('closing-banner');
   const bannerTrack = document.getElementById('closing-banner-track');
@@ -2426,7 +2414,7 @@ function showBanner(msg) {
         document.getElementById('of-date-field').style.display = '';
       }
     }
-    /* �₡� ESPECIAL DE LA SEMANA �₡� */
+    /* ═══ ESPECIAL DE LA SEMANA ═══ */
     if (cfg.especial && cfg.especial.productId) {
       const esp = cfg.especial;
       const prod = PRODUCTS.find(p => p.id === esp.productId);
@@ -2456,7 +2444,7 @@ function showBanner(msg) {
       }
     }
 
-    /* �₡� RECETAS DE LA SEMANA �₡� */
+    /* ═══ RECETAS DE LA SEMANA ═══ */
     if (cfg.recipes && cfg.recipes.length > 0) {
       const grid = document.getElementById('recetas-grid');
       grid.innerHTML = cfg.recipes.map((r, ri) => {
@@ -2498,7 +2486,7 @@ function addRecipeToCart(recipeIdx) {
   showToast(added > 0 ? `${added} ingrediente${added>1?'s':''} de "${r.name}" al carrito ✅` : 'No se encontraron productos disponibles');
 }
 
-/* �₡� ORDER FORM (carrito) �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
+/* ═══ ORDER FORM (carrito) ═══ */
 function openCartOrderForm() {
   const cartItems = cart; // cart is defined in the main script
   if (!cartItems || cartItems.length === 0) return;
@@ -2636,7 +2624,7 @@ document.getElementById('order-form').addEventListener('submit', async function(
   window.open('https://wa.me/50660017370?text=' + encodeURIComponent(finalMsg), '_blank');
 });
 
-/* �₡� PRELOADER LOGIC �₡� */
+/* ═══ PRELOADER LOGIC ═══ */
 window.addEventListener('load', () => {
   const preloader = document.getElementById('preloader');
   if (preloader) {
@@ -2767,9 +2755,7 @@ window.addEventListener('load', () => {
     }, 3000); // Esperar a Firebase
   }
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   COUNTDOWN DE HORARIO
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 function startCountdown(cfg) {
   if (!cfg.scheduleEnabled || !cfg.openTime || !cfg.closeTime) return;
   const chip = document.getElementById('schedule-chip');
@@ -2798,9 +2784,7 @@ function startCountdown(cfg) {
   setInterval(tick, 60000);
 }
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   CALCULADORA DE PORCIONES
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 const PORCIONES = {
   ceviche:  { label: 'Ceviche / Tiradito',   g: 180 },
   frito:    { label: 'Frito / Apanado',       g: 220 },
@@ -2840,9 +2824,7 @@ document.querySelectorAll('.calc-type').forEach(btn => {
 });
 document.getElementById('calc-guests').addEventListener('input', renderCalcResult);
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   AVISAME CUANDO EST�0 DISPONIBLE
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 async function submitNotify() {
   const p = currentProduct;
   if (!p) return;
@@ -2862,9 +2844,7 @@ async function submitNotify() {
   }
 }
 
-/* �"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"�
-   PWA INSTALL PROMPT
-�"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"₡"� */
+/* ════════════════════════════════════════ */
 let deferredInstall = null;
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
