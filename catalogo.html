@@ -197,8 +197,25 @@
       transition: background 0.3s, color 0.3s;
     }
     .nav-wa:hover { background: var(--gold); color: var(--deep); }
-    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; }
+    .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; background: none; border: none; padding: 4px; }
     .hamburger span { display: block; width: 22px; height: 1.5px; background: var(--gold); }
+    .cat-nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 290; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .cat-nav-overlay.open { opacity: 1; pointer-events: all; }
+    .cat-nav-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: 280px; z-index: 300; background: rgba(6,14,28,0.98); backdrop-filter: blur(24px); border-right: 1px solid rgba(200,169,110,0.15); display: flex; flex-direction: column; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+    .cat-nav-drawer.open { transform: translateX(0); }
+    .cat-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 1.4rem; border-bottom: 1px solid rgba(200,169,110,0.12); }
+    .cat-drawer-brand { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 600; color: var(--gold); }
+    .cat-drawer-brand em { font-style: italic; font-weight: 300; }
+    .cat-drawer-close { background: none; border: none; color: var(--muted); font-size: 1.1rem; cursor: pointer; padding: 0.4rem; border-radius: 6px; transition: color 0.2s, background 0.2s; }
+    .cat-drawer-close:hover { color: var(--gold); background: rgba(200,169,110,0.1); }
+    .cat-drawer-links { padding: 1rem 0; flex: 1; }
+    .cat-drawer-link { display: flex; align-items: center; gap: 0.8rem; padding: 0.85rem 1.4rem; color: var(--text); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s; }
+    .cat-drawer-link:hover { background: rgba(200,169,110,0.07); color: var(--gold); border-left-color: var(--gold); }
+    .cat-drawer-link.active { color: var(--gold); border-left-color: var(--gold); }
+    .cat-drawer-link-icon { font-size: 1rem; width: 22px; text-align: center; }
+    .cat-drawer-footer { padding: 1.2rem 1.4rem; border-top: 1px solid rgba(200,169,110,0.12); }
+    .cat-drawer-wa { display: flex; align-items: center; justify-content: center; gap: 0.6rem; background: #25d366; color: #fff; border-radius: 30px; padding: 0.7rem 1.2rem; font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 700; text-decoration: none; transition: filter 0.2s; }
+    .cat-drawer-wa:hover { filter: brightness(1.1); }
 
     /* �₡� CATALOG HERO �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
     .cat-hero {
@@ -1229,6 +1246,26 @@
   <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
 </nav>
 
+<!-- MOBILE DRAWER -->
+<div class="cat-nav-overlay" id="cat-overlay"></div>
+<div class="cat-nav-drawer" id="cat-drawer">
+  <div class="cat-drawer-header">
+    <div class="cat-drawer-brand">Chus<em>'s Fish</em></div>
+    <button class="cat-drawer-close" id="cat-drawer-close">✕</button>
+  </div>
+  <div class="cat-drawer-links">
+    <a href="index.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">🏠</span> Inicio</a>
+    <a href="catalogo.html" class="cat-drawer-link active"><span class="cat-drawer-link-icon">🛒</span> Catálogo</a>
+    <a href="pedido.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">📦</span> Mi pedido</a>
+  </div>
+  <div class="cat-drawer-footer">
+    <a href="https://wa.me/50660017370" target="_blank" class="cat-drawer-wa">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      Pedir por WhatsApp
+    </a>
+  </div>
+</div>
+
 <!-- HERO -->
 <div class="cat-hero">
   <div class="cat-hero-glow"></div>
@@ -2221,11 +2258,13 @@ function showToast(msg) {
 })();
 
 /* �₡� HAMBURGER �₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡₡� */
-document.getElementById('hamburger').addEventListener('click', () => {
-  const back = document.querySelector('.nav-back');
-  const hidden = window.getComputedStyle(back).display === 'none';
-  back.style.display = hidden ? 'inline-flex' : 'none';
-});
+const catDrawer  = document.getElementById('cat-drawer');
+const catOverlay = document.getElementById('cat-overlay');
+function openCatDrawer()  { catDrawer.classList.add('open'); catOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+function closeCatDrawer() { catDrawer.classList.remove('open'); catOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+document.getElementById('hamburger').addEventListener('click', openCatDrawer);
+document.getElementById('cat-drawer-close').addEventListener('click', closeCatDrawer);
+catOverlay.addEventListener('click', closeCatDrawer);
 
 /* �₡� Service Worker �₡� */
 if ('serviceWorker' in navigator) {
