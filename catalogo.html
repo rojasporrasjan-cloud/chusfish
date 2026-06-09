@@ -15,7 +15,7 @@
   <link rel="canonical" href="https://chusfish.com/catalogo.html">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="author" content="Chus's Fish">
-  <meta name="description" content="Catálogo completo de mariscos y pescados frescos en Costa Rica: camarones enteros, camarón pelado, corvina, pargo, atún, filetes y más. Precio directo sin intermediarios. Pedí por WhatsApp.">
+  <meta name="description" content="Catálogo de mariscos y pescados frescos en Costa Rica: camarones, corvina, pargo, atún y filetes. Precio directo. Pedí por WhatsApp al 6001-7370.">
   <meta name="keywords" content="comprar camarones costa rica, corvina fresca costa rica, pargo fresco, mariscos frescos a domicilio, pescados frescos precio, camarón pelado, atún fresco, filetes de pescado, mariscos baratos costa rica, seafood delivery costa rica">
   <meta name="geo.region" content="CR">
   <meta name="geo.country" content="Costa Rica">
@@ -1237,7 +1237,7 @@
 <!-- PRELOADER -->
 <div id="preloader" class="preloader">
   <div class="preloader-content">
-    <img src="logo.jpeg" alt="Chus's Fish Logo" class="preloader-logo-img">
+    <img src="logo.jpeg" alt="Chus's Fish Logo" class="preloader-logo-img" fetchpriority="high">
     <div class="preloader-logo">CHUS'S FISH</div>
     <div class="preloader-sub">Pescadería Premium</div>
   </div>
@@ -1268,7 +1268,7 @@
 <!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">
-    <img src="logo.jpeg" alt="Chus's Fish logo">
+    <img src="logo.jpeg" alt="Chus's Fish logo" loading="eager" fetchpriority="high">
     Chus<span>'s Fish</span>
   </a>
   <a href="index.html" class="nav-back">
@@ -1390,7 +1390,7 @@
   <div class="footer-logo">Chus<em>'s Fish</em></div>
   <p class="footer-tagline">Selección Marina Premium</p>
   <div style="display:flex;justify-content:center;margin-bottom:1rem;">
-    <img src="selorecomiendo.png" alt="Se lo recomiendo" style="width:140px;height:140px;object-fit:contain;border-radius:50%;opacity:0.92;">
+    <img src="selorecomiendo.png" alt="Se lo recomiendo" loading="lazy" style="width:140px;height:140px;object-fit:contain;border-radius:50%;opacity:0.92;">
   </div>
   <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:1.2rem;">
     <a href="https://wa.me/50660017370" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
@@ -2496,7 +2496,7 @@ function showBanner(msg) {
         const regularPrice = prod.price;
         const specialPrice = esp.price || null;
         const imgHtml = (prod.img || getStoredImage(prod.id))
-          ? `<img class="especial-img" src="${prod.img || getStoredImage(prod.id)}" alt="${prod.name}">`
+          ? `<img class="especial-img" src="${prod.img || getStoredImage(prod.id)}" alt="${prod.name}" loading="lazy">`
           : '';
         sec.innerHTML = `<div class="especial-card">
           ${imgHtml}
@@ -2802,7 +2802,7 @@ window.addEventListener('load', () => {
 
 <!-- Header especial para impresión -->
 <div id="print-header" style="display: none;">
-  <img src="logo.jpeg" alt="Chus's Fish Logo">
+  <img src="logo.jpeg" alt="Chus's Fish Logo" loading="lazy">
   <h2>Chus<em>'s Fish</em></h2>
 </div>
 
