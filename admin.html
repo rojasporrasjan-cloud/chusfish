@@ -15,6 +15,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -129,7 +130,7 @@
     .tb-btn-danger:hover { background: rgba(231,76,60,0.2); }
 
     /* ── Content area ────────────────────── */
-    #content { flex: 1; overflow-y: auto; padding: 2rem; }
+    #content { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 2rem; }
 
     /* ═══ STAT CARDS ═════════════════════════ */
     .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.2rem; margin-bottom: 2rem; }
@@ -529,7 +530,7 @@
 
     /* ═══ CONFIG VIEW ════════════════════════ */
     .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-    .config-panel { background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius); padding: 1.6rem; }
+    .config-panel { background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius); padding: 1.6rem; min-width: 0; }
     .config-panel-title { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.4rem; }
     .config-field { margin-bottom: 1.2rem; }
     .config-label { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 0.5rem; }
@@ -584,7 +585,30 @@
       transition: all 0.2s; white-space: nowrap;
     }
     .zone-add-btn:hover { background: rgba(200,169,110,0.22); }
-    @media (max-width: 900px) { .config-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 1100px) { .config-grid { grid-template-columns: 1fr; } }
+
+    /* ── OFERTAS ESPECIALES ADMIN ──────────────────── */
+    .ofertas-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem;
+      margin-bottom: 1.2rem;
+    }
+    .oferta-slot {
+      background: rgba(6,14,28,0.55); border: 1px solid var(--gb);
+      border-radius: 12px; padding: 1rem;
+      display: flex; flex-direction: column; gap: 0.65rem;
+    }
+    .oferta-slot-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .oferta-slot-num {
+      font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold);
+    }
+    .oferta-prices {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+    }
+    @media(max-width:1100px){ .ofertas-grid { grid-template-columns: 1fr; } .oferta-prices { grid-template-columns: 1fr 1fr; } }
+    @media(max-width:640px){  .oferta-prices { grid-template-columns: 1fr; } }
+
 
     /* ═══ ORDERS VIEW ════════════════════════ */
     .orders-controls { display:flex; align-items:center; gap:1rem; margin-bottom:1.2rem; flex-wrap:wrap; }
@@ -631,6 +655,8 @@
     .order-act-cancel:hover  { background:rgba(231,76,60,0.1); }
     .order-act-wa { color:var(--gold); border-color:rgba(200,169,110,0.3); }
     .order-act-wa:hover { background:rgba(200,169,110,0.12); }
+    .order-act-invoice { color:#2ecc71; border-color:rgba(46,204,113,0.3); }
+    .order-act-invoice:hover { background:rgba(46,204,113,0.15); }
     .orders-empty { text-align:center; padding:4rem 2rem; color:var(--muted); }
     .orders-empty svg { width:48px; height:48px; opacity:0.2; margin-bottom:1rem; }
 
@@ -810,6 +836,211 @@
       width: auto; padding: 0 3rem;
       animation: adm-banner-scroll var(--adm-banner-dur, 14s) linear infinite;
     }
+
+    /* ── Ingredient rows (receta) ──────────── */
+    .ing-row { display:flex; align-items:center; gap:0.5rem; }
+    .ing-row .ing-product-sel { flex:1; min-width:0; }
+    .ing-row .ing-qty-input {
+      width:90px; flex-shrink:0;
+      background:rgba(6,14,28,0.6); border:1px solid var(--gb);
+      border-radius:10px; color:var(--text); font-size:0.78rem;
+      padding:0.6rem 0.7rem; outline:none; font-family:'Montserrat',sans-serif;
+    }
+    .ing-row .ing-qty-input:focus { border-color:var(--gold-dk); }
+    #recipe-add-ing {
+      display:inline-flex; align-items:center; gap:0.4rem;
+      padding:0.45rem 1rem; border-radius:20px; cursor:pointer;
+      background:rgba(200,169,110,0.1); border:1px solid rgba(200,169,110,0.3);
+      color:var(--gold); font-size:0.68rem; font-weight:600; letter-spacing:0.1em;
+      text-transform:uppercase; transition:all 0.2s;
+    }
+    #recipe-add-ing:hover { background:rgba(200,169,110,0.2); }
+
+    /* ── Promo cards (admin list) ──────────── */
+    .promo-admin-card {
+      background:var(--glass); border:1px solid var(--gb);
+      border-radius:var(--radius); padding:1rem 1.2rem;
+      margin-bottom:0.8rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem;
+    }
+    .promo-admin-name { font-size:0.88rem; font-weight:600; color:var(--white); }
+    .promo-admin-meta { font-size:0.68rem; color:var(--gold-dk); margin-top:0.25rem; }
+    .promo-admin-desc { font-size:0.7rem; color:var(--muted); margin-top:0.15rem; }
+    #promo-add-ing {
+      display:inline-flex; align-items:center; gap:0.4rem;
+      padding:0.45rem 1rem; border-radius:20px; cursor:pointer;
+      background:rgba(200,169,110,0.1); border:1px solid rgba(200,169,110,0.3);
+      color:var(--gold); font-size:0.68rem; font-weight:600; letter-spacing:0.1em;
+      text-transform:uppercase; transition:all 0.2s;
+    }
+    #promo-add-ing:hover { background:rgba(200,169,110,0.2); }
+
+    /* ── Compact image upload ──────────────── */
+    .cimg-wrap { display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap; }
+    .cimg-btn {
+      display:inline-flex; align-items:center; gap:0.4rem;
+      padding:0.45rem 1rem; border-radius:20px; cursor:pointer;
+      background:rgba(200,169,110,0.07); border:1px dashed rgba(200,169,110,0.35);
+      color:var(--muted); font-size:0.67rem; font-weight:600;
+      letter-spacing:0.1em; text-transform:uppercase; transition:all 0.2s;
+    }
+    .cimg-btn:hover { border-color:var(--gold); color:var(--gold); }
+    .cimg-btn.uploading { opacity:0.5; pointer-events:none; }
+    .cimg-from-catalog {
+      display:inline-flex; align-items:center; gap:0.4rem;
+      padding:0.45rem 1rem; border-radius:20px; cursor:pointer;
+      background:rgba(200,169,110,0.07); border:1px solid rgba(200,169,110,0.25);
+      color:var(--gold-dk); font-size:0.67rem; font-weight:600;
+      letter-spacing:0.1em; text-transform:uppercase; transition:all 0.2s;
+    }
+    .cimg-from-catalog:hover { background:rgba(200,169,110,0.15); border-color:var(--gold); }
+    .cimg-thumb { width:56px; height:56px; object-fit:cover; border-radius:8px; border:1px solid rgba(200,169,110,0.3); }
+    .cimg-clear {
+      width:22px; height:22px; border-radius:50%;
+      background:rgba(231,76,60,0.12); border:none; color:#e74c3c;
+      cursor:pointer; font-size:0.65rem; display:flex; align-items:center; justify-content:center;
+    }
+    /* ── Multi-image thumbs ── */
+    .cimg-multi-wrap { display:flex; gap:0.45rem; flex-wrap:wrap; margin-top:0.45rem; min-height:0; }
+    .cimg-multi-item { position:relative; width:56px; height:56px; flex-shrink:0; }
+    .cimg-multi-item img { width:100%; height:100%; object-fit:cover; border-radius:8px; border:1px solid rgba(200,169,110,0.3); display:block; }
+    .cimg-multi-rm { position:absolute; top:-5px; right:-5px; width:17px; height:17px; border-radius:50%; background:#e74c3c; border:none; color:#fff; font-size:0.6rem; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0; line-height:1; }
+    /* ── Modal selector de imágenes del catálogo ── */
+    .catalog-img-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1200;
+      display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity 0.25s;
+    }
+    .catalog-img-overlay.open { opacity:1; pointer-events:all; }
+    .catalog-img-modal {
+      background:#0d1f35; border:1px solid rgba(200,169,110,0.25);
+      border-radius:16px; width:min(640px, calc(100vw - 2rem));
+      max-height:80vh; display:flex; flex-direction:column; overflow:hidden;
+    }
+    .catalog-img-modal-header {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:1rem 1.2rem; border-bottom:1px solid rgba(200,169,110,0.12);
+    }
+    .catalog-img-modal-header h4 { color:var(--gold); font-size:0.85rem; margin:0; }
+    .catalog-img-modal-close {
+      background:none; border:none; color:var(--muted); font-size:1.2rem;
+      cursor:pointer; padding:0.25rem 0.5rem; line-height:1;
+    }
+    .catalog-img-grid {
+      padding:0.8rem 1.2rem 1.2rem; overflow-y:auto; display:flex; flex-direction:column; gap:1.2rem;
+    }
+    .catalog-img-section-title {
+      font-size:0.65rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase;
+      color:var(--gold-dk); margin-bottom:0.5rem;
+      padding-bottom:0.35rem; border-bottom:1px solid rgba(200,169,110,0.15);
+    }
+    .catalog-img-row {
+      display:grid; grid-template-columns:repeat(auto-fill, minmax(80px, 1fr)); gap:0.5rem;
+    }
+    .catalog-img-item {
+      cursor:pointer; border-radius:10px; overflow:hidden;
+      border:2px solid transparent; transition:border-color 0.2s, transform 0.15s;
+      aspect-ratio:1/1; background:rgba(255,255,255,0.03);
+      position:relative;
+    }
+    .catalog-img-item:hover { border-color:var(--gold); transform:scale(1.05); }
+    .catalog-img-item.selected { border-color:#2ecc71 !important; }
+    .catalog-img-item.selected::after {
+      content:'✓'; position:absolute; top:4px; right:4px; background:#2ecc71; color:#fff;
+      font-size:0.65rem; font-weight:bold; width:15px; height:15px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .catalog-img-item img { width:100%; height:calc(100% - 18px); object-fit:cover; display:block; }
+    .catalog-img-item-name {
+      font-size:0.52rem; color:var(--muted); text-align:center;
+      padding:0.15rem 0.25rem; background:rgba(0,0,0,0.5);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; height:18px; line-height:18px;
+    }
+    .recipe-admin-edit { background:none; border:none; color:var(--gold); cursor:pointer; padding:0.3rem; opacity:0.6; transition:opacity 0.2s; }
+    .recipe-admin-edit:hover { opacity:1; }
+
+    /* ─── GENERADOR DE POSTS ───────────────── */
+    .post-gen-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: start; }
+    @media (max-width: 1024px) {
+      .post-gen-grid { grid-template-columns: 1fr; }
+    }
+    .post-preview-container {
+      background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius);
+      padding: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem;
+      position: sticky; top: 1rem;
+    }
+    .post-canvas-wrapper {
+      width: 400px; height: 400px;
+      position: relative; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; border: 1.5px solid var(--gb); border-radius: var(--radius);
+      background: #060e1c;
+    }
+    .post-canvas {
+      width: 1080px; height: 1080px;
+      transform: scale(0.37037); /* 400 / 1080 */
+      transform-origin: center center;
+      position: absolute;
+      background: #060e1c; display: flex; flex-direction: column;
+      box-sizing: border-box;
+    }
+    .post-canvas-bg {
+      position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+      opacity: 0.45; filter: blur(8px) brightness(0.4); z-index: 1;
+    }
+    .post-canvas-content {
+      position: relative; z-index: 2; width: 100%; height: 100%;
+      padding: 5rem; display: flex; flex-direction: column; justify-content: space-between;
+      box-sizing: border-box; background: linear-gradient(to bottom, rgba(6,14,28,0.5) 0%, rgba(6,14,28,0.85) 100%);
+    }
+    .post-canvas-header { display: flex; justify-content: space-between; align-items: center; }
+    .post-canvas-logo-img {
+      height: 90px; width: auto; object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+    }
+    .post-canvas-logo { font-size: 3.8rem; font-weight: 800; color: var(--gold-lt); font-family: 'Montserrat', sans-serif; letter-spacing: -0.02em; }
+    .post-canvas-logo em { font-family: 'Cormorant Garamond', serif; font-style: italic; color: #fff; font-weight: 400; }
+    .post-canvas-tagline { font-size: 1.4rem; color: var(--muted); letter-spacing: 0.18em; text-transform: uppercase; margin-top: 5px; font-weight: 500; }
+    .post-canvas-body { display: flex; flex-direction: column; gap: 2.5rem; margin: auto 0; }
+    .post-canvas-img-container {
+      width: 100%; height: 460px; border-radius: 24px; overflow: hidden;
+      border: 2px solid rgba(200,169,110,0.25); background: rgba(0,0,0,0.5);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.65);
+    }
+    .post-canvas-img-container img { width: 100%; height: 100%; object-fit: cover; }
+    .post-canvas-title { font-family: 'Cormorant Garamond', serif; font-size: 5.2rem; color: #fff; font-weight: 600; line-height: 1.15; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    .post-canvas-price { font-family: 'Cormorant Garamond', serif; font-size: 6.8rem; color: var(--gold-lt); font-weight: 700; margin-top: 0.5rem; text-shadow: 0 2px 15px rgba(0,0,0,0.4); }
+    .post-canvas-desc { font-size: 2.1rem; color: var(--text); line-height: 1.65; opacity: 0.95; font-weight: 400; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+    .post-canvas-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      border-top: 4px solid rgba(200,169,110,0.2); padding-top: 2.2rem;
+    }
+    .post-canvas-contact { font-size: 2rem; color: var(--muted); display: flex; align-items: center; gap: 12px; font-weight: 500; }
+    .post-canvas-badge {
+      background: var(--gold-dk); color: #fff; font-size: 1.5rem; font-weight: 700;
+      padding: 0.7rem 1.6rem; border-radius: 50px; text-transform: uppercase; letter-spacing: 0.12em;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    /* Story format adjustments */
+    .post-canvas-wrapper.format-story {
+      height: 711px;
+    }
+    .post-canvas.format-story {
+      height: 1920px;
+    }
+    .post-canvas.format-story .post-canvas-body {
+      gap: 5rem;
+    }
+    .post-canvas.format-story .post-canvas-img-container {
+      height: 900px;
+    }
+    .post-canvas.format-story .post-canvas-title {
+      font-size: 6.4rem;
+    }
+    .post-canvas.format-story .post-canvas-desc {
+      font-size: 2.8rem;
+    }
+    .post-canvas.format-story .post-canvas-price {
+      font-size: 8rem;
+    }
   </style>
 </head>
 <body>
@@ -873,6 +1104,11 @@
       <button class="sb-item" data-view="configuracion">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
         Configuración
+      </button>
+      <div class="sb-section" id="sb-super-title" style="display:none">Desarrollo</div>
+      <button class="sb-item" data-view="post-generator" id="sb-post-gen-btn" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 12H3M12 3v18"/></svg>
+        Generador de Posts
       </button>
       <div class="sb-section">Acciones</div>
       <button class="sb-item" id="sb-add-btn">
@@ -1268,42 +1504,163 @@
             <button class="config-save-btn" id="cfg-save-zones">Guardar zonas</button>
           </div>
 
-          <!-- Panel: Especial de la semana -->
-          <div class="config-panel">
+          <!-- Panel: Ofertas especiales (3 slots) -->
+          <div class="config-panel" style="grid-column:1/-1">
             <div class="config-panel-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              Especial de la semana
+              Ofertas especiales
             </div>
-            <div class="config-field" style="margin-bottom:1rem">
-              <div class="toggle-row">
-                <span class="toggle-label">Mostrar especial en el catálogo</span>
-                <label class="toggle">
-                  <input type="checkbox" id="cfg-especial-enabled">
-                  <span class="toggle-slider"></span>
-                </label>
+            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.6">Destacá hasta 3 productos con precio de oferta. Aparecen con banner en el catálogo. Podés mostrar el precio original tachado para resaltar el descuento.</p>
+            <div class="ofertas-grid" id="ofertas-grid">
+
+              <!-- Slot 0 -->
+              <div class="oferta-slot" id="oferta-slot-0">
+                <div class="oferta-slot-header">
+                  <span class="oferta-slot-num">Oferta 1</span>
+                  <label class="toggle"><input type="checkbox" id="oferta-enabled-0"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-field" style="margin:0">
+                  <label class="config-label">Producto</label>
+                  <select id="oferta-product-0" class="config-input"><option value="">— Sin producto —</option></select>
+                </div>
+                <div class="oferta-prices">
+                  <div class="config-field" style="margin:0">
+                    <label class="config-label">Precio oferta (₡)</label>
+                    <input type="number" id="oferta-price-0" class="config-input" placeholder="Ej: 3500">
+                  </div>
+                  <div class="config-field" style="margin:0">
+                    <label class="config-label">Precio original (₡)</label>
+                    <input type="number" id="oferta-original-0" class="config-input" placeholder="Ej: 5000">
+                  </div>
+                </div>
+                <div class="toggle-row" style="margin:0">
+                  <span class="toggle-label" style="font-size:0.7rem">Mostrar precio tachado</span>
+                  <label class="toggle"><input type="checkbox" id="oferta-show-original-0"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-field" style="margin:0">
+                  <label class="config-label">Mensaje promo</label>
+                  <input type="text" id="oferta-msg-0" class="config-input" placeholder="Ej: ¡20% menos!">
+                </div>
               </div>
+
+              <!-- Slot 1 -->
+              <div class="oferta-slot" id="oferta-slot-1">
+                <div class="oferta-slot-header">
+                  <span class="oferta-slot-num">Oferta 2</span>
+                  <label class="toggle"><input type="checkbox" id="oferta-enabled-1"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-field" style="margin:0">
+                  <label class="config-label">Producto</label>
+                  <select id="oferta-product-1" class="config-input"><option value="">— Sin producto —</option></select>
+                </div>
+                <div class="oferta-prices">
+                  <div class="config-field" style="margin:0">
+                    <label class="config-label">Precio oferta (₡)</label>
+                    <input type="number" id="oferta-price-1" class="config-input" placeholder="Ej: 3500">
+                  </div>
+                  <div class="config-field" style="margin:0">
+                    <label class="config-label">Precio original (₡)</label>
+                    <input type="number" id="oferta-original-1" class="config-input" placeholder="Ej: 5000">
+                  </div>
+                </div>
+                <div class="toggle-row" style="margin:0">
+                  <span class="toggle-label" style="font-size:0.7rem">Mostrar precio tachado</span>
+                  <label class="toggle"><input type="checkbox" id="oferta-show-original-1"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-field" style="margin:0">
+                  <label class="config-label">Mensaje promo</label>
+                  <input type="text" id="oferta-msg-1" class="config-input" placeholder="Ej: ¡Solo esta semana!">
+                </div>
+              </div>
+
+              <!-- Slot 2 -->
+              <div class="oferta-slot" id="oferta-slot-2">
+                <div class="oferta-slot-header">
+                  <span class="oferta-slot-num">Oferta 3</span>
+                  <label class="toggle"><input type="checkbox" id="oferta-enabled-2"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-field" style="margin:0">
+                  <label class="config-label">Producto</label>
+                  <select id="oferta-product-2" class="config-input"><option value="">— Sin producto —</option></select>
+                </div>
+                <div class="oferta-prices">
+                  <div class="config-field" style="margin:0">
+                    <label class="config-label">Precio oferta (₡)</label>
+                    <input type="number" id="oferta-price-2" class="config-input" placeholder="Ej: 3500">
+                  </div>
+                  <div class="config-field" style="margin:0">
+                    <label class="config-label">Precio original (₡)</label>
+                    <input type="number" id="oferta-original-2" class="config-input" placeholder="Ej: 5000">
+                  </div>
+                </div>
+                <div class="toggle-row" style="margin:0">
+                  <span class="toggle-label" style="font-size:0.7rem">Mostrar precio tachado</span>
+                  <label class="toggle"><input type="checkbox" id="oferta-show-original-2"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="config-field" style="margin:0">
+                  <label class="config-label">Mensaje promo</label>
+                  <input type="text" id="oferta-msg-2" class="config-input" placeholder="Ej: ¡Precio de temporada!">
+                </div>
+              </div>
+
             </div>
-            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">Destacá un producto con precio especial. Aparece con banner en el catálogo.</p>
-            <div class="form-group">
-              <label class="form-label">Producto destacado</label>
-              <select id="especial-product" style="width:100%;background:rgba(6,14,28,0.6);border:1px solid var(--gb);border-radius:8px;padding:0.6rem 0.8rem;color:var(--text);font-size:0.82rem;outline:none">
-                <option value="">— Sin especial esta semana —</option>
-              </select>
+            <button class="config-save-btn" id="cfg-save-especial">Guardar ofertas</button>
+          </div>
+
+          <!-- Panel: Promociones y Combos -->
+          <div class="config-panel" style="grid-column:1/-1">
+            <div class="config-panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+              Promociones y Combos
             </div>
-            <div class="form-group" style="margin-top:0.8rem">
-              <label class="form-label">Precio especial (₡) — opcional</label>
-              <input type="number" id="especial-price" placeholder="Ej: 3500" style="width:100%;background:rgba(6,14,28,0.6);border:1px solid var(--gb);border-radius:8px;padding:0.6rem 0.8rem;color:var(--text);font-size:0.82rem;outline:none">
+            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">Creá combos de productos o promociones individuales. Los clientes pueden agregar todos los productos al carrito con un clic.</p>
+            <div id="promos-admin-list" style="margin-bottom:1rem"></div>
+            <!-- Formulario para agregar promo/combo -->
+            <div style="background:rgba(6,14,28,0.5);border:1px solid var(--gb);border-radius:10px;padding:1rem;display:flex;flex-direction:column;gap:0.7rem">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem">
+                <div class="form-group">
+                  <label class="form-label">Nombre del combo / promo *</label>
+                  <input type="text" id="promo-name" class="config-input" placeholder="Ej: Combo Ceviche Familiar">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Precio del combo (₡) — opcional</label>
+                  <input type="number" id="promo-price" class="config-input" placeholder="Ej: 8500">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Descripción corta</label>
+                <input type="text" id="promo-desc" class="config-input" placeholder="Ej: Todo lo que necesitás para el mejor ceviche">
+              </div>
+              <div class="form-group">
+                <label class="config-label">Imágenes — opcional (podés agregar varias)</label>
+                <div class="cimg-wrap" id="promo-cimg-wrap">
+                  <input type="file" id="promo-img-file" accept="image/*" style="display:none" multiple>
+                  <button type="button" class="cimg-btn" id="promo-img-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Subir imagen
+                  </button>
+                  <button type="button" class="cimg-from-catalog" onclick="openCatalogImgPicker('promo')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><path d="M8 3v4M16 3v4"/></svg>
+                    Del catálogo
+                  </button>
+                </div>
+                <div class="cimg-multi-wrap" id="promo-imgs-preview"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Productos del combo / promo</label>
+                <div id="promo-ings-list" style="display:flex;flex-direction:column;gap:0.45rem;margin-bottom:0.5rem"></div>
+                <button type="button" id="promo-add-ing">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Agregar producto al combo
+                </button>
+              </div>
+              <div class="toggle-row" style="margin:0">
+                <span class="toggle-label" style="font-size:0.72rem">Activar y mostrar en el catálogo</span>
+                <label class="toggle"><input type="checkbox" id="promo-enabled" checked><span class="toggle-slider"></span></label>
+              </div>
+              <button class="config-save-btn" id="promo-add-btn" style="align-self:flex-start;margin-top:0">+ Agregar combo</button>
             </div>
-            <div class="form-group" style="margin-top:0.8rem">
-              <label class="form-label">Mensaje promocional</label>
-              <input type="text" id="especial-msg" placeholder="Ej: ¡Solo esta semana! 20% de descuento" style="width:100%;background:rgba(6,14,28,0.6);border:1px solid var(--gb);border-radius:8px;padding:0.6rem 0.8rem;color:var(--text);font-size:0.82rem;outline:none">
-            </div>
-            <div class="especial-preview" id="especial-preview">
-              <div class="especial-preview-label">Vista previa</div>
-              <div class="especial-preview-name" id="especial-preview-name"></div>
-              <div class="especial-preview-price" id="especial-preview-price"></div>
-            </div>
-            <button class="config-save-btn" id="cfg-save-especial" style="margin-top:1rem">Guardar especial</button>
+            <button class="config-save-btn" id="cfg-save-promos" style="margin-top:1rem">Guardar todas las promociones</button>
           </div>
 
           <!-- Panel: Productos destacados en inicio -->
@@ -1354,14 +1711,158 @@
                 <input type="text" id="recipe-desc" placeholder="Ej: Frescura costarricense en cada bocado" style="width:100%;background:rgba(6,14,28,0.6);border:1px solid var(--gb);border-radius:8px;padding:0.6rem 0.8rem;color:var(--text);font-size:0.82rem;outline:none">
               </div>
               <div class="form-group">
-                <label class="form-label">Ingredientes (productos de Chus's Fish, uno por línea: "nombre, cantidad")</label>
-                <textarea id="recipe-ingredients" rows="4" placeholder="Camarón mediano, 500g&#10;Limón, 3 unidades&#10;Culantro, 1 manojo" style="width:100%;background:rgba(6,14,28,0.6);border:1px solid var(--gb);border-radius:8px;padding:0.6rem 0.8rem;color:var(--text);font-size:0.82rem;outline:none;resize:vertical"></textarea>
+                <label class="config-label">Imágenes — opcional (podés agregar varias)</label>
+                <div class="cimg-wrap" id="recipe-cimg-wrap">
+                  <input type="file" id="recipe-img-file" accept="image/*" style="display:none" multiple>
+                  <button type="button" class="cimg-btn" id="recipe-img-btn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Subir imagen
+                  </button>
+                  <button type="button" class="cimg-from-catalog" onclick="openCatalogImgPicker('recipe')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/><path d="M8 3v4M16 3v4"/></svg>
+                    Del catálogo
+                  </button>
+                </div>
+                <div class="cimg-multi-wrap" id="recipe-imgs-preview"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ingredientes — elegí productos reales del catálogo</label>
+                <div id="recipe-ings-list" style="display:flex;flex-direction:column;gap:0.45rem;margin-bottom:0.5rem"></div>
+                <button type="button" id="recipe-add-ing">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Agregar ingrediente
+                </button>
               </div>
               <button class="config-save-btn" id="recipe-add-btn" style="align-self:flex-start">+ Agregar receta</button>
             </div>
             <button class="config-save-btn" id="cfg-save-recipes" style="margin-top:1rem">Guardar todas las recetas</button>
           </div>
 
+        </div>
+      </div>
+
+      <!-- ── GENERADOR DE POSTS (Super Admin Only) ── -->
+      <div id="view-post-generator" class="view" style="display:none">
+        <div class="post-gen-grid">
+          
+          <!-- Column 1: Controls -->
+          <div class="config-panel" style="margin:0">
+            <div class="config-panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M21 12H3M12 3v18"/></svg>
+              Configuración del Post
+            </div>
+            
+            <div class="config-field">
+              <label class="config-label">Tipo de Contenido</label>
+              <select id="post-type" class="config-input" onchange="onPostTypeChange()">
+                <option value="promo">Combo / Promoción Especial</option>
+                <option value="recipe">Receta de la Semana</option>
+                <option value="product">Producto Individual</option>
+                <option value="custom">Anuncio Personalizado</option>
+              </select>
+            </div>
+
+            <!-- Dynamic selector for promos, recipes, or products -->
+            <div class="config-field" id="post-data-select-field">
+              <label class="config-label" id="post-data-select-label">Seleccionar Combo</label>
+              <select id="post-data-select" class="config-input" onchange="onPostDataChange()"></select>
+            </div>
+
+            <div class="config-field">
+              <label class="config-label">Estilo de Diseño (Paleta de Colores)</label>
+              <select id="post-style-theme" class="config-input" onchange="updatePostPreview()">
+                <option value="dark-ocean">Modern Dark (Océano Profundo)</option>
+                <option value="elegant-gold">Elegant Gold (Oro y Crema)</option>
+                <option value="coral-sun">Coral Sun (Gradiente Vibrante)</option>
+                <option value="fresh-mint">Fresh Mint (Menta y Agua Marina)</option>
+              </select>
+            </div>
+
+            <div class="config-field">
+              <label class="config-label">Formato de Imagen</label>
+              <select id="post-format" class="config-input" onchange="updatePostPreview()">
+                <option value="square">Cuadrado (1:1) — Feed de Facebook / Instagram</option>
+                <option value="story">Vertical (9:16) — Historias / Estado de WhatsApp</option>
+              </select>
+            </div>
+
+            <div class="config-field">
+              <label class="config-label">Título del Post (Sobrescribir)</label>
+              <input type="text" id="post-title" class="config-input" placeholder="Ej: Combo Ceviche Familiar" oninput="updatePostPreview()">
+            </div>
+
+            <div class="config-field" id="post-price-field">
+              <label class="config-label">Precio (Sobrescribir)</label>
+              <input type="number" id="post-price" class="config-input" placeholder="Ej: 8500" oninput="updatePostPreview()">
+            </div>
+
+            <div class="config-field">
+              <label class="config-label">Descripción / Detalle</label>
+              <textarea id="post-desc" class="config-input" rows="4" placeholder="Escribe los detalles que aparecerán en el post..." oninput="updatePostPreview()" style="font-family:inherit;resize:vertical;"></textarea>
+            </div>
+
+            <div class="config-field">
+              <label class="config-label">Insignia / Badge (ej: "NUEVO", "RECOMENDADO")</label>
+              <input type="text" id="post-badge" class="config-input" placeholder="Ej: OFERTA" oninput="updatePostPreview()">
+            </div>
+          </div>
+
+          <!-- Column 2: Live Preview & Caption -->
+          <div class="post-preview-container">
+            <div class="config-panel-title" style="align-self:flex-start;margin-bottom:0.5rem">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              Vista Previa (1080x1080)
+            </div>
+            
+            <div class="post-canvas-wrapper">
+              <div class="post-canvas" id="post-canvas">
+                <!-- Background Image (Dynamic) -->
+                <img class="post-canvas-bg" id="post-canvas-bg" src="logo.jpeg" alt="">
+                
+                <div class="post-canvas-content" id="post-canvas-content">
+                  <div class="post-canvas-header">
+                    <div style="display:flex;align-items:center;gap:1.5rem;">
+                      <img src="nuevo_logo/logo_lujo.png" class="post-canvas-logo-img" alt="" onerror="this.src='logo.jpeg'">
+                      <div>
+                        <div class="post-canvas-logo">Chus<em>'s Fish</em></div>
+                        <div class="post-canvas-tagline">Frescura que habla sola</div>
+                      </div>
+                    </div>
+                    <div class="post-canvas-badge" id="post-canvas-badge-val">Combo</div>
+                  </div>
+                  
+                  <div class="post-canvas-body">
+                    <div class="post-canvas-img-container" id="post-canvas-img-container">
+                      <img id="post-canvas-img" src="logo.jpeg" alt="" onerror="this.src='logo.jpeg'">
+                    </div>
+                    <div class="post-canvas-title" id="post-canvas-title-val">Combo Ceviche Familiar</div>
+                    <div class="post-canvas-desc" id="post-canvas-desc-val">Incluye: 1kg de filete de pescado, cebolla, culantro, limones y salsa especial.</div>
+                  </div>
+                  
+                  <div class="post-canvas-footer">
+                    <div class="post-canvas-price" id="post-canvas-price-val">₡8.500</div>
+                    <div class="post-canvas-contact">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color:#2ecc71;vertical-align:-4px;margin-right:8px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.374l-.36-.214-3.732.979 1.001-3.65-.233-.374A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>
+                      Pedidos: 6001-7370
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button class="config-save-btn" type="button" onclick="downloadPostImage()" style="margin:0.5rem 0 0;width:100%;background:#27ae60;">
+              📥 Descargar Imagen (PNG)
+            </button>
+
+            <div class="config-field" style="width:100%;margin-top:1.2rem;">
+              <label class="config-label">Texto para Redes Sociales (Caption)</label>
+              <textarea id="post-caption" class="config-input" rows="5" readonly style="font-family:inherit;resize:none;font-size:0.78rem;background:rgba(6,14,28,0.4);color:var(--text);"></textarea>
+              <button class="config-save-btn" type="button" onclick="copyPostCaption()" style="margin:0.5rem 0 0;width:100%;">
+                📋 Copiar Texto
+              </button>
+            </div>
+          </div>
+          
         </div>
       </div>
 
@@ -1657,6 +2158,7 @@ let tblSearch      = '';
 let tblCatFilter   = 'all';
 let pendingImgFile = null;   // File a subir a Cloudinary
 let imgCleared     = false;  // usuario limpió la imagen existente
+let isSuperAdmin   = false;
 
 /* ════════════════════════════════════════════
    STORAGE — Firebase + Cloudinary
@@ -1763,7 +2265,11 @@ const USER_MAP = {
 };
 
 async function login(user, pass) {
-  const email = USER_MAP[user.toLowerCase().trim()];
+  const cleanUser = user.toLowerCase().trim();
+  let email = USER_MAP[cleanUser];
+  if (!email && cleanUser.includes('@')) {
+    email = cleanUser;
+  }
   if (!email) {
     document.getElementById('login-err').textContent = 'Usuario o contraseña incorrectos.';
     return false;
@@ -1817,7 +2323,7 @@ function showView(name) {
   if (el) el.style.display = '';
   const btn = document.querySelector(`.sb-item[data-view="${name}"]`);
   if (btn) btn.classList.add('active');
-  const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', productos: 'Productos', categorias: 'Categorías', configuracion: 'Configuración', historial: 'Historial de ventas', notificaciones: 'Solicitudes Avisame' };
+  const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', productos: 'Productos', categorias: 'Categorías', configuracion: 'Configuración', historial: 'Historial de ventas', notificaciones: 'Solicitudes Avisame', 'post-generator': 'Generador de Posts' };
   document.getElementById('tb-title').textContent = titles[name] || name;
   if (name === 'dashboard')       renderDashboard();
   if (name === 'pedidos')         renderOrders();
@@ -1826,6 +2332,7 @@ function showView(name) {
   if (name === 'configuracion')   renderConfig();
   if (name === 'historial')       renderHistorial();
   if (name === 'notificaciones')  loadNotifications();
+  if (name === 'post-generator')  renderPostGenerator();
 }
 
 function renderAll() {
@@ -1835,6 +2342,7 @@ function renderAll() {
   if (currentView === 'categorias')    renderCategories();
   if (currentView === 'configuracion') renderConfig();
   if (currentView === 'historial')     renderHistorial();
+  if (currentView === 'post-generator') renderPostGenerator();
 }
 
 /* ════════════════════════════════════════════
@@ -2415,7 +2923,9 @@ function updateOrdersBadge() {
 
 function calcOrderTotal(o) {
   if (!o.items || !o.items.length) return 0;
-  return o.items.reduce((sum, i) => sum + (parseFloat(i.price) || 0) * (parseFloat(i.qty) || 1), 0);
+  const itemsTotal = o.items.reduce((sum, i) => sum + (parseFloat(i.price) || 0) * (parseFloat(i.qty) || 1), 0);
+  const delivery = parseFloat(o.deliveryFee) || 0;
+  return itemsTotal + delivery;
 }
 
 function renderFinancialSummary() {
@@ -2505,6 +3015,24 @@ function renderShoppingList() {
   `;
 }
 
+// Escapa texto del cliente antes de inyectarlo en el DOM (previene XSS almacenado).
+// OJO: NO usar sobre el texto de los mensajes de WhatsApp (esos van con encodeURIComponent).
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Normaliza un teléfono de Costa Rica para WhatsApp: deja un solo "506",
+// aunque el cliente lo haya escrito con +506, 00506 o sin código.
+// Evita el "506" duplicado que dejaba el enlace en un número inexistente.
+function waPhone(phone) {
+  let d = String(phone || '').replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);                    // prefijo internacional 00
+  if (d.length > 8 && d.startsWith('506')) d = d.slice(3);   // ya traía el código de país
+  return '506' + d;
+}
+
 function renderOrders() {
   renderFinancialSummary();
   renderShoppingList();
@@ -2524,7 +3052,7 @@ function renderOrders() {
   if (!filtered.length) {
     list.innerHTML = `<div class="orders-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      <p style="font-size:0.82rem">${ordersSearch ? 'Sin resultados para "' + ordersSearch + '"' : 'No hay pedidos ' + (ordersFilter !== 'todos' ? 'con estado "' + ordersFilter + '"' : '')}</p>
+      <p style="font-size:0.82rem">${ordersSearch ? 'Sin resultados para "' + esc(ordersSearch) + '"' : 'No hay pedidos ' + (ordersFilter !== 'todos' ? 'con estado "' + esc(ordersFilter) + '"' : '')}</p>
     </div>`;
     return;
   }
@@ -2532,7 +3060,7 @@ function renderOrders() {
   list.innerHTML = filtered.map(o => {
     const ts = o.createdAt?.toDate ? o.createdAt.toDate() : o.createdAt ? new Date(o.createdAt) : null;
     const date = ts ? ts.toLocaleString('es-CR', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
-    const itemsHtml = (o.items || []).map(i => `• ${i.qty} ${i.unit||''} de ${i.name}${i.price ? ' → ₡' + Math.round(i.price * (parseFloat(i.qty)||1)).toLocaleString() : ''}`).join('<br>');
+    const itemsHtml = (o.items || []).map(i => `• ${esc(i.qty)} ${esc(i.unit||'')} de ${esc(i.name)}${i.price ? ' → ₡' + Math.round(i.price * (parseFloat(i.qty)||1)).toLocaleString() : ''}`).join('<br>');
     const orderTotal = calcOrderTotal(o);
     const totalHtml = orderTotal > 0 ? `₡${Math.round(orderTotal).toLocaleString()}` : 'Consultar';
     const fecha = o.customer?.fecha || o.fecha || '';
@@ -2540,15 +3068,61 @@ function renderOrders() {
     const phone = o.customer?.phone || o.phone || '';
     const name = o.customer?.name || o.name || 'Sin nombre';
     const address = o.customer?.address || o.address || '';
-    const deliveryHtml = fecha ? `<span class="order-delivery">📅 ${fecha}</span>` : '';
-    const zoneHtml = zone ? `· 📍 ${zone}` : '';
-    const cleanPhone = phone.replace(/\D/g,'');
-    const waDirectLink = `https://wa.me/506${cleanPhone}`;
+    const payment = o.customer?.payment || o.payment || '';
+    const deliveryHtml = fecha ? `<span class="order-delivery">📅 ${esc(fecha)}</span>` : '';
+    const zoneHtml = zone ? `· 📍 ${esc(zone)}` : '';
+    const cleanPhone = waPhone(phone);
+    const waDirectLink = `https://wa.me/${cleanPhone}`;
+
+    const deliveryFee = parseFloat(o.deliveryFee) || 0;
+    const deliveryFeeHtml = deliveryFee > 0 ? `<div class="order-client-meta" style="margin-top:2px;color:var(--gold)">🛵 Envío: ₡${Math.round(deliveryFee).toLocaleString()}</div>` : '';
 
     // WA message for confirmation
     const itemsList = (o.items || []).map(i => `• ${i.qty} ${i.unit||''} de ${i.name}`).join('\n');
-    const confirmMsg = `Hola ${name}! 🐟 Tu pedido en *Chus's Fish* ha sido *confirmado*.\n\n📦 *Tu pedido:*\n${itemsList}\n\n${fecha ? '📅 Fecha de entrega: ' + fecha + '\n' : ''}${orderTotal > 0 ? '💰 Total: ₡' + Math.round(orderTotal).toLocaleString() + '\n' : ''}\nNos comunicamos para coordinar la entrega. ¡Gracias por tu preferencia! 🦐`;
-    const waConfirmLink = `https://wa.me/506${cleanPhone}?text=${encodeURIComponent(confirmMsg)}`;
+    const confirmMsg = `Hola ${name}! 🐟 Tu pedido en *Chus's Fish* ha sido *confirmado*.\n\n📦 *Tu pedido:*\n${itemsList}\n\n${fecha ? '📅 Fecha de entrega: ' + fecha + '\n' : ''}${orderTotal > 0 ? '💰 Total de referencia: ₡' + Math.round(orderTotal).toLocaleString() + '\n' : ''}\n👉 Le enviaremos el informe final de su pedido en cuanto se prepare, en cuanto a peso y monto.\n¡Gracias por tu preferencia! 🦐`;
+    const waConfirmLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(confirmMsg)}`;
+
+    // WA message for full invoice
+    const emojiFish = '\u{1F41F}';
+    const emojiDoc = '\u{1F9FE}';
+    const emojiUser = '\u{1F464}';
+    const emojiPhone = '\u{1F4DE}';
+    const emojiHome = '\u{1F3E0}';
+    const emojiCalendar = '\u{1F4C5}';
+    const emojiCard = '\u{1F4B3}';
+    const emojiBox = '\u{1F4E6}';
+    const emojiMoney = '\u{1F4B0}';
+    const emojiScooter = '\u{1F6F5}';
+    const emojiWave = '\u{1F30A}';
+
+    const itemsListForInvoice = (o.items || []).map(i => {
+      const priceVal = i.price ? Math.round(i.price * (parseFloat(i.qty)||1)) : 0;
+      const priceText = priceVal > 0 ? ` ── ₡${priceVal.toLocaleString()}` : '';
+      return `• ${i.qty} ${i.unit||''} de ${i.name}${priceText}`;
+    }).join('\n');
+    const itemsSubtotal = (o.items || []).reduce((sum, i) => sum + (parseFloat(i.price) || 0) * (parseFloat(i.qty) || 1), 0);
+    const subtotalText = deliveryFee > 0 ? `Subtotal: ₡${Math.round(itemsSubtotal).toLocaleString()}\n` : '';
+    const shippingText = deliveryFee > 0 ? `${emojiScooter} Envío (${zone}): ₡${Math.round(deliveryFee).toLocaleString()}\n` : '';
+    const invoiceMsg = `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `       *Chus's Fish* ${emojiFish}\n` +
+      `   "Frescura que habla sola"\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `${emojiDoc} *DETALLE DE COMPRA*\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `${emojiUser} *Cliente:* ${name}\n` +
+      `${emojiPhone} *Teléfono:* ${phone || '—'}\n` +
+      `${emojiHome} *Dirección:* ${address || '—'}\n` +
+      `${emojiCalendar} *Entrega:* ${fecha || '—'}\n` +
+      `${emojiCard} *Pago:* ${payment || '—'}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      `${emojiBox} *Detalle del pedido:*\n${itemsListForInvoice}\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+      subtotalText +
+      shippingText +
+      `${emojiMoney} *Total a pagar:* *₡${Math.round(orderTotal).toLocaleString()}*\n` +
+      `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+      `¡Muchas gracias por su preferencia! ${emojiWave}${emojiFish}`;
+    const waInvoiceLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(invoiceMsg)}`;
 
     const actions = [];
     if (o.status === 'pendiente') actions.push(`<a class="order-act-btn order-act-confirm" href="${waConfirmLink}" target="_blank" onclick="setOrderStatus('${o.id}','confirmado')">✓ Confirmar + WA</a>`);
@@ -2556,20 +3130,20 @@ function renderOrders() {
     if (o.status === 'en_camino') actions.push(`<button class="order-act-btn order-act-deliver" onclick="setOrderStatus('${o.id}','entregado')">Entregado</button>`);
     if (o.status !== 'cancelado' && o.status !== 'entregado') actions.push(`<button class="order-act-btn order-act-cancel" onclick="setOrderStatus('${o.id}','cancelado')">Cancelar</button>`);
     actions.push(`<a class="order-act-btn order-act-wa" href="${waDirectLink}" target="_blank">💬 WA</a>`);
-
-    const payment = o.customer?.payment || o.payment || '';
-    const noteVal = (o.note || '').replace(/"/g, '&quot;');
+    actions.push(`<a class="order-act-btn order-act-invoice" href="${waInvoiceLink}" target="_blank">🧾 Factura WA</a>`);
+    const noteVal = esc(o.note || '');
     const thumbsHtml = (o.items || []).map(i => {
       const p = products.find(x => x.name === i.name);
-      return p?.img ? `<img class="order-item-thumb" src="${p.img}" alt="${p.name}" title="${p.name}" onerror="this.style.display='none'">` : '';
+      return p?.img ? `<img class="order-item-thumb" src="${p.img}" alt="${esc(p.name)}" title="${esc(p.name)}" onerror="this.style.display='none'">` : '';
     }).filter(Boolean).slice(0, 5).join('');
     return `<div class="order-card">
       <div class="order-card-header">
         <div>
-          <div class="order-client-name">${name}</div>
-          <div class="order-client-meta">📞 ${phone || '—'} ${zoneHtml} · ${date}</div>
-          ${address ? `<div class="order-client-meta" style="margin-top:2px">🏠 ${address}</div>` : ''}
-          ${payment ? `<div class="order-client-meta" style="margin-top:2px">💳 ${payment}</div>` : ''}
+          <div class="order-client-name">${esc(name)}</div>
+          <div class="order-client-meta">📞 ${esc(phone || '—')} ${zoneHtml} · ${date}</div>
+          ${address ? `<div class="order-client-meta" style="margin-top:2px">🏠 ${esc(address)}</div>` : ''}
+          ${payment ? `<div class="order-client-meta" style="margin-top:2px">💳 ${esc(payment)}</div>` : ''}
+          ${deliveryFeeHtml}
         </div>
         <span class="order-status ${o.status || 'pendiente'}">${(o.status||'pendiente').replace('_',' ')}</span>
       </div>
@@ -2629,8 +3203,10 @@ async function loadConfig() {
     if (snap.exists) appConfig = Object.assign({ closingEnabled: false, closingMessage: '', zones: [], recipes: [] }, snap.data());
   } catch(e) {}
   recipes = appConfig.recipes || [];
+  promotions = appConfig.promotions || [];
   renderConfig();
   renderRecipesAdmin();
+  renderPromotionsAdmin();
   populateEspecialSelect();
   populateFeaturedSelects();
     const sfInput = document.getElementById('cfg-shipping-fee');
@@ -2849,63 +3425,110 @@ document.getElementById('cfg-save-days').addEventListener('click', async () => {
   } catch(e) { toast('Error al guardar: ' + e.message); }
 });
 
-/* ── ESPECIAL DE LA SEMANA ─────────────────── */
+/* ── OFERTAS ESPECIALES (3 slots) ─────────── */
+const NUM_OFERTAS = 3;
+
 function populateEspecialSelect() {
-  const sel = document.getElementById('especial-product');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Sin especial esta semana —</option>';
-  products.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.id; opt.textContent = p.name;
-    if (appConfig.especial && +appConfig.especial.productId === p.id) opt.selected = true;
-    sel.appendChild(opt);
-  });
-  const especialEnabledEl = document.getElementById('cfg-especial-enabled');
-  if (especialEnabledEl) {
-    especialEnabledEl.checked = appConfig.especial ? appConfig.especial.enabled !== false : false;
+  // Migrar desde formato antiguo si es necesario
+  if (!appConfig.especiales && appConfig.especial) {
+    appConfig.especiales = [
+      { productId: appConfig.especial.productId, price: appConfig.especial.price,
+        originalPrice: null, showOriginal: false, msg: appConfig.especial.msg || '',
+        enabled: appConfig.especial.enabled !== false },
+      { productId: null, price: null, originalPrice: null, showOriginal: false, msg: '', enabled: false },
+      { productId: null, price: null, originalPrice: null, showOriginal: false, msg: '', enabled: false }
+    ];
   }
-  if (appConfig.especial) {
-    document.getElementById('especial-price').value = appConfig.especial.price || '';
-    document.getElementById('especial-msg').value = appConfig.especial.msg || '';
-    updateEspecialPreview();
+  for (let i = 0; i < NUM_OFERTAS; i++) {
+    const sel = document.getElementById('oferta-product-' + i);
+    if (!sel) continue;
+    const esp = appConfig.especiales ? appConfig.especiales[i] : null;
+    sel.innerHTML = '<option value="">— Sin producto —</option>';
+    products.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.name;
+      if (esp && esp.productId && +esp.productId === p.id) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    if (esp) {
+      const en = document.getElementById('oferta-enabled-' + i);
+      const pr = document.getElementById('oferta-price-' + i);
+      const or = document.getElementById('oferta-original-' + i);
+      const so = document.getElementById('oferta-show-original-' + i);
+      const ms = document.getElementById('oferta-msg-' + i);
+      if (en) en.checked = esp.enabled !== false;
+      if (pr) pr.value = esp.price || '';
+      if (or) or.value = esp.originalPrice || '';
+      if (so) so.checked = !!esp.showOriginal;
+      if (ms) ms.value = esp.msg || '';
+    }
   }
 }
-
-function updateEspecialPreview() {
-  const sel = document.getElementById('especial-product');
-  const price = document.getElementById('especial-price').value;
-  const preview = document.getElementById('especial-preview');
-  const previewName = document.getElementById('especial-preview-name');
-  const previewPrice = document.getElementById('especial-preview-price');
-  if (!sel.value) { preview.classList.remove('show'); return; }
-  const p = products.find(x => x.id === sel.value);
-  if (!p) return;
-  preview.classList.add('show');
-  previewName.textContent = p.name;
-  previewPrice.textContent = price ? `₡${parseInt(price).toLocaleString()} especial` : `₡${p.price ? p.price.toLocaleString() : 'Consultar'} precio regular`;
-}
-
-document.getElementById('especial-product').addEventListener('change', updateEspecialPreview);
-document.getElementById('especial-price').addEventListener('input', updateEspecialPreview);
 
 document.getElementById('cfg-save-especial').addEventListener('click', async () => {
-  const productIdRaw = document.getElementById('especial-product').value;
-  const productId = productIdRaw ? parseInt(productIdRaw) : null;
-  const price = document.getElementById('especial-price').value;
-  const msg = document.getElementById('especial-msg').value.trim();
-  const p = products.find(x => x.id === productId);
-  const especialEnabled = !!(document.getElementById('cfg-especial-enabled') || {}).checked;
-  appConfig.especial = productId
-    ? { productId, productName: p ? p.name : '', price: price ? parseInt(price) : null, msg, enabled: especialEnabled }
-    : null;
+  const especiales = [];
+  for (let i = 0; i < NUM_OFERTAS; i++) {
+    const productIdRaw = (document.getElementById('oferta-product-' + i) || {}).value;
+    const productId = productIdRaw ? parseInt(productIdRaw) : null;
+    const price = (document.getElementById('oferta-price-' + i) || {}).value;
+    const originalPrice = (document.getElementById('oferta-original-' + i) || {}).value;
+    const showOriginal = !!(document.getElementById('oferta-show-original-' + i) || {}).checked;
+    const msg = ((document.getElementById('oferta-msg-' + i) || {}).value || '').trim();
+    const enabled = !!(document.getElementById('oferta-enabled-' + i) || {}).checked;
+    especiales.push({
+      productId: productId || null,
+      price: price ? parseInt(price) : null,
+      originalPrice: originalPrice ? parseInt(originalPrice) : null,
+      showOriginal,
+      msg,
+      enabled: enabled && !!productId
+    });
+  }
+  appConfig.especiales = especiales;
   try {
     await CFG_REF.set(appConfig, { merge: true });
-    toast('Especial de la semana guardado');
+    toast('Ofertas especiales guardadas');
   } catch(e) { toast('Error al guardar: ' + e.message); }
 });
 
 /* ── RECETAS ───────────────────────────────── */
 let recipes = [];
+
+/* ── Construye un <select> con todos los productos ── */
+function buildProductSelectForIng(selectedId) {
+  const sel = document.createElement('select');
+  sel.className = 'config-input ing-product-sel';
+  sel.innerHTML = '<option value="">— Producto del catálogo —</option>';
+  (products || []).forEach(function(p) {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name;
+    if (selectedId && +selectedId === p.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+/* ── Agrega una fila de ingrediente al formulario ── */
+function addIngRow(productId, qty) {
+  const list = document.getElementById('recipe-ings-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'ing-row';
+  const sel = buildProductSelectForIng(productId);
+  const qtyInput = document.createElement('input');
+  qtyInput.type = 'text'; qtyInput.className = 'ing-qty-input';
+  qtyInput.placeholder = 'Cantidad'; if (qty) qtyInput.value = qty;
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button'; delBtn.className = 'zone-del-btn';
+  delBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>';
+  delBtn.onclick = function() { row.remove(); };
+  row.appendChild(sel); row.appendChild(qtyInput); row.appendChild(delBtn);
+  list.appendChild(row);
+}
+
+document.getElementById('recipe-add-ing').addEventListener('click', function() { addIngRow(); });
+
+let editingRecipeIdx = null;
 
 function renderRecipesAdmin() {
   const list = document.getElementById('recipes-admin-list');
@@ -2914,49 +3537,407 @@ function renderRecipesAdmin() {
     list.innerHTML = '<p style="font-size:0.74rem;color:var(--muted);margin-bottom:0.5rem">No hay recetas esta semana.</p>';
     return;
   }
-  list.innerHTML = recipes.map((r, i) => `
-    <div class="recipe-admin-card">
-      <div class="recipe-admin-header">
-        <div>
-          <div class="recipe-admin-name">${r.name}</div>
-          <div style="font-size:0.7rem;color:var(--muted);margin-top:0.15rem">${r.desc || ''}</div>
-          <div style="font-size:0.68rem;color:var(--gold-dk);margin-top:0.3rem">${(r.ingredients||[]).map(ing=>`${ing.qty} de ${ing.name}`).join(' · ')}</div>
-        </div>
-        <button class="recipe-admin-del" onclick="deleteRecipe(${i})">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-        </button>
-      </div>
-    </div>
-  `).join('');
+  list.innerHTML = recipes.map(function(r, i) {
+    const ingSummary = (r.ingredients||[]).map(function(ing){ return (ing.qty ? ing.qty + ' de ' : '') + ing.name; }).join(' · ');
+    return '<div class="recipe-admin-card"><div class="recipe-admin-header"><div>' +
+      '<div class="recipe-admin-name">' + r.name + '</div>' +
+      '<div style="font-size:0.7rem;color:var(--muted);margin-top:0.15rem">' + (r.desc || '') + '</div>' +
+      '<div style="font-size:0.68rem;color:var(--gold-dk);margin-top:0.3rem">' + ingSummary + '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:0.4rem">' +
+        '<button class="recipe-admin-edit" onclick="editRecipe(' + i + ')" title="Editar" style="display:flex;align-items:center">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+        '</button>' +
+        '<button class="recipe-admin-del" onclick="deleteRecipe(' + i + ')" title="Eliminar" style="display:flex;align-items:center">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>' +
+        '</button>' +
+      '</div></div></div>';
+  }).join('');
 }
 
-function deleteRecipe(i) {
-  recipes.splice(i, 1);
-  renderRecipesAdmin();
+function editRecipe(i) {
+  const r = recipes[i];
+  if (!r) return;
+  editingRecipeIdx = i;
+  
+  document.getElementById('recipe-name').value = r.name || '';
+  document.getElementById('recipe-desc').value = r.desc || '';
+  
+  const list = document.getElementById('recipe-ings-list');
+  list.innerHTML = '';
+  if (r.ingredients) {
+    r.ingredients.forEach(function(ing) {
+      addIngRow(ing.productId, ing.qty);
+    });
+  }
+  
+  currentRecipeImages = r.images ? r.images.slice() : (r.img ? [r.img] : []);
+  renderRecipeImgPreviews();
+  
+  document.getElementById('recipe-add-btn').innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg> Guardar cambios';
+  
+  let cancelBtn = document.getElementById('recipe-cancel-btn');
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.id = 'recipe-cancel-btn';
+    cancelBtn.className = 'config-save-btn';
+    cancelBtn.style.margin = '0 0 0 0.5rem';
+    cancelBtn.style.background = 'none';
+    cancelBtn.style.border = '1px solid var(--muted)';
+    cancelBtn.style.color = 'var(--muted)';
+    cancelBtn.style.alignSelf = 'flex-start';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.onclick = cancelRecipeEdit;
+    document.getElementById('recipe-add-btn').insertAdjacentElement('afterend', cancelBtn);
+  }
+  
+  document.getElementById('recipe-name').scrollIntoView({ behavior: 'smooth' });
 }
 
-document.getElementById('recipe-add-btn').addEventListener('click', () => {
-  const name = document.getElementById('recipe-name').value.trim();
-  const desc = document.getElementById('recipe-desc').value.trim();
-  const rawIngredients = document.getElementById('recipe-ingredients').value.trim();
-  if (!name) { toast('Escribe el nombre de la receta'); return; }
-  const ingredients = rawIngredients.split('\n').filter(l => l.trim()).map(l => {
-    const parts = l.split(',');
-    return { name: (parts[0] || '').trim(), qty: (parts[1] || '').trim() };
-  });
-  recipes.push({ name, desc, ingredients });
+function cancelRecipeEdit() {
+  editingRecipeIdx = null;
   document.getElementById('recipe-name').value = '';
   document.getElementById('recipe-desc').value = '';
-  document.getElementById('recipe-ingredients').value = '';
+  document.getElementById('recipe-ings-list').innerHTML = '';
+  currentRecipeImages = [];
+  renderRecipeImgPreviews();
+  
+  document.getElementById('recipe-add-btn').innerHTML = '+ Agregar receta';
+  const cancelBtn = document.getElementById('recipe-cancel-btn');
+  if (cancelBtn) cancelBtn.remove();
+}
+
+async function saveRecipes() {
+  try {
+    await CFG_REF.set({ recipes: recipes }, { merge: true });
+    appConfig.recipes = recipes;
+  } catch(e) { toast('Error al guardar: ' + e.message); throw e; }
+}
+
+async function deleteRecipe(i) {
+  if (editingRecipeIdx === i) cancelRecipeEdit();
+  recipes.splice(i, 1);
   renderRecipesAdmin();
+  try {
+    await saveRecipes();
+    toast('Receta eliminada');
+  } catch(e) {}
+}
+
+document.getElementById('recipe-add-btn').addEventListener('click', async function() {
+  const name = document.getElementById('recipe-name').value.trim();
+  const desc = document.getElementById('recipe-desc').value.trim();
+  if (!name) { toast('Escribe el nombre de la receta'); return; }
+  const rows = document.querySelectorAll('#recipe-ings-list .ing-row');
+  const ingredients = [];
+  rows.forEach(function(row) {
+    const sel = row.querySelector('.ing-product-sel');
+    const qtyInput = row.querySelector('.ing-qty-input');
+    if (!sel || !sel.value) return;
+    const productId = parseInt(sel.value);
+    const p = (products || []).find(function(x){ return x.id === productId; });
+    const qty = (qtyInput && qtyInput.value.trim()) || '';
+    if (p) ingredients.push({ productId: productId, name: p.name, qty: qty });
+  });
+  if (!ingredients.length) { toast('Agregá al menos un ingrediente del catálogo'); return; }
+  
+  const recipeData = {
+    name: name, desc: desc,
+    ingredients: ingredients,
+    images: currentRecipeImages.slice(), img: currentRecipeImages[0] || null
+  };
+
+  if (editingRecipeIdx !== null) {
+    recipes[editingRecipeIdx] = recipeData;
+    toast('Receta "' + name + '" actualizada ✅');
+    cancelRecipeEdit();
+  } else {
+    recipes.push(recipeData);
+    toast('Receta "' + name + '" guardada ✅');
+    document.getElementById('recipe-name').value = '';
+    document.getElementById('recipe-desc').value = '';
+    document.getElementById('recipe-ings-list').innerHTML = '';
+    currentRecipeImages = [];
+    renderRecipeImgPreviews();
+  }
+  
+  renderRecipesAdmin();
+  try {
+    await saveRecipes();
+  } catch(e) {}
 });
 
 document.getElementById('cfg-save-recipes').addEventListener('click', async () => {
   try {
-    await CFG_REF.set({ recipes }, { merge: true });
-    appConfig.recipes = recipes;
+    await saveRecipes();
     toast('Recetas guardadas correctamente');
-  } catch(e) { toast('Error al guardar: ' + e.message); }
+  } catch(e) {}
+});
+
+/* ════════════════════════════════════════════
+   PROMOCIONES Y COMBOS
+════════════════════════════════════════════ */
+let promotions = [];
+
+function buildProductSelectForPromo(selectedId) {
+  const sel = document.createElement('select');
+  sel.className = 'config-input ing-product-sel';
+  sel.innerHTML = '<option value="">— Producto del catálogo —</option>';
+  (products || []).forEach(function(p) {
+    const opt = document.createElement('option');
+    opt.value = p.id; opt.textContent = p.name;
+    if (selectedId && +selectedId === p.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  return sel;
+}
+
+function addPromoIngRow(productId, qty) {
+  const list = document.getElementById('promo-ings-list');
+  if (!list) return;
+  const row = document.createElement('div');
+  row.className = 'ing-row';
+  const sel = buildProductSelectForPromo(productId);
+  const qtyInput = document.createElement('input');
+  qtyInput.type = 'text'; qtyInput.className = 'ing-qty-input';
+  qtyInput.placeholder = 'Cantidad'; if (qty) qtyInput.value = qty;
+  const delBtn = document.createElement('button');
+  delBtn.type = 'button'; delBtn.className = 'zone-del-btn';
+  delBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>';
+  delBtn.onclick = function() { row.remove(); };
+  row.appendChild(sel); row.appendChild(qtyInput); row.appendChild(delBtn);
+  list.appendChild(row);
+}
+
+/* ── Multi-imagen para recetas ── */
+let currentRecipeImages = [];
+function renderRecipeImgPreviews() {
+  const wrap = document.getElementById('recipe-imgs-preview');
+  if (!wrap) return;
+  wrap.innerHTML = currentRecipeImages.map(function(url, i) {
+    return '<div class="cimg-multi-item"><img src="' + url + '" alt=""><button class="cimg-multi-rm" onclick="removeRecipeImg(' + i + ')">✕</button></div>';
+  }).join('');
+}
+function removeRecipeImg(i) { currentRecipeImages.splice(i, 1); renderRecipeImgPreviews(); }
+document.getElementById('recipe-img-btn').addEventListener('click', function() {
+  document.getElementById('recipe-img-file').click();
+});
+document.getElementById('recipe-img-file').addEventListener('change', async function(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  const btn = document.getElementById('recipe-img-btn');
+  btn.classList.add('uploading');
+  try {
+    for (let i = 0; i < files.length; i++) {
+      btn.textContent = `Subiendo (${i + 1}/${files.length})...`;
+      const url = await uploadToCloudinary(files[i]);
+      currentRecipeImages.push(url);
+    }
+    renderRecipeImgPreviews();
+  } catch(err) { toast('Error al subir imagen: ' + err.message); }
+  btn.classList.remove('uploading'); btn.textContent = 'Subir imagen';
+  e.target.value = '';
+});
+
+/* ── Multi-imagen para combos/promos ── */
+let currentPromoImages = [];
+function renderPromoImgPreviews() {
+  const wrap = document.getElementById('promo-imgs-preview');
+  if (!wrap) return;
+  wrap.innerHTML = currentPromoImages.map(function(url, i) {
+    return '<div class="cimg-multi-item"><img src="' + url + '" alt=""><button class="cimg-multi-rm" onclick="removePromoImg(' + i + ')">✕</button></div>';
+  }).join('');
+}
+function removePromoImg(i) { currentPromoImages.splice(i, 1); renderPromoImgPreviews(); }
+document.getElementById('promo-img-btn').addEventListener('click', function() {
+  document.getElementById('promo-img-file').click();
+});
+document.getElementById('promo-img-file').addEventListener('change', async function(e) {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+  const btn = document.getElementById('promo-img-btn');
+  btn.classList.add('uploading');
+  try {
+    for (let i = 0; i < files.length; i++) {
+      btn.textContent = `Subiendo (${i + 1}/${files.length})...`;
+      const url = await uploadToCloudinary(files[i]);
+      currentPromoImages.push(url);
+    }
+    renderPromoImgPreviews();
+  } catch(err) { toast('Error al subir imagen: ' + err.message); }
+  btn.classList.remove('uploading'); btn.textContent = 'Subir imagen';
+  e.target.value = '';
+});
+
+document.getElementById('promo-add-ing').addEventListener('click', function() { addPromoIngRow(); });
+
+let editingPromoIdx = null;
+
+function renderPromotionsAdmin() {
+  const list = document.getElementById('promos-admin-list');
+  if (!list) return;
+  if (!promotions.length) {
+    list.innerHTML = '<p style="font-size:0.74rem;color:var(--muted);margin-bottom:0.5rem">No hay promociones. Agregá tu primer combo abajo.</p>';
+    return;
+  }
+  list.innerHTML = promotions.map(function(pr, i) {
+    const itemsSummary = (pr.items||[]).map(function(it){ return (it.qty ? it.qty + ' ' : '') + it.name; }).join(' + ');
+    const priceStr = pr.price ? '&#8353;' + parseInt(pr.price).toLocaleString() : 'sin precio fijo';
+    const badge = (pr.items||[]).length > 1 ? '&#127881; Combo' : '&#127991; Promo';
+    const enabledDot = pr.enabled !== false
+      ? '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#2ecc71;margin-right:5px"></span>'
+      : '<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--muted);margin-right:5px"></span>';
+    return '<div class="promo-admin-card">' +
+      '<div style="flex:1">' +
+        '<div class="promo-admin-name">' + enabledDot + pr.name + '</div>' +
+        '<div class="promo-admin-meta">' + badge + ' &nbsp;·&nbsp; ' + priceStr + '</div>' +
+        (pr.desc ? '<div class="promo-admin-desc">' + pr.desc + '</div>' : '') +
+        '<div style="font-size:0.68rem;color:var(--muted);margin-top:0.3rem">' + itemsSummary + '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:0.4rem">' +
+        '<button class="recipe-admin-edit" onclick="editPromotion(' + i + ')" title="Editar" style="display:flex;align-items:center">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>' +
+        '</button>' +
+        '<button class="recipe-admin-del" onclick="deletePromotion(' + i + ')" title="Eliminar" style="display:flex;align-items:center">' +
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function editPromotion(i) {
+  const pr = promotions[i];
+  if (!pr) return;
+  editingPromoIdx = i;
+  
+  document.getElementById('promo-name').value = pr.name || '';
+  document.getElementById('promo-desc').value = pr.desc || '';
+  document.getElementById('promo-price').value = pr.price || '';
+  
+  const enabledInput = document.getElementById('promo-enabled');
+  if (enabledInput) enabledInput.checked = pr.enabled !== false;
+  
+  const list = document.getElementById('promo-ings-list');
+  list.innerHTML = '';
+  if (pr.items) {
+    pr.items.forEach(function(item) {
+      addPromoIngRow(item.productId, item.qty);
+    });
+  }
+  
+  currentPromoImages = pr.images ? pr.images.slice() : (pr.img ? [pr.img] : []);
+  renderPromoImgPreviews();
+  
+  document.getElementById('promo-add-btn').innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg> Guardar cambios';
+  
+  let cancelBtn = document.getElementById('promo-cancel-btn');
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.id = 'promo-cancel-btn';
+    cancelBtn.className = 'config-save-btn';
+    cancelBtn.style.margin = '0 0 0 0.5rem';
+    cancelBtn.style.background = 'none';
+    cancelBtn.style.border = '1px solid var(--muted)';
+    cancelBtn.style.color = 'var(--muted)';
+    cancelBtn.style.alignSelf = 'flex-start';
+    cancelBtn.textContent = 'Cancelar';
+    cancelBtn.onclick = cancelPromoEdit;
+    document.getElementById('promo-add-btn').insertAdjacentElement('afterend', cancelBtn);
+  }
+  
+  document.getElementById('promo-name').scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelPromoEdit() {
+  editingPromoIdx = null;
+  document.getElementById('promo-name').value = '';
+  document.getElementById('promo-desc').value = '';
+  document.getElementById('promo-price').value = '';
+  document.getElementById('promo-ings-list').innerHTML = '';
+  const enabledInput = document.getElementById('promo-enabled');
+  if (enabledInput) enabledInput.checked = true;
+  currentPromoImages = [];
+  renderPromoImgPreviews();
+  
+  document.getElementById('promo-add-btn').innerHTML = '+ Agregar combo';
+  const cancelBtn = document.getElementById('promo-cancel-btn');
+  if (cancelBtn) cancelBtn.remove();
+}
+
+async function savePromotions() {
+  try {
+    await CFG_REF.set({ promotions: promotions }, { merge: true });
+    appConfig.promotions = promotions;
+  } catch(e) { toast('Error al guardar: ' + e.message); throw e; }
+}
+
+async function deletePromotion(i) {
+  if (editingPromoIdx === i) cancelPromoEdit();
+  promotions.splice(i, 1);
+  renderPromotionsAdmin();
+  try {
+    await savePromotions();
+    toast('Combo eliminado');
+  } catch(e) {}
+}
+
+document.getElementById('promo-add-btn').addEventListener('click', async function() {
+  const name = document.getElementById('promo-name').value.trim();
+  const desc = document.getElementById('promo-desc').value.trim();
+  const price = document.getElementById('promo-price').value;
+  const enabled = !!(document.getElementById('promo-enabled') || {}).checked;
+  if (!name) { toast('Escribe el nombre del combo o promo'); return; }
+  const rows = document.querySelectorAll('#promo-ings-list .ing-row');
+  const items = [];
+  rows.forEach(function(row) {
+    const sel = row.querySelector('.ing-product-sel');
+    const qtyInput = row.querySelector('.ing-qty-input');
+    if (!sel || !sel.value) return;
+    const productId = parseInt(sel.value);
+    const p = (products || []).find(function(x){ return x.id === productId; });
+    const qty = (qtyInput && qtyInput.value.trim()) || '';
+    if (p) items.push({ productId: productId, name: p.name, qty: qty });
+  });
+  if (!items.length) { toast('Agregá al menos un producto al combo'); return; }
+  
+  const promoData = {
+    name: name, desc: desc,
+    price: price ? parseInt(price) : null,
+    items: items, enabled: enabled,
+    images: currentPromoImages.slice(), img: currentPromoImages[0] || null
+  };
+
+  if (editingPromoIdx !== null) {
+    promotions[editingPromoIdx] = promoData;
+    toast('Combo "' + name + '" actualizado ✅');
+    cancelPromoEdit();
+  } else {
+    promotions.push(promoData);
+    toast('Combo "' + name + '" guardado ✅');
+    document.getElementById('promo-name').value = '';
+    document.getElementById('promo-desc').value = '';
+    document.getElementById('promo-price').value = '';
+    document.getElementById('promo-ings-list').innerHTML = '';
+    const enabledInput = document.getElementById('promo-enabled');
+    if (enabledInput) enabledInput.checked = true;
+    currentPromoImages = [];
+    renderPromoImgPreviews();
+  }
+  
+  renderPromotionsAdmin();
+  try {
+    await savePromotions();
+  } catch(e) {}
+});
+
+document.getElementById('cfg-save-promos').addEventListener('click', async function() {
+  try {
+    await savePromotions();
+    toast('Promociones guardadas correctamente');
+  } catch(e) {}
 });
 
 /* ════════════════════════════════════════════
@@ -3123,7 +4104,7 @@ async function loadNotifications() {
         <tbody>${items.map(n => {
           const ts = n.createdAt?.toDate ? n.createdAt.toDate() : n.createdAt ? new Date(n.createdAt) : null;
           const fecha = ts ? ts.toLocaleDateString('es-CR',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-          const waHref = `https://wa.me/506${n.phone.replace(/\D/g,'')}?text=${encodeURIComponent(`Hola! Te contactamos de Chus's Fish. El producto "${n.productName}" ya está disponible 🎉`)}`;
+          const waHref = `https://wa.me/${waPhone(n.phone)}?text=${encodeURIComponent(`Hola! Te contactamos de Chus's Fish. El producto "${n.productName}" ya está disponible 🎉`)}`;
           return `<tr>
             <td style="color:var(--muted);font-size:0.74rem">${fecha}</td>
             <td style="color:var(--text);font-weight:500">${n.productName || '—'}</td>
@@ -3162,6 +4143,8 @@ async function loadNotifications() {
   firebase.auth().onAuthStateChanged((user) => {
     if (user) {
       localStorage.setItem(AUTH_KEY, '1');
+      isSuperAdmin = (user && (user.email === 'rojasporrasjan@gmail.com' || user.uid === 'Z1vGWA7Qcgaf8eIlPgSRstjCUBv2'));
+      updateRoleUI();
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('app').style.display = 'flex';
       showView(currentView || 'dashboard');
@@ -3169,6 +4152,8 @@ async function loadNotifications() {
       startOrdersListener();
     } else {
       localStorage.removeItem(AUTH_KEY);
+      isSuperAdmin = false;
+      updateRoleUI();
       document.getElementById('app').style.display = 'none';
       document.getElementById('login-screen').style.display = 'flex';
     }
@@ -3181,6 +4166,554 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   });
 }
+
+/* ════════════════════════════════════════════
+   SUPER ADMIN & POST GENERATOR
+   - updateRoleUI(): Hides/shows Desarrollo features
+   - renderPostGenerator()
+   - onPostTypeChange()
+   - onPostDataChange()
+   - updatePostPreview()
+   - updateCaption()
+   - downloadPostImage()
+   - copyPostCaption()
+════════════════════════════════════════════ */
+function updateRoleUI() {
+  const superTitle = document.getElementById('sb-super-title');
+  const postGenBtn = document.getElementById('sb-post-gen-btn');
+  if (superTitle && postGenBtn) {
+    if (isSuperAdmin) {
+      superTitle.style.display = '';
+      postGenBtn.style.display = '';
+    } else {
+      superTitle.style.display = 'none';
+      postGenBtn.style.display = 'none';
+      if (currentView === 'post-generator') {
+        showView('dashboard');
+      }
+    }
+  }
+}
+
+let postGeneratorInitialized = false;
+
+function renderPostGenerator() {
+  if (!postGeneratorInitialized) {
+    postGeneratorInitialized = true;
+    document.getElementById('post-type').value = 'promo';
+    onPostTypeChange();
+  } else {
+    updatePostPreview();
+  }
+}
+
+function onPostTypeChange() {
+  const type = document.getElementById('post-type').value;
+  const selectField = document.getElementById('post-data-select-field');
+  const selectLabel = document.getElementById('post-data-select-label');
+  const selectEl = document.getElementById('post-data-select');
+  const priceField = document.getElementById('post-price-field');
+
+  // Clear overrides initially when switching types
+  document.getElementById('post-title').value = '';
+  document.getElementById('post-price').value = '';
+  document.getElementById('post-desc').value = '';
+  document.getElementById('post-badge').value = '';
+
+  if (type === 'custom') {
+    selectField.style.display = 'none';
+    priceField.style.display = '';
+    document.getElementById('post-badge').placeholder = 'Ej: AVISO';
+    
+    const canvasImg = document.getElementById('post-canvas-img');
+    const canvasBg = document.getElementById('post-canvas-bg');
+    canvasImg.removeAttribute('crossOrigin');
+    canvasBg.removeAttribute('crossOrigin');
+    canvasImg.src = 'logo.jpeg';
+    canvasBg.src = 'logo.jpeg';
+    
+    updatePostPreview();
+    return;
+  }
+
+  selectField.style.display = '';
+  selectEl.innerHTML = '';
+
+  if (type === 'promo') {
+    selectLabel.textContent = 'Seleccionar Combo';
+    priceField.style.display = '';
+    document.getElementById('post-badge').placeholder = 'Ej: COMBO';
+
+    if (!promotions || promotions.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No hay combos guardados';
+      selectEl.appendChild(opt);
+    } else {
+      promotions.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = p.name || `Combo ${idx + 1}`;
+        selectEl.appendChild(opt);
+      });
+    }
+  } else if (type === 'recipe') {
+    selectLabel.textContent = 'Seleccionar Receta';
+    priceField.style.display = 'none'; // Recipes don't have prices
+    document.getElementById('post-badge').placeholder = 'Ej: RECETA';
+
+    if (!recipes || recipes.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No hay recetas guardadas';
+      selectEl.appendChild(opt);
+    } else {
+      recipes.forEach((r, idx) => {
+        const opt = document.createElement('option');
+        opt.value = idx;
+        opt.textContent = r.name || `Receta ${idx + 1}`;
+        selectEl.appendChild(opt);
+      });
+    }
+  } else if (type === 'product') {
+    selectLabel.textContent = 'Seleccionar Producto';
+    priceField.style.display = '';
+    document.getElementById('post-badge').placeholder = 'Ej: FRESCO';
+
+    if (!products || products.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'No hay productos en catálogo';
+      selectEl.appendChild(opt);
+    } else {
+      products.forEach((p) => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        selectEl.appendChild(opt);
+      });
+    }
+  }
+
+  onPostDataChange();
+}
+
+function onPostDataChange() {
+  const type = document.getElementById('post-type').value;
+  const selectVal = document.getElementById('post-data-select').value;
+  const canvasImg = document.getElementById('post-canvas-img');
+  const canvasBg = document.getElementById('post-canvas-bg');
+
+  if (selectVal === '') {
+    updatePostPreview();
+    return;
+  }
+
+  let title = '';
+  let price = '';
+  let desc = '';
+  let badge = '';
+  let imgUrl = 'logo.jpeg';
+
+  if (type === 'promo') {
+    const p = promotions[parseInt(selectVal)];
+    if (p) {
+      title = p.name || '';
+      price = p.price || '';
+      desc = p.desc || '';
+      badge = 'Combo';
+      if (p.images && p.images.length > 0) {
+        imgUrl = p.images[0];
+      } else if (p.img) {
+        imgUrl = p.img;
+      }
+    }
+  } else if (type === 'recipe') {
+    const r = recipes[parseInt(selectVal)];
+    if (r) {
+      title = r.name || '';
+      desc = r.desc || '';
+      badge = 'Receta';
+      if (r.images && r.images.length > 0) {
+        imgUrl = r.images[0];
+      } else if (r.img) {
+        imgUrl = r.img;
+      }
+    }
+  } else if (type === 'product') {
+    const p = products.find(x => x.id === parseInt(selectVal));
+    if (p) {
+      title = p.name || '';
+      price = p.price || '';
+      desc = p.desc || '';
+      badge = 'Catálogo';
+      imgUrl = p.img || 'logo.jpeg';
+    }
+  }
+
+  document.getElementById('post-title').value = title;
+  document.getElementById('post-price').value = price;
+  document.getElementById('post-desc').value = desc;
+  document.getElementById('post-badge').value = badge;
+
+  if (imgUrl && imgUrl.startsWith('http')) {
+    canvasImg.crossOrigin = "anonymous";
+    canvasBg.crossOrigin = "anonymous";
+  } else {
+    canvasImg.removeAttribute('crossOrigin');
+    canvasBg.removeAttribute('crossOrigin');
+  }
+  canvasImg.src = imgUrl;
+  canvasBg.src = imgUrl;
+
+  updatePostPreview();
+}
+
+function updatePostPreview() {
+  const theme = document.getElementById('post-style-theme').value;
+  const formatEl = document.getElementById('post-format');
+  const format = formatEl ? formatEl.value : 'square';
+  const canvas = document.getElementById('post-canvas');
+  const content = document.getElementById('post-canvas-content');
+  const logo = canvas.querySelector('.post-canvas-logo');
+  const logoEm = canvas.querySelector('.post-canvas-logo em');
+  const tagline = canvas.querySelector('.post-canvas-tagline');
+  const titleVal = document.getElementById('post-canvas-title-val');
+  const descVal = document.getElementById('post-canvas-desc-val');
+  const priceVal = document.getElementById('post-canvas-price-val');
+  const badgeVal = document.getElementById('post-canvas-badge-val');
+  const footer = canvas.querySelector('.post-canvas-footer');
+  const contact = canvas.querySelector('.post-canvas-contact');
+  const wrapper = canvas.parentElement;
+
+  if (format === 'story') {
+    wrapper.classList.add('format-story');
+    canvas.classList.add('format-story');
+  } else {
+    wrapper.classList.remove('format-story');
+    canvas.classList.remove('format-story');
+  }
+
+  const inputTitle = document.getElementById('post-title').value.trim();
+  const inputDesc = document.getElementById('post-desc').value.trim();
+  const inputPrice = document.getElementById('post-price').value.trim();
+  const inputBadge = document.getElementById('post-badge').value.trim();
+
+  titleVal.textContent = inputTitle || 'Título del Post';
+  descVal.textContent = inputDesc || 'Descripción del post';
+  badgeVal.textContent = inputBadge || 'Destacado';
+  
+  if (inputBadge) {
+    badgeVal.style.display = '';
+  } else {
+    badgeVal.style.display = 'none';
+  }
+
+  if (inputPrice) {
+    const formattedPrice = Number(inputPrice).toLocaleString('es-CR');
+    priceVal.textContent = '\u20A1' + formattedPrice;
+    priceVal.style.display = '';
+  } else {
+    priceVal.style.display = 'none';
+  }
+
+  if (theme === 'dark-ocean') {
+    canvas.style.background = '#060e1c';
+    content.style.background = 'linear-gradient(to bottom, rgba(6,14,28,0.7) 0%, rgba(6,14,28,0.93) 100%)';
+    logo.style.color = '#d1b47b';
+    logoEm.style.color = '#ffffff';
+    tagline.style.color = '#7f8c8d';
+    titleVal.style.color = '#ffffff';
+    descVal.style.color = '#ecf0f1';
+    priceVal.style.color = '#d1b47b';
+    badgeVal.style.background = '#b89355';
+    badgeVal.style.color = '#ffffff';
+    footer.style.borderTop = '4px solid rgba(200,169,110,0.15)';
+    contact.style.color = '#7f8c8d';
+  } else if (theme === 'elegant-gold') {
+    canvas.style.background = '#faf7f2';
+    content.style.background = 'linear-gradient(to bottom, rgba(250,247,242,0.6) 0%, rgba(250,247,242,0.9) 100%)';
+    logo.style.color = '#1a2a3a';
+    logoEm.style.color = '#b89355';
+    tagline.style.color = '#556677';
+    titleVal.style.color = '#1a2a3a';
+    descVal.style.color = '#2c3e50';
+    priceVal.style.color = '#b89355';
+    badgeVal.style.background = '#1a2a3a';
+    badgeVal.style.color = '#faf7f2';
+    footer.style.borderTop = '4px solid rgba(26,42,58,0.15)';
+    contact.style.color = '#556677';
+  } else if (theme === 'coral-sun') {
+    canvas.style.background = 'linear-gradient(135deg, #e74c3c, #f1c40f)';
+    content.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)';
+    logo.style.color = '#ffffff';
+    logoEm.style.color = '#f1c40f';
+    tagline.style.color = '#e2e2e2';
+    titleVal.style.color = '#ffffff';
+    descVal.style.color = '#f5f5f5';
+    priceVal.style.color = '#f1c40f';
+    badgeVal.style.background = '#e74c3c';
+    badgeVal.style.color = '#ffffff';
+    footer.style.borderTop = '4px solid rgba(255,255,255,0.2)';
+    contact.style.color = '#e2e2e2';
+  } else if (theme === 'fresh-mint') {
+    canvas.style.background = 'linear-gradient(135deg, #1abc9c, #2c3e50)';
+    content.style.background = 'linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.65) 100%)';
+    logo.style.color = '#ffffff';
+    logoEm.style.color = '#1abc9c';
+    tagline.style.color = '#e2e2e2';
+    titleVal.style.color = '#ffffff';
+    descVal.style.color = '#f5f5f5';
+    priceVal.style.color = '#1abc9c';
+    badgeVal.style.background = '#2c3e50';
+    badgeVal.style.color = '#ffffff';
+    footer.style.borderTop = '4px solid rgba(255,255,255,0.2)';
+    contact.style.color = '#e2e2e2';
+  }
+
+  updateCaption();
+}
+
+function updateCaption() {
+  const type = document.getElementById('post-type').value;
+  const title = document.getElementById('post-title').value.trim() || 'Combo / Promoción Especial';
+  const price = document.getElementById('post-price').value.trim();
+  const desc = document.getElementById('post-desc').value.trim() || '';
+  
+  let formattedPrice = '';
+  if (price) {
+    formattedPrice = '\u20A1' + Number(price).toLocaleString('es-CR');
+  }
+
+  let text = '';
+  if (type === 'promo') {
+    text += `\u{1F389} \u{2728} *PROMO IMPERDIBLE - Chus's Fish* \u{2728} \u{1F389}\n\n`;
+    text += `\u{1F41F} *${title}* \u{1F41F}\n`;
+    if (formattedPrice) {
+      text += `\u{1F4B5} *Precio Especial:* ${formattedPrice}\n`;
+    }
+    text += `\n`;
+    if (desc) {
+      text += `\u{2B50} *Detalles:* ${desc}\n\n`;
+    }
+    text += `\u{2705} ¡Llevate la mejor calidad y frescura directo a tu mesa!\n`;
+    text += `\u{1F6F5} Recordá que realizamos entregas a domicilio.\n\n`;
+    text += `\u{1F4F1} Pedidos y cotizaciones por WhatsApp: *6001-7370*\n`;
+    text += `\u{1F449} O ingresá a nuestro sitio web para ver todo el catálogo.\n\n`;
+    text += `#ChusFish #MariscosFrescos #PromoMariscos #FrescuraQueHablaSola #CombosChus`;
+  } else if (type === 'recipe') {
+    text += `\u{1F468}\u{200D}\u{1F373} \u{2728} *RECETA DE LA SEMANA* \u{2728} \u{1F468}\u{200D}\u{1F373}\n\n`;
+    text += `\u{1F34B} *${title}* \u{1F34B}\n\n`;
+    if (desc) {
+      text += `${desc}\n\n`;
+    }
+    text += `\u{1F41F} ¡Encontrá todos los ingredientes frescos en Chus's Fish!\n`;
+    text += `\u{1F4F1} Hacé tu pedido al WhatsApp: *6001-7370*\n\n`;
+    text += `#ChusFish #RecetaChus #CocinaMariscos #FrescuraQueHablaSola #MariscosGourmet`;
+  } else if (type === 'product') {
+    text += `\u{1F41F} \u{2728} *PRODUCTO DE CALIDAD - Chus's Fish* \u{2728} \u{1F41F}\n\n`;
+    text += `*${title}*\n`;
+    if (formattedPrice) {
+      text += `\u{1F4B5} *Precio:* ${formattedPrice}\n`;
+    }
+    text += `\n`;
+    if (desc) {
+      text += `\u{2B50} *Descripción:* ${desc}\n\n`;
+    }
+    text += `\u{2705} Mariscos 100% frescos, limpios y listos para preparar.\n`;
+    text += `\u{1F4F1} Hacé tu pedido al WhatsApp: *6001-7370*\n\n`;
+    text += `#ChusFish #MariscosCalidad #PescaderiaChus #FrescuraQueHablaSola`;
+  } else { // custom
+    text += `\u{2728} *ANUNCIO ESPECIAL - Chus's Fish* \u{2728}\n\n`;
+    text += `*${title}*\n\n`;
+    if (desc) {
+      text += `${desc}\n\n`;
+    }
+    if (formattedPrice) {
+      text += `\u{1F4B5} *Valor:* ${formattedPrice}\n\n`;
+    }
+    text += `\u{1F4F1} Contactanos al WhatsApp: *6001-7370*\n\n`;
+    text += `#ChusFish #Mariscos #FrescuraQueHablaSola`;
+  }
+
+  document.getElementById('post-caption').value = text;
+}
+
+function downloadPostImage(btnEl) {
+  const canvasEl = document.getElementById('post-canvas');
+  if (!canvasEl) return;
+
+  const btn = btnEl || document.querySelector('button[onclick^="downloadPostImage"]');
+  const originalText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Generando imagen...';
+  }
+
+  html2canvas(canvasEl, {
+    useCORS: true,
+    scale: 1,
+    logging: false,
+    allowTaint: true
+  }).then(canvas => {
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const title = (document.getElementById('post-title').value || 'post').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const filename = `chus-fish-post-${title || 'custom'}.png`;
+
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast('Imagen descargada con éxito');
+    } catch(e) {
+      console.error(e);
+      toast('Error al exportar imagen. Intentá de nuevo.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    }
+  }).catch(err => {
+    console.error(err);
+    toast('Error al renderizar el post: ' + err.message);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  });
+}
+
+function copyPostCaption() {
+  const captionEl = document.getElementById('post-caption');
+  if (!captionEl) return;
+
+  captionEl.select();
+  captionEl.setSelectionRange(0, 99999);
+
+  try {
+    navigator.clipboard.writeText(captionEl.value).then(() => {
+      toast('¡Texto copiado al portapapeles!');
+    }).catch(() => {
+      document.execCommand('copy');
+      toast('¡Texto copiado!');
+    });
+  } catch (err) {
+    document.execCommand('copy');
+    toast('¡Texto copiado!');
+  }
+}
+</script>
+
+<!-- ═══ MODAL SELECTOR IMÁGENES DEL CATÁLOGO ═══ -->
+<div class="catalog-img-overlay" id="catalog-img-overlay">
+  <div class="catalog-img-modal">
+    <div class="catalog-img-modal-header">
+      <h4>📷 Elegí imágenes del catálogo</h4>
+      <button class="catalog-img-modal-close" onclick="closeCatalogImgPicker()">✕</button>
+    </div>
+    <div class="catalog-img-grid" id="catalog-img-grid"></div>
+    <div class="catalog-img-modal-footer" style="display:flex;justify-content:flex-end;gap:0.6rem;padding:0.8rem 1.2rem;border-top:1px solid rgba(200,169,110,0.12);background:rgba(0,0,0,0.2)">
+      <button type="button" class="config-save-btn" onclick="closeCatalogImgPicker()" style="margin:0;background:none;border:1px solid var(--muted);color:var(--muted)">Cancelar</button>
+      <button type="button" class="config-save-btn" onclick="applyCatalogImgSelection()" style="margin:0">Aceptar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let _catalogImgTarget = null; // 'recipe' o 'promo'
+
+function isCatalogImg(url) {
+  return (products || []).some(function(p) { return p.img === url; });
+}
+
+function openCatalogImgPicker(target) {
+  _catalogImgTarget = target;
+  const container = document.getElementById('catalog-img-grid');
+  const withImg = (products || []).filter(function(p) { return p.img; });
+  if (!withImg.length) {
+    container.innerHTML = '<p style="color:var(--muted);font-size:0.78rem;padding:1rem">No hay productos con imagen en el catálogo aún.</p>';
+  } else {
+    const currentImgs = _catalogImgTarget === 'recipe' ? currentRecipeImages : currentPromoImages;
+    let html = '';
+    CAT_ORDER.forEach(function(cat) {
+      const catProds = withImg.filter(function(p) { return p.cat === cat; });
+      if (!catProds.length) return;
+      html += '<div class="catalog-img-section">' +
+        '<div class="catalog-img-section-title">' + (CAT_NAMES[cat] || cat) + '</div>' +
+        '<div class="catalog-img-row">' +
+        catProds.map(function(p) {
+          const safeImg = p.img.replace(/"/g, '&quot;');
+          const safeName = p.name.replace(/"/g, '&quot;');
+          const isSelected = currentImgs.includes(p.img);
+          const selClass = isSelected ? 'selected' : '';
+          return '<div class="catalog-img-item ' + selClass + '" data-img="' + safeImg + '" onclick="toggleCatalogImgItem(this)" title="' + safeName + '">' +
+            '<img src="' + p.img + '" alt="' + safeName + '" loading="lazy" onerror="this.closest(\'.catalog-img-item\').style.display=\'none\'">' +
+            '<div class="catalog-img-item-name">' + p.name + '</div>' +
+            '</div>';
+        }).join('') +
+        '</div></div>';
+    });
+    /* Productos sin categoría conocida */
+    const uncategorized = withImg.filter(function(p) { return !CAT_NAMES[p.cat]; });
+    if (uncategorized.length) {
+      html += '<div class="catalog-img-section">' +
+        '<div class="catalog-img-section-title">Otros</div>' +
+        '<div class="catalog-img-row">' +
+        uncategorized.map(function(p) {
+          const safeImg = p.img.replace(/"/g, '&quot;');
+          const safeName = p.name.replace(/"/g, '&quot;');
+          const isSelected = currentImgs.includes(p.img);
+          const selClass = isSelected ? 'selected' : '';
+          return '<div class="catalog-img-item ' + selClass + '" data-img="' + safeImg + '" onclick="toggleCatalogImgItem(this)" title="' + safeName + '">' +
+            '<img src="' + p.img + '" alt="' + safeName + '" loading="lazy" onerror="this.closest(\'.catalog-img-item\').style.display=\'none\'">' +
+            '<div class="catalog-img-item-name">' + p.name + '</div>' +
+            '</div>';
+        }).join('') +
+        '</div></div>';
+    }
+    container.innerHTML = html;
+  }
+  document.getElementById('catalog-img-overlay').classList.add('open');
+}
+
+function closeCatalogImgPicker() {
+  document.getElementById('catalog-img-overlay').classList.remove('open');
+  _catalogImgTarget = null;
+}
+
+function toggleCatalogImgItem(el) {
+  el.classList.toggle('selected');
+}
+
+function applyCatalogImgSelection() {
+  if (!_catalogImgTarget) return;
+  const selectedImgs = [];
+  document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected').forEach(function(el) {
+    const imgUrl = el.getAttribute('data-img');
+    if (imgUrl) selectedImgs.push(imgUrl);
+  });
+  if (_catalogImgTarget === 'recipe') {
+    currentRecipeImages = currentRecipeImages.filter(function(url) {
+      return !isCatalogImg(url);
+    }).concat(selectedImgs);
+    renderRecipeImgPreviews();
+  } else {
+    currentPromoImages = currentPromoImages.filter(function(url) {
+      return !isCatalogImg(url);
+    }).concat(selectedImgs);
+    renderPromoImgPreviews();
+  }
+  closeCatalogImgPicker();
+}
+
+/* Cerrar tocando fuera del modal */
+document.getElementById('catalog-img-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeCatalogImgPicker();
+});
 </script>
 </body>
 </html>

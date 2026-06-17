@@ -265,6 +265,7 @@
       inset: 0;
       z-index: 0;
       overflow: hidden;
+      background: #060e1c;
     }
     .hero-video-wrap video {
       position: absolute;
@@ -1174,7 +1175,72 @@
       border-radius: 30px; color: #fff; font-size: 0.67rem;
       cursor: pointer; font-family: 'Montserrat', sans-serif; font-weight: 600;
     }
-    .pwa-no-idx { background: none; border: none; cursor: pointer; color: #7a95aa; font-size: 0.9rem; padding: 0.15rem; }
+    .pwa-no-idx { background: none; border: none; cursor: pointer; color: #7a95aa; font-size: 1.1rem; padding: 0.5rem; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+
+    /* ── CÓMO PEDIR ──────────────────────────────────── */
+    #como-pedir { padding: 7rem 0 6rem; background: var(--mid); }
+    .steps-grid {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 2rem;
+      margin-top: 3rem;
+    }
+    .step-card {
+      display: flex; flex-direction: column; align-items: center;
+      text-align: center; gap: 1rem;
+    }
+    .step-num {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      color: var(--deep); font-family: 'Cormorant Garamond',serif;
+      font-size: 1.4rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 4px 20px rgba(200,169,110,0.35);
+    }
+    .step-icon { font-size: 2rem; }
+    .step-title {
+      font-family: 'Cormorant Garamond',serif;
+      font-size: 1.25rem; font-weight: 600; color: var(--white);
+    }
+    .step-body { font-size: 0.78rem; color: var(--muted); line-height: 1.7; }
+    .steps-cta { margin-top: 3rem; display:flex; justify-content:center; }
+    @media(max-width:768px){
+      .steps-grid { grid-template-columns: 1fr; gap: 2rem; max-width: 360px; margin-left:auto; margin-right:auto; }
+      .step-card { flex-direction: row; text-align: left; }
+      .step-num { flex-shrink: 0; }
+    }
+
+    /* ── ZONAS DE ENTREGA ────────────────────────────── */
+    #zonas { padding: 6rem 0 5rem; background: var(--deep); }
+    .zonas-grid {
+      display: flex; flex-wrap: wrap; gap: 0.75rem;
+      margin-top: 2rem; justify-content: center;
+    }
+    .zona-pill {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.55rem 1.1rem; border-radius: 30px;
+      border: 1px solid rgba(200,169,110,0.3);
+      background: rgba(200,169,110,0.06);
+      font-size: 0.78rem; color: var(--text);
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .zona-pill svg { color: var(--gold); flex-shrink: 0; }
+    .zona-pill-price { font-size: 0.7rem; color: var(--gold-lt); margin-left: 0.25rem; }
+    .zonas-fallback { font-size: 0.82rem; color: var(--muted); text-align:center; margin-top:1.5rem; }
+    .zonas-wa { margin-top: 2rem; display:flex; justify-content:center; }
+
+    /* ── Btn instalar PWA ─────────────────────────────── */
+    .btn-install {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.85rem 2rem; border-radius: 30px; cursor: pointer;
+      background: rgba(200,169,110,0.1);
+      border: 1px solid rgba(200,169,110,0.4);
+      color: var(--gold-lt); font-size: 0.72rem; letter-spacing: 0.14em;
+      text-transform: uppercase; font-weight: 600;
+      transition: all 0.28s; font-family: 'Montserrat', sans-serif;
+      text-decoration: none;
+    }
+    .btn-install:hover { background: rgba(200,169,110,0.2); transform: translateY(-2px); }
+    @media(max-width:768px){ .btn-install { width:100%; justify-content:center; } }
   </style>
 </head>
 <body>
@@ -1188,7 +1254,7 @@
 <nav id="navbar">
   <a href="index.html" class="nav-logo">
     <img src="logo.jpeg" alt="Chus's Fish logo" loading="eager" fetchpriority="high">
-    Chus<span>'s Fish</span>
+    <div class="nav-logo-text">Chus<span>'s Fish</span></div>
   </a>
   <ul class="nav-links">
     <li><a href="#identity">Nosotros</a></li>
@@ -1214,7 +1280,7 @@
 
   <div class="hero-video-wrap">
     <!-- VIDEO DE FONDO — Agrega assets/hero.mp4 -->
-    <video autoplay muted loop playsinline webkit-playsinline preload="auto" id="hero-video" poster="logo.jpeg">
+    <video autoplay muted loop playsinline webkit-playsinline preload="auto" id="hero-video">
       <source src="assets/hero.mp4" type="video/mp4" />
     </video>
     <div class="hero-video-overlay"></div>
@@ -1245,6 +1311,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.374l-.36-.214-3.732.979 1.001-3.65-.233-.374A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>
         Pedir por WhatsApp
       </a>
+      <button id="idx-pwa-hero-btn" class="btn-install" onclick="idxTriggerInstall()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Descargar App
+      </button>
     </div>
   </div>
 
@@ -1432,6 +1502,67 @@
 </section>
 
 <!-- QUOTE -->
+
+<!-- CÓMO PEDIR -->
+<section id="como-pedir">
+  <div class="container">
+    <p class="section-tag reveal">Simple y rápido</p>
+    <h2 class="section-title reveal reveal-delay-1">¿Cómo <em>pedir</em>?</h2>
+    <span class="gold-line reveal reveal-delay-2"></span>
+    <div class="steps-grid">
+
+      <div class="step-card reveal reveal-delay-1">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-icon">🛒</div>
+          <div class="step-title">Elegí tus productos</div>
+          <p class="step-body">Explorá el catálogo completo. Camarones, corvina, pargo, filetes y mucho más. Todo fresco y sin intermediarios.</p>
+        </div>
+      </div>
+
+      <div class="step-card reveal reveal-delay-2">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-icon">💬</div>
+          <div class="step-title">Envianos tu pedido</div>
+          <p class="step-body">Mandanos un WhatsApp al 6001-7370 con tu lista o usá el botón "Pedir ahora" del catálogo. Te confirmamos disponibilidad al instante.</p>
+        </div>
+      </div>
+
+      <div class="step-card reveal reveal-delay-3">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-icon">🚚</div>
+          <div class="step-title">Recibí en tu puerta</div>
+          <p class="step-body">Coordinamos la entrega según tu zona. El producto llega fresco, empacado y listo para cocinar directamente a tu casa.</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="steps-cta">
+      <a href="catalogo.html" class="btn btn-gold reveal">Ver catálogo completo</a>
+    </div>
+  </div>
+</section>
+
+<!-- ZONAS DE ENTREGA -->
+<section id="zonas">
+  <div class="container">
+    <p class="section-tag reveal">Llegamos donde vos estás</p>
+    <h2 class="section-title reveal reveal-delay-1">Zonas de <em>entrega</em></h2>
+    <span class="gold-line reveal reveal-delay-2"></span>
+    <div class="zonas-grid reveal reveal-delay-2" id="idx-zonas-grid">
+      <p class="zonas-fallback" id="idx-zonas-loading" style="width:100%">Cargando zonas...</p>
+    </div>
+    <div class="zonas-wa">
+      <a href="https://wa.me/50660017370?text=Hola%20Chus%27s%20Fish!%20Quer%C3%ADa%20consultar%20si%20hacen%20entregas%20en%20mi%20zona." target="_blank" rel="noopener" class="btn btn-ghost reveal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right:0.4rem"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.374l-.36-.214-3.732.979 1.001-3.65-.233-.374A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>
+        Consultá tu zona por WhatsApp
+      </a>
+    </div>
+  </div>
+</section>
+
 <section id="quote-section">
   <div class="container" style="display:flex;flex-direction:column;align-items:center;">
     <img src="selorecomiendo.png" alt="Se lo recomiendo" loading="lazy" class="reveal" style="width:320px;height:320px;object-fit:contain;border-radius:50%;opacity:0.95;">
@@ -1591,6 +1722,28 @@
           }
         });
       }
+    } catch(e) {}
+  })();
+
+  /* ── Zonas de entrega en index (desde Firestore) ── */
+  (async function loadZonas() {
+    try {
+      const snap = await _db.collection('chusfish').doc('config').get();
+      const grid = document.getElementById('idx-zonas-grid');
+      const loading = document.getElementById('idx-zonas-loading');
+      if (!grid) return;
+      if (!snap.exists) { if (loading) loading.textContent = 'Consultá tu zona por WhatsApp.'; return; }
+      const zones = (snap.data().zones || []).filter(function(z){ return z.active !== false; });
+      if (!zones.length) { if (loading) loading.textContent = 'Consultá tu zona por WhatsApp al 6001-7370.'; return; }
+      if (loading) loading.remove();
+      const pin = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>';
+      zones.forEach(function(z) {
+        var pill = document.createElement('div');
+        pill.className = 'zona-pill';
+        var priceHtml = z.price ? '<span class="zona-pill-price">&#8353;' + z.price.toLocaleString() + '</span>' : '';
+        pill.innerHTML = pin + z.name + priceHtml;
+        grid.appendChild(pill);
+      });
     } catch(e) {}
   })();
 
@@ -1871,8 +2024,8 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
     <a href="#identity"     class="drawer-link"><span class="drawer-link-icon">🐟</span> Nosotros</a>
     <a href="#categorias"   class="drawer-link"><span class="drawer-link-icon">🦐</span> Categorías</a>
     <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">🛒</span> Catálogo</a>
-    <a href="#catalog-teaser" class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
-    <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
+    <a href="#como-pedir"    class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
+    <a href="#zonas"         class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
   </div>
   <div class="drawer-footer">
     <a href="https://wa.me/50660017370" target="_blank" class="drawer-wa-btn">
@@ -1892,9 +2045,29 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
 
 <!-- ═══ PWA INSTALL BANNER ══════════════════════════════════ -->
 <div id="idx-pwa-banner" class="pwa-banner-idx">
-  <span style="font-size:0.72rem;color:#d4dde8;white-space:nowrap">📲 Instalá la app de Chus's Fish</span>
-  <button class="pwa-ok-idx" id="idx-pwa-ok">Instalar</button>
+  <span style="font-size:0.72rem;color:#d4dde8">📲 Instalá la app de Chus's Fish</span>
+  <button class="pwa-ok-idx" id="idx-pwa-ok" onclick="idxTriggerInstall()">Instalar</button>
   <button class="pwa-no-idx" id="idx-pwa-no">✕</button>
+</div>
+
+<!-- iOS INSTALL MODAL -->
+<div class="ios-modal-overlay" id="idx-ios-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:900;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s">
+  <div style="background:linear-gradient(160deg,#0d2137,#122840);border:1px solid rgba(200,169,110,0.2);border-radius:24px 24px 0 0;padding:2rem 1.5rem 2.5rem;width:100%;max-width:480px;transform:translateY(30px);transition:transform 0.3s;text-align:center">
+    <h3 style="color:#c8a96e;font-size:1rem;margin:0 0 1rem">📲 Instalar Chus's Fish</h3>
+    <div style="display:flex;align-items:center;gap:0.7rem;text-align:left;margin:0.6rem 0">
+      <div style="background:#a07840;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">1</div>
+      <p style="color:#d4dde8;font-size:0.82rem;margin:0">Tocá el botón <strong>Compartir</strong> <span style="font-size:1.1rem">⎋</span> en Safari</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.7rem;text-align:left;margin:0.6rem 0">
+      <div style="background:#a07840;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">2</div>
+      <p style="color:#d4dde8;font-size:0.82rem;margin:0">Seleccioná <strong>"Agregar a pantalla de inicio"</strong></p>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.7rem;text-align:left;margin:0.6rem 0">
+      <div style="background:#a07840;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">3</div>
+      <p style="color:#d4dde8;font-size:0.82rem;margin:0">Tocá <strong>Agregar</strong> — ¡listo!</p>
+    </div>
+    <button onclick="document.getElementById('idx-ios-modal-overlay').style.opacity='0';document.getElementById('idx-ios-modal-overlay').style.pointerEvents='none'" style="margin-top:1.5rem;background:none;border:1px solid rgba(200,169,110,0.2);color:#8a9ab5;border-radius:30px;padding:0.5rem 1.5rem;cursor:pointer;font-family:'Montserrat',sans-serif;font-size:0.7rem">Cerrar</button>
+  </div>
 </div>
 
 <script>
@@ -1938,28 +2111,59 @@ drawer.querySelectorAll('.drawer-link').forEach(link => {
 
 /* ── PWA install ──────────────────────────────────────────── */
 let _deferredInstall = null;
+const _isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+const _isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+/* Ocultar botón hero si ya está instalada */
+if (_isInstalled) {
+  const hbInit = document.getElementById('idx-pwa-hero-btn');
+  if (hbInit) hbInit.style.display = 'none';
+}
+
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
   _deferredInstall = e;
-  if (!localStorage.getItem('chusfish_pwa_dismissed')) {
+  if (!_isInstalled && !localStorage.getItem('chusfish_pwa_dismissed')) {
     setTimeout(() => document.getElementById('idx-pwa-banner')?.classList.add('show'), 5000);
   }
 });
-document.getElementById('idx-pwa-ok')?.addEventListener('click', async () => {
-  if (!_deferredInstall) return;
-  _deferredInstall.prompt();
-  const { outcome } = await _deferredInstall.userChoice;
-  _deferredInstall = null;
+
+async function idxTriggerInstall() {
+  if (_isInstalled) return;
   document.getElementById('idx-pwa-banner')?.classList.remove('show');
-  if (outcome === 'accepted') localStorage.setItem('chusfish_pwa_dismissed', '1');
-});
+  if (_deferredInstall) {
+    _deferredInstall.prompt();
+    const { outcome } = await _deferredInstall.userChoice;
+    if (outcome === 'accepted') {
+      _deferredInstall = null;
+      localStorage.setItem('chusfish_pwa_dismissed', '1');
+      const hb = document.getElementById('idx-pwa-hero-btn');
+      if (hb) hb.style.display = 'none';
+    }
+    return;
+  }
+  if (_isIOS) {
+    const m = document.getElementById('idx-ios-modal-overlay');
+    if (m) { m.style.opacity = '1'; m.style.pointerEvents = 'all'; m.querySelector('div').style.transform = 'translateY(0)'; }
+    return;
+  }
+}
+
 document.getElementById('idx-pwa-no')?.addEventListener('click', () => {
   document.getElementById('idx-pwa-banner')?.classList.remove('show');
   localStorage.setItem('chusfish_pwa_dismissed', '1');
 });
+
+document.getElementById('idx-ios-modal-overlay')?.addEventListener('click', function(e) {
+  if (e.target === this) { this.style.opacity = '0'; this.style.pointerEvents = 'none'; }
+});
+
 window.addEventListener('appinstalled', () => {
   document.getElementById('idx-pwa-banner')?.classList.remove('show');
+  const hbai = document.getElementById('idx-pwa-hero-btn');
+  if (hbai) hbai.style.display = 'none';
   _deferredInstall = null;
+  localStorage.setItem('chusfish_pwa_dismissed', '1');
 });
 
 if ('serviceWorker' in navigator) {

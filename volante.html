@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volante Chus's Fish - Premium</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --deep:    #060e1c;
+      --ocean:   #0d2137;
+      --gold:    #c8a96e;
+      --gold-lt: #e8c98a;
+      --gold-dk: #9a7a48;
+      --brand-blue: #0077b6;
+      --brand-orange: #f77f00;
+      --white:   #ffffff;
+      --gray:    #f4f6f8;
+      --dark-text: #1a202c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Montserrat', sans-serif;
+      padding: 2rem;
+    }
+
+    .flyer-wrapper {
+      position: relative;
+    }
+
+    /* Formato Flyer Digital / Impresión (1080x1350) */
+    .flyer {
+      width: 1080px;
+      height: 1350px;
+      background: var(--white);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.9);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- HERO SECTION (TOP HALF) --- */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 580px;
+      background: var(--deep);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+    }
+    
+    .hero-bg {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0.85;
+      z-index: 1;
+    }
+    
+    .hero-overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at center, transparent 0%, rgba(6,14,28,0.7) 100%);
+      z-index: 2;
+    }
+
+    .curve-gold {
+      position: absolute;
+      bottom: -2px; left: 0; width: 100%; height: 120px;
+      background: linear-gradient(90deg, var(--gold-dk), var(--gold-lt), var(--gold-dk));
+      clip-path: ellipse(65% 100% at 50% 100%);
+      z-index: 3;
+    }
+    
+    .curve-white {
+      position: absolute;
+      bottom: -2px; left: 0; width: 100%; height: 110px;
+      background: var(--white);
+      clip-path: ellipse(65% 100% at 50% 100%);
+      z-index: 4;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .logo-img {
+      width: 400px;
+      height: auto;
+      filter: drop-shadow(0 15px 25px rgba(0,0,0,0.8));
+    }
+
+    /* --- MIDDLE SECTION (WHITE BACKGROUND) --- */
+    .middle {
+      flex: 1;
+      background: var(--white);
+      position: relative;
+      z-index: 5;
+      padding: 10px 60px 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .slogan-box {
+      text-align: center;
+      margin-bottom: 25px;
+      margin-top: -20px;
+    }
+    .slogan {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3.8rem;
+      font-weight: 700;
+      color: var(--brand-blue);
+      line-height: 1.1;
+      text-transform: none;
+    }
+    .slogan span {
+      color: var(--brand-orange);
+      font-style: italic;
+    }
+
+    .content-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .features-list {
+      width: 50%;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    .feature {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      background: var(--gray);
+      padding: 15px 25px;
+      border-radius: 16px;
+      border-left: 6px solid var(--gold);
+      box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+
+    .feat-icon {
+      width: 32px; height: 32px;
+      background: var(--deep);
+      border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      color: var(--gold-lt);
+      flex-shrink: 0;
+    }
+    .feat-icon svg { width: 18px; height: 18px; }
+
+    .feat-text {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--dark-text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .truck-container {
+      width: 50%;
+      display: flex;
+      justify-content: flex-end;
+      position: relative;
+    }
+    
+    .truck-bg-blob {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(0,119,182,0.1) 0%, transparent 70%);
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .truck-img {
+      width: 500px;
+      height: auto;
+      position: relative;
+      z-index: 2;
+      filter: drop-shadow(20px 20px 25px rgba(0,0,0,0.25));
+      /* Mix blend mode multiply makes the white background of the truck disappear! */
+      mix-blend-mode: multiply;
+    }
+
+    /* --- FOOTER SECTION --- */
+    .footer {
+      height: 260px;
+      background: var(--deep);
+      position: relative;
+      padding: 35px 50px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* The orange and blue border line like the original flyer */
+    .footer::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 8px;
+      background: linear-gradient(90deg, var(--brand-orange) 50%, var(--brand-blue) 50%);
+    }
+
+    .contact-box {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: var(--white);
+      letter-spacing: 0.05em;
+    }
+
+    .phone {
+      font-size: 4.5rem;
+      font-weight: 900;
+      color: var(--gold-lt);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      line-height: 1;
+      text-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .phone svg { width: 55px; height: 55px; color: #25D366; }
+    
+    .tagline {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--brand-orange);
+      font-style: italic;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    .qrs {
+      display: flex;
+      gap: 25px;
+    }
+
+    .qr-card {
+      background: var(--white);
+      padding: 12px;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      border: 3px solid var(--gold);
+    }
+
+    .qr-card img {
+      width: 130px;
+      height: 130px;
+      border-radius: 8px;
+    }
+
+    .qr-label {
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: var(--deep);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .qr-label svg { width: 20px; height: 20px; }
+
+    .actions {
+      position: absolute;
+      top: -60px;
+      right: 0;
+      display: flex;
+      gap: 15px;
+    }
+    .btn {
+      padding: 12px 24px;
+      background: var(--brand-orange);
+      color: var(--white);
+      border: none;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      cursor: pointer;
+      box-shadow: 0 8px 20px rgba(247,127,0,0.4);
+      transition: transform 0.2s;
+      text-transform: uppercase;
+    }
+    .btn:hover { transform: translateY(-3px); }
+
+    @media print {
+      body { background: none; padding: 0; }
+      .actions { display: none; }
+      .flyer { box-shadow: none; transform: scale(1); width: 100%; height: 100vh; }
+      @page { size: portrait; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="flyer-wrapper">
+    <div class="actions">
+      <button class="btn" onclick="window.print()">Imprimir / Guardar PDF</button>
+    </div>
+
+    <div class="flyer">
+      
+      <!-- HERO TOP -->
+      <div class="hero">
+        <img src="assets/fondo_premium.jpg" alt="Mariscos Frescos" class="hero-bg">
+        <div class="hero-overlay"></div>
+        <div class="curve-gold"></div>
+        <div class="curve-white"></div>
+        
+        <div class="hero-content">
+          <img src="nuevo_logo/logo_importadora_barco_limpio.png" alt="Chus's Fish Logo" class="logo-img" onerror="this.src='logo.jpeg'">
+        </div>
+      </div>
+
+      <!-- MIDDLE CONTENT -->
+      <div class="middle">
+        
+        <div class="slogan-box">
+          <div class="slogan">¡Hasta la comodidad<br><span>De su condominio!</span></div>
+        </div>
+
+        <div class="content-grid">
+          
+          <div class="features-list">
+            <div class="feature">
+              <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <span class="feat-text">Procesadora</span>
+            </div>
+            <div class="feature">
+              <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <span class="feat-text">Distribuidora</span>
+            </div>
+            <div class="feature">
+              <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <span class="feat-text">Empacadora</span>
+            </div>
+            <div class="feature">
+              <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <span class="feat-text">Sin Químicos</span>
+            </div>
+            <div class="feature">
+              <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <span class="feat-text">100% Nacional</span>
+            </div>
+            <div class="feature">
+              <div class="feat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+              <span class="feat-text">Empacado al Vacío</span>
+            </div>
+          </div>
+
+          <div class="truck-container">
+            <div class="truck-bg-blob"></div>
+            <!-- mix-blend-mode: multiply works flawlessly here to hide the white background of the truck! -->
+            <img src="assets/camion_reparto.jpg" alt="Camión" class="truck-img">
+          </div>
+
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="footer">
+        
+        <div class="contact-box">
+          <div class="name">Jesús Manuel Sandino</div>
+          <div class="phone">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.888-.788-1.488-1.761-1.663-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>
+            </svg>
+            6001-7370
+          </div>
+          <div class="tagline">"Así o más rico"</div>
+        </div>
+
+        <div class="qrs">
+          <div class="qr-card">
+            <!-- Sitio Web QR -->
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://chusfish.com/&bgcolor=ffffff&color=060e1c" alt="Website QR">
+            <div class="qr-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              Sitio Web
+            </div>
+          </div>
+          <div class="qr-card">
+            <!-- WhatsApp QR -->
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://wa.me/50660017370&bgcolor=ffffff&color=060e1c" alt="WhatsApp QR">
+            <div class="qr-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              WhatsApp
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

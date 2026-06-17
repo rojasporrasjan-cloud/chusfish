@@ -2,3 +2,16 @@ node_modules/
 package-lock.json
 package.json
 fix_icons.js
+
+# Originales sin optimizar (reemplazados por los .jpg) — no se publican
+assets/fondo_premium.png
+assets/camion_reparto.png
+assets/pargo_entero.png
+assets/ceviche_chus.png
+assets/filete_corvina.png
+assets/camarones_gourmet.png
+
+# QR y entregables locales (no son parte del sitio)
+chusfish-qr*.png
+chusfish-qr*.svg
+qr_chusfish.png
