@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anuncios de Conversión (App) - Chus's Fish</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Montserrat:wght@800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 50px;
+    }
+
+    h1 { text-align: center; margin-bottom: 10px; }
+    p.instrucciones { color: #aaa; margin-bottom: 30px; text-align: center; max-width: 600px; }
+
+    .ad-container {
+      width: 1080px; height: 1080px;
+      background-color: #000;
+      position: relative; overflow: hidden;
+      transform: scale(0.5); transform-origin: top center;
+      margin-bottom: -540px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+
+    .bg-image {
+      width: 100%; height: 100%; object-fit: cover;
+      position: absolute; top: 0; left: 0; z-index: 1; opacity: 0.9;
+    }
+
+    /* Degradado más oscuro para resaltar los botones de la APP */
+    .overlay-gradient {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 75%;
+      background: linear-gradient(to top, rgba(6, 14, 28, 0.98) 0%, rgba(6, 14, 28, 0.8) 40%, transparent 100%);
+      z-index: 2;
+    }
+
+    .content {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      padding: 70px; z-index: 3; display: flex; flex-direction: column; box-sizing: border-box;
+    }
+
+    .logo {
+      position: absolute; top: 50px; left: 50px; width: 180px; z-index: 3;
+      border-radius: 12px; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    }
+
+    /* Estilos E-Commerce / App */
+    .app-badge {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; padding: 12px 24px; font-size: 1.5rem;
+      font-weight: 600; border-radius: 50px; display: inline-flex; align-items: center; gap: 10px; width: max-content;
+      margin-bottom: 25px;
+    }
+
+    .headline {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 4.8rem; font-weight: 800; line-height: 1.05; margin: 0 0 15px 0;
+      color: #ffffff; text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      text-transform: uppercase;
+    }
+    .headline span { color: #f77f00; } /* Naranja atractivo */
+
+    .subheadline { font-size: 2rem; font-weight: 400; margin: 0 0 40px 0; color: #ddd; }
+
+    /* BOTÓN TIPO APP E-COMMERCE (Llama al clic) */
+    .btn-app {
+      background: #0077b6; /* Azul que da confianza para comprar */
+      background: linear-gradient(135deg, #0077b6 0%, #0096c7 100%);
+      color: white; padding: 25px 0; width: 100%; text-align: center; font-size: 2.5rem;
+      font-weight: 800; border-radius: 16px; text-transform: uppercase;
+      box-shadow: 0 15px 35px rgba(0, 119, 182, 0.4);
+      border: 2px solid #90e0ef;
+      display: flex; justify-content: center; align-items: center; gap: 20px;
+    }
+
+    .btn-app-orange {
+      background: linear-gradient(135deg, #f77f00 0%, #fcbf49 100%);
+      box-shadow: 0 15px 35px rgba(247, 127, 0, 0.4);
+      border: 2px solid #ffe6a7;
+    }
+
+    /* Barra de búsqueda (Simula la web) */
+    .search-bar {
+      background: white; border-radius: 50px; padding: 20px 40px; display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    }
+    .search-text { color: #333; font-size: 2.2rem; font-weight: 600; display: flex; align-items: center; gap: 20px;}
+    .search-btn { background: #0077b6; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; color: white;}
+
+    /* Cursor flotante para invitar al clic */
+    .cursor { position: absolute; bottom: 40px; right: 120px; width: 80px; z-index: 10; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.4)); transform: rotate(-15deg); }
+
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>Anuncios de Tráfico hacia la App 🛒</h1>
+    <p class="instrucciones">SOBERANO: Modifiqué toda la estructura. Ya no son anuncios informativos de WhatsApp. Ahora son <strong>Anuncios de Conversión (E-Commerce)</strong>. Simulan elementos de una App (barras de búsqueda, botones de "Añadir al Carrito", cursores) para obligar a la mente del cliente a hacer CLIC y ser dirigidos a tu web/app. Refresca F5 y tómales pantallazo.</p>
+  </div>
+
+  <!-- ANUNCIO 1: ESTILO BÚSQUEDA WEB (Lleva a la acción) -->
+  <div class="ad-container">
+    <img src="assets/filete_corvina.jpg" class="bg-image" alt="Corvina">
+    <div class="overlay-gradient"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    
+    <div class="content">
+      <div class="search-bar">
+        <div class="search-text">
+          <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="3" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          Filete de Corvina Fresco
+        </div>
+        <div class="search-btn"><svg viewBox="0 0 24 24" width="30" height="30" stroke="currentColor" stroke-width="3" fill="none"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
+      </div>
+
+      <h2 class="headline">NO HAGAS FILAS,<br><span>PÍDELO EN LÍNEA</span></h2>
+      <p class="subheadline">Ingresa a nuestra App y recibe mariscos 100% Nacionales.</p>
+      
+      <div class="btn-app">
+        <svg viewBox="0 0 24 24" width="45" height="45" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+        COMPRAR EN LA APP
+      </div>
+      <!-- SVG Cursor Hand -->
+      <svg class="cursor" viewBox="0 0 24 24" fill="white" stroke="black" stroke-width="1"><path d="M12 2L2 22l4-2 4 4 2-8 8-2L12 2z"/></svg>
+    </div>
+  </div>
+
+  <!-- ANUNCIO 2: ESTILO "AÑADIR AL CARRITO" DIRECTO -->
+  <div class="ad-container">
+    <img src="assets/camarones_gourmet.jpg" class="bg-image" alt="Camarones">
+    <div class="overlay-gradient" style="height: 60%;"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    
+    <div class="content">
+      <div class="app-badge">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        Producto Destacado del Día
+      </div>
+      
+      <h2 class="headline">CAMARONES<br><span>GOURMET</span></h2>
+      
+      <div class="btn-app btn-app-orange">
+        <svg viewBox="0 0 24 24" width="45" height="45" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        AGREGAR AL CARRITO
+      </div>
+    </div>
+  </div>
+
+  <!-- ANUNCIO 3: ESTILO CATÁLOGO DIGITAL -->
+  <div class="ad-container">
+    <img src="assets/pargo_entero.jpg" class="bg-image" alt="Pargo">
+    <div class="overlay-gradient"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    
+    <div class="content">
+      <div class="app-badge" style="background: rgba(0, 119, 182, 0.5); border-color: #0077b6;">
+        📦 Empacado al Vacío
+      </div>
+      
+      <h2 class="headline">TU PESCADERÍA<br><span>EN TU CELULAR</span></h2>
+      <p class="subheadline">Explora nuestro catálogo en línea y pide directo a tu condominio.</p>
+      
+      <div class="btn-app" style="background: #111; border-color: #555;">
+        <svg viewBox="0 0 24 24" width="45" height="45" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        VER CATÁLOGO ONLINE
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

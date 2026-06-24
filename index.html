@@ -1996,7 +1996,15 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
   if (!valid) return;
 
   let msg = "Hola Chus's Fish! 🐟 Quiero hacer un pedido:\n\n";
+  const itemsForOrder = [];
   if (_ofProduct) {
+    itemsForOrder.push({
+      id: _ofProduct.name,
+      name: _ofProduct.name,
+      qty: 1,
+      unit: _ofProduct.unit || '',
+      price: _ofProduct.price || 0
+    });
     msg += '🛒 *Producto:* ' + _ofProduct.name;
     if (_ofProduct.price) msg += ' — ₡' + _ofProduct.price.toLocaleString('es-CR') + (_ofProduct.unit || '');
     msg += '\n\n';
@@ -2007,8 +2015,21 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
   msg += '*Dirección de entrega:* ' + address + '\n';
   msg += '\nPor favor confirmar disponibilidad y coordinar entrega. ¡Muchas gracias!';
 
+  const waLink = 'https://wa.me/50660017370?text=' + encodeURIComponent(msg);
+
+  const saveOrder = firebase.firestore().collection('orders').add({
+    customer: { name, phone, address, zone: null, fecha: null, payment: 'SINPE Móvil' },
+    items: itemsForOrder,
+    deliveryFee: 0,
+    status: 'pendiente',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(() => {});
+
+  const waWin = window.open(waLink, '_blank');
+
   closeOrderForm();
-  window.open('https://wa.me/50660017370?text=' + encodeURIComponent(msg), '_blank');
+
+  if (!waWin) saveOrder.finally(() => { window.location.href = waLink; });
 });
 </script>
 
