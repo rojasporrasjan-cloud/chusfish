@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -1178,7 +1178,7 @@
     .pwa-no-idx { background: none; border: none; cursor: pointer; color: #7a95aa; font-size: 1.1rem; padding: 0.5rem; min-width: 44px; min-height: 44px; display: flex; align-items: center; justify-content: center; }
 
     /* ── CÓMO PEDIR ──────────────────────────────────── */
-    #como-pedir { padding: 7rem 0 6rem; background: var(--mid); }
+    catalogo.html?tour=1 { padding: 7rem 0 6rem; background: var(--mid); }
     .steps-grid {
       display: grid; grid-template-columns: repeat(3,1fr); gap: 2rem;
       margin-top: 3rem;
@@ -1882,42 +1882,15 @@
       <div class="tutorial-title-top">Guía Rápida</div>
       <button class="tutorial-close" onclick="closeTutorial()">✕</button>
     </div>
-    <div class="tutorial-body" id="tutorial-body">
-      <!-- Paso 1 -->
-      <div class="tutorial-step active" id="ts-0">
-        <div class="t-icon">🛒</div>
-        <div class="t-title">Explorá <em>el menú</em></div>
-        <div class="t-desc">Navegá por nuestro catálogo interactivo. Descubrí todas las opciones de mariscos y pescados premium, frescos y listos para vos.</div>
-      </div>
-      <!-- Paso 2 -->
-      <div class="tutorial-step" id="ts-1">
-        <div class="t-icon">👆</div>
-        <div class="t-title">Elegí tus <em>productos</em></div>
-        <div class="t-desc">Abrí el producto que se te antoje y dale al botón de "Pedir". Podés anotar mentalmente todo lo que vas a querer llevar.</div>
-      </div>
-      <!-- Paso 3 -->
-      <div class="tutorial-step" id="ts-2">
-        <div class="t-icon">💬</div>
-        <div class="t-title">Todo directo por <em>WhatsApp</em></div>
-        <div class="t-desc">Sin cuentas ni registros molestos. Envianos tu orden directo a nuestro WhatsApp y ahí te confirmamos el total.</div>
-      </div>
-      <!-- Paso 4 -->
-      <div class="tutorial-step" id="ts-3">
-        <div class="t-icon">🚚</div>
-        <div class="t-title">Recibí en <em>tu puerta</em></div>
-        <div class="t-desc">Pagás al recibir (Sinpe o Efectivo). Te llevamos la frescura del mar y la mejor cadena de frío directo a tu condominio.</div>
-      </div>
-    </div>
-    <div class="tutorial-footer">
-      <div class="tutorial-dots" id="tutorial-dots">
-        <div class="t-dot active"></div>
-        <div class="t-dot"></div>
-        <div class="t-dot"></div>
-        <div class="t-dot"></div>
-      </div>
-      <div style="display:flex; gap:0.5rem;">
-        <button class="t-btn outline" id="tut-prev" onclick="tutPrev()" style="display:none">Atrás</button>
-        <button class="t-btn" id="tut-next" onclick="tutNext()">Siguiente</button>
+    <div class="tutorial-body" id="tutorial-body" style="height: auto; padding-bottom: 2rem;">
+      <div class="tutorial-step active" id="ts-0" style="position: relative; padding-top: 1rem;">
+        <div class="t-icon" style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
+        <div class="t-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Aprende a comprar en <em>tiempo real</em></div>
+        <div class="t-desc" style="margin-bottom: 2rem;">Descubre lo fácil que es ordenar los mejores mariscos de Costa Rica. Te guiaremos paso a paso sobre nuestro catálogo real para que hagas tu primera compra sin complicaciones.</div>
+        <a href="catalogo.html?tour=1" class="btn-primary" style="display:inline-flex; text-decoration:none; width:80%;">
+          Iniciar Tour Guiado
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;margin-left:8px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
       </div>
     </div>
   </div>
@@ -2148,7 +2121,7 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
     <a href="#identity"     class="drawer-link"><span class="drawer-link-icon">🐟</span> Nosotros</a>
     <a href="#categorias"   class="drawer-link"><span class="drawer-link-icon">🦐</span> Categorías</a>
     <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">🛒</span> Catálogo</a>
-    <a href="#como-pedir" class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
+    <a href="catalogo.html?tour=1" class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
     <a href="#zonas"         class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
   </div>
   <div class="drawer-footer">
@@ -2332,49 +2305,6 @@ if ('serviceWorker' in navigator) {
 })();
 
 /* ── TUTORIAL ONBOARDING ────────────────────────────────── */
-let curStep = 0;
-const totalSteps = 4;
-
-function showTutStep(idx) {
-  for(let i=0; i<totalSteps; i++) {
-    const el = document.getElementById('ts-'+i);
-    const dot = document.getElementById('tutorial-dots').children[i];
-    el.classList.remove('active', 'prev');
-    dot.classList.remove('active');
-    
-    if (i === idx) {
-      el.classList.add('active');
-      dot.classList.add('active');
-    } else if (i < idx) {
-      el.classList.add('prev');
-    }
-  }
-  
-  document.getElementById('tut-prev').style.display = (idx === 0) ? 'none' : 'block';
-  const nextBtn = document.getElementById('tut-next');
-  if (idx === totalSteps - 1) {
-    nextBtn.textContent = '¡Empezar a comprar!';
-  } else {
-    nextBtn.textContent = 'Siguiente';
-  }
-}
-
-function tutNext() {
-  if (curStep < totalSteps - 1) {
-    curStep++;
-    showTutStep(curStep);
-  } else {
-    closeTutorial();
-  }
-}
-
-function tutPrev() {
-  if (curStep > 0) {
-    curStep--;
-    showTutStep(curStep);
-  }
-}
-
 function closeTutorial() {
   document.getElementById('tutorial-overlay').classList.remove('open');
   document.body.style.overflow = '';
@@ -2383,8 +2313,6 @@ function closeTutorial() {
 }
 
 function openTutorial() {
-  curStep = 0;
-  showTutStep(0);
   document.getElementById('tutorial-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
