@@ -1938,6 +1938,13 @@ async function initCatalog() {
 
   PRODUCTS = (await loadFromFirestore()) || PRODUCTS_DEFAULT;
 
+  // Interceptar imagen de la langosta para que muestre el recorte original sobre hielo
+  PRODUCTS.forEach(p => {
+    if (p.name && p.name.toLowerCase().includes('langosta') && !p.name.toLowerCase().includes('cola')) {
+      p.img = 'assets/langosta_editada.png';
+    }
+  });
+
   const loadEl = document.getElementById('cat-loading');
   if (loadEl) loadEl.remove();
 
@@ -3326,6 +3333,106 @@ window.addEventListener('appinstalled', () => {
   deferredInstall = null;
   localStorage.setItem('chusfish_pwa_dismissed', '1');
 });
+</script>
+
+<!-- TOUR INTERACTIVO -->
+<style>
+  .tour-overlay {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px);
+    width: 90%; max-width: 400px;
+    background: rgba(6,14,28,0.95); backdrop-filter: blur(20px);
+    border: 1px solid var(--gold); border-radius: 20px;
+    padding: 1.5rem; z-index: 9999;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8), 0 0 0 1px rgba(200,169,110,0.3);
+    opacity: 0; pointer-events: none;
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.6s;
+    text-align: center;
+  }
+  .tour-overlay.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1; pointer-events: all;
+  }
+  .tour-title {
+    font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 600;
+    color: var(--gold-lt); margin-bottom: 0.5rem;
+  }
+  .tour-text {
+    font-size: 0.8rem; color: var(--text); line-height: 1.5; margin-bottom: 1rem;
+  }
+  .tour-btn {
+    display: inline-block; padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+    color: var(--deep); border: none; border-radius: 30px; cursor: pointer;
+    font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+  }
+  .tour-highlight {
+    box-shadow: 0 0 0 4px rgba(200,169,110,0.8) !important;
+    animation: tour-pulse 1.5s infinite;
+  }
+  @keyframes tour-pulse {
+    0% { box-shadow: 0 0 0 0 rgba(200,169,110,0.8); }
+    70% { box-shadow: 0 0 0 15px rgba(200,169,110,0); }
+    100% { box-shadow: 0 0 0 0 rgba(200,169,110,0); }
+  }
+</style>
+
+<div id="tour-card" class="tour-overlay">
+  <div class="tour-title" id="tour-title">¡Bienvenido!</div>
+  <div class="tour-text" id="tour-text">Para empezar, haz clic en cualquier producto para ver sus detalles.</div>
+  <button class="tour-btn" id="tour-close-btn" style="display:none;" onclick="endTour()">Entendido</button>
+</div>
+
+<script>
+  function endTour() {
+    document.getElementById('tour-card').classList.remove('show');
+    const url = new URL(window.location);
+    url.searchParams.delete('tour');
+    window.history.replaceState({}, '', url);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tour') === '1') {
+      let tourStep = 1;
+      const tourCard = document.getElementById('tour-card');
+      const tourTitle = document.getElementById('tour-title');
+      const tourText = document.getElementById('tour-text');
+      const tourBtn = document.getElementById('tour-close-btn');
+
+      // Mostrar el primer paso con un pequeño retraso
+      setTimeout(() => { tourCard.classList.add('show'); }, 1500);
+
+      // Observador para detectar cambios y avanzar en el tour
+      const observer = new MutationObserver(() => {
+        const modalOpen = document.getElementById('product-modal').classList.contains('open');
+        const cartOpen = document.getElementById('cart-backdrop').classList.contains('open');
+        const cartItems = document.querySelectorAll('.cart-item').length;
+
+        if (tourStep === 1 && modalOpen) {
+          tourStep = 2;
+          tourTitle.innerText = "¡Excelente!";
+          tourText.innerText = "Ahora elige la cantidad que deseas y haz clic en 'Agregar al carrito'.";
+        }
+        else if (tourStep === 2 && cartItems > 0) {
+          tourStep = 3;
+          tourTitle.innerText = "¡Producto agregado!";
+          tourText.innerText = "Haz clic en el carrito dorado flotante en la esquina inferior derecha para revisar tu pedido.";
+          const cartFloat = document.getElementById('cart-float-btn');
+          if(cartFloat) cartFloat.classList.add('tour-highlight');
+        }
+        else if (tourStep === 3 && cartOpen) {
+          tourStep = 4;
+          tourTitle.innerText = "¡Casi listo!";
+          tourText.innerText = "Revisa tu pedido y haz clic en 'Pedir por WhatsApp' para enviarnos tus datos y coordinar el envío. ¡Así de fácil!";
+          tourBtn.style.display = 'inline-block';
+          const cartFloat = document.getElementById('cart-float-btn');
+          if(cartFloat) cartFloat.classList.remove('tour-highlight');
+        }
+      });
+
+      observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
+    }
+  });
 </script>
 
 </body>
