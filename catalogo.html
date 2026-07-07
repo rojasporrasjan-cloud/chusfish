@@ -3385,6 +3385,7 @@ window.addEventListener('appinstalled', () => {
 <script>
   function endTour() {
     document.getElementById('tour-card').classList.remove('show');
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
     const url = new URL(window.location);
     url.searchParams.delete('tour');
     window.history.replaceState({}, '', url);
@@ -3399,8 +3400,24 @@ window.addEventListener('appinstalled', () => {
       const tourText = document.getElementById('tour-text');
       const tourBtn = document.getElementById('tour-close-btn');
 
-      // Mostrar el primer paso con un pequeño retraso
-      setTimeout(() => { tourCard.classList.add('show'); }, 1500);
+      // Paso 1: Bajar hasta los productos y destacar el primero
+      setTimeout(() => { 
+        tourCard.classList.add('show'); 
+        
+        // Buscar la sección de productos y hacer scroll suave
+        const catalogSec = document.getElementById('productos');
+        if(catalogSec) {
+          const y = catalogSec.getBoundingClientRect().top + window.scrollY - 100;
+          window.scrollTo({top: y, behavior: 'smooth'});
+        }
+
+        // Destacar el primer producto (destacado o normal)
+        setTimeout(() => {
+          const firstProduct = document.querySelector('.dest-card, .p-card');
+          if(firstProduct) firstProduct.classList.add('tour-highlight');
+        }, 800);
+
+      }, 1500);
 
       // Observador para detectar cambios y avanzar en el tour
       const observer = new MutationObserver(() => {
@@ -3412,21 +3429,33 @@ window.addEventListener('appinstalled', () => {
           tourStep = 2;
           tourTitle.innerText = "¡Excelente!";
           tourText.innerText = "Ahora elige la cantidad que deseas y haz clic en 'Agregar al carrito'.";
+          
+          // Quitar highlight del producto
+          document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+          
+          // Poner highlight al boton de agregar al carrito del modal
+          const modalAddBtn = document.getElementById('pm-add');
+          if(modalAddBtn) modalAddBtn.classList.add('tour-highlight');
         }
-        else if (tourStep === 2 && cartItems > 0) {
+        else if (tourStep === 2 && cartItems > 0 && !modalOpen) {
+          // Solo avanzar si ya se cerró el modal o se agregó (el modal se cierra auto al agregar)
           tourStep = 3;
           tourTitle.innerText = "¡Producto agregado!";
           tourText.innerText = "Haz clic en el carrito dorado flotante en la esquina inferior derecha para revisar tu pedido.";
-          const cartFloat = document.getElementById('cart-float-btn');
+          
+          document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+          const cartFloat = document.querySelector('.cart-float');
           if(cartFloat) cartFloat.classList.add('tour-highlight');
         }
         else if (tourStep === 3 && cartOpen) {
           tourStep = 4;
           tourTitle.innerText = "¡Casi listo!";
-          tourText.innerText = "Revisa tu pedido y haz clic en 'Pedir por WhatsApp' para enviarnos tus datos y coordinar el envío. ¡Así de fácil!";
+          tourText.innerText = "Revisa tu pedido y haz clic en 'Enviar pedido por WhatsApp' para dejarnos tus datos. ¡Así de fácil!";
           tourBtn.style.display = 'inline-block';
-          const cartFloat = document.getElementById('cart-float-btn');
-          if(cartFloat) cartFloat.classList.remove('tour-highlight');
+          
+          document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+          const waBtn = document.getElementById('cart-wa-btn');
+          if(waBtn) waBtn.classList.add('tour-highlight');
         }
       });
 
