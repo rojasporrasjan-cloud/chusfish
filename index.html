@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -1875,26 +1875,6 @@
   })();
 </script>
 
-<!-- ═══ TUTORIAL ONBOARDING MODAL ════════════════════════ -->
-<div id="tutorial-overlay" class="tutorial-overlay">
-  <div class="tutorial-box">
-    <div class="tutorial-header">
-      <div class="tutorial-title-top">Guía Rápida</div>
-      <button class="tutorial-close" onclick="closeTutorial()">✕</button>
-    </div>
-    <div class="tutorial-body" id="tutorial-body" style="height: auto; padding-bottom: 2rem;">
-      <div class="tutorial-step active" id="ts-0" style="position: relative; padding-top: 1rem;">
-        <div class="t-icon" style="font-size: 3rem; margin-bottom: 1rem;">🛒</div>
-        <div class="t-title" style="font-size: 1.5rem; margin-bottom: 1rem;">Aprende a comprar en <em>tiempo real</em></div>
-        <div class="t-desc" style="margin-bottom: 2rem;">Descubre lo fácil que es ordenar los mejores mariscos de Costa Rica. Te guiaremos paso a paso sobre nuestro catálogo real para que hagas tu primera compra sin complicaciones.</div>
-        <a href="catalogo.html?tour=1" class="btn-primary" style="display:inline-flex; text-decoration:none; width:80%;">
-          Iniciar Tour Guiado
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;margin-left:8px;"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- ═══ PRODUCT MODAL ═══════════════════════════════════ -->
 <div id="prod-overlay" class="prod-overlay">
@@ -2304,25 +2284,7 @@ if ('serviceWorker' in navigator) {
   });
 })();
 
-/* ── TUTORIAL ONBOARDING ────────────────────────────────── */
-function closeTutorial() {
-  document.getElementById('tutorial-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-  // Guardar que ya se vio, para que no moleste en futuras visitas (puedes borrar localStorage para testear)
-  localStorage.setItem('chus_tut_v2', 'true');
-}
 
-function openTutorial() {
-  document.getElementById('tutorial-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-
-window.addEventListener('load', () => {
-  // Comentar la línea del localStorage si quieres que salga SIEMPRE
-  // if (!localStorage.getItem('chus_tut_v2')) {
-    setTimeout(openTutorial, 1000);
-  // }
-});
 </script>
 </body>
 </html>
