@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrusel Facebook - Chus's Fish</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800;900&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+  <!-- html2canvas para descargar automáticamente -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      background-color: #1a1a1a;
+      color: white;
+      font-family: 'Montserrat', sans-serif;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 50px;
+    }
+    h1 { text-align: center; }
+    p.info { color: #ccc; max-width: 600px; text-align: center; line-height: 1.6; }
+    
+    .btn-download {
+      background: linear-gradient(135deg, #c8a96e, #9a7a48);
+      color: #060e1c; border: none; padding: 15px 30px; font-size: 1.2rem;
+      font-weight: 800; border-radius: 30px; cursor: pointer; text-transform: uppercase;
+      box-shadow: 0 10px 20px rgba(200,169,110,0.3);
+      transition: transform 0.2s;
+    }
+    .btn-download:hover { transform: scale(1.05); }
+
+    /* Contenedor del anuncio a escala para no ocupar toda la pantalla */
+    .ad-wrapper {
+      position: relative; width: 1080px; height: 1080px;
+      transform: scale(0.4); transform-origin: top center;
+      margin-bottom: -640px; /* Compensa la escala */
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      background: radial-gradient(circle at 50% 40%, #122840 0%, #060e1c 100%);
+      overflow: hidden;
+    }
+
+    /* Fondo decorativo premium */
+    .bg-accent {
+      position: absolute; top: -100px; right: -100px; width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(200,169,110,0.15) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .bg-accent-2 {
+      position: absolute; bottom: -200px; left: -200px; width: 800px; height: 800px;
+      background: radial-gradient(circle, rgba(13,33,55,0.8) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+
+    .logo {
+      position: absolute; top: 60px; left: 60px; width: 160px; z-index: 10;
+      border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+
+    /* Producto centrado */
+    .product-img {
+      position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+      width: 700px; height: 700px; object-fit: contain; z-index: 5;
+      filter: drop-shadow(0 30px 40px rgba(0,0,0,0.7));
+    }
+
+    /* Textos inferiores */
+    .content-box {
+      position: absolute; bottom: 0; left: 0; width: 100%;
+      background: linear-gradient(to top, rgba(6,14,28,1) 0%, rgba(6,14,28,0.8) 60%, transparent 100%);
+      padding: 300px 60px 70px 60px; z-index: 10;
+      display: flex; flex-direction: column; align-items: flex-start;
+    }
+
+    .badge {
+      background: rgba(200,169,110,0.15); border: 2px solid #c8a96e;
+      color: #c8a96e; padding: 12px 25px; border-radius: 50px;
+      font-size: 1.4rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.1em; margin-bottom: 20px;
+    }
+    .badge-orange {
+      background: rgba(247,127,0,0.15); border-color: #f77f00; color: #f77f00;
+    }
+
+    .title {
+      font-family: 'Cormorant Garamond', serif; font-size: 5.5rem; font-weight: 700;
+      color: #ffffff; line-height: 1.05; margin: 0 0 10px 0;
+      text-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    }
+    .title span { color: #c8a96e; font-style: italic; font-weight: 600; }
+
+    .subtitle {
+      font-size: 2.2rem; font-weight: 400; color: #a9b8c9; margin: 0 0 40px 0;
+    }
+
+    .footer-bar {
+      display: flex; width: 100%; justify-content: space-between; align-items: center;
+      border-top: 2px solid rgba(200,169,110,0.2); padding-top: 30px;
+    }
+
+    .website {
+      font-size: 2rem; font-weight: 800; color: #c8a96e; letter-spacing: 0.05em;
+    }
+
+    .swipe-text {
+      font-size: 1.8rem; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 15px;
+      background: rgba(255,255,255,0.1); padding: 15px 30px; border-radius: 40px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div>
+    <h1>Generador de Carrusel de Facebook 🚀</h1>
+    <p class="info">Soberano, usar Inteligencia Artificial para generar imágenes de productos que incluyan texto exacto (como "chusfish.com") usualmente resulta en textos mal escritos (ej: "chuusfissh"). La mejor estrategia, y la que usan las agencias top, es renderizar tus <strong>productos reales sin fondo</strong> sobre plantillas perfectas con HTML y luego exportarlas.</p>
+    <div style="text-align: center; margin-top: 20px;">
+      <button class="btn-download" onclick="descargarTodas()">Descargar Carrusel Completo (5 imágenes)</button>
+    </div>
+  </div>
+
+  <!-- SLIDE 1: Camarones Gourmet -->
+  <div class="ad-wrapper" id="slide1">
+    <div class="bg-accent"></div><div class="bg-accent-2"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    <img src="assets/camarones_gourmet.png" class="product-img" alt="Camarones">
+    
+    <div class="content-box">
+      <div class="badge badge-orange">🔥 Envío Gratis Hoy</div>
+      <h2 class="title">Camarones<br><span>Gourmet Premium</span></h2>
+      <p class="subtitle">Limpios, desvenados y listos para cocinar.</p>
+      <div class="footer-bar">
+        <div class="website">🛒 chusfish.com</div>
+        <div class="swipe-text">Desliza para ver más <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2: Filete de Corvina -->
+  <div class="ad-wrapper" id="slide2">
+    <div class="bg-accent"></div><div class="bg-accent-2"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    <!-- Ajuste de escala para filete que suele ser más ancho -->
+    <img src="assets/filete_corvina.png" class="product-img" style="width: 850px; top: 20%;" alt="Corvina">
+    
+    <div class="content-box">
+      <div class="badge">💯 100% Nacional</div>
+      <h2 class="title">Filete de<br><span>Corvina Fresca</span></h2>
+      <p class="subtitle">Corte perfecto, sin espinas, empacado al vacío.</p>
+      <div class="footer-bar">
+        <div class="website">🛒 chusfish.com</div>
+        <div class="swipe-text">Desliza <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3: Pargo Entero -->
+  <div class="ad-wrapper" id="slide3">
+    <div class="bg-accent"></div><div class="bg-accent-2"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    <img src="assets/pargo_entero.png" class="product-img" style="transform: translateX(-50%) rotate(-10deg); top: 10%; width: 800px;" alt="Pargo">
+    
+    <div class="content-box">
+      <div class="badge">✨ Favorito del Chef</div>
+      <h2 class="title">Pargo Rojo<br><span>Entero Limpio</span></h2>
+      <p class="subtitle">Directo del mar a tu mesa, frescura garantizada.</p>
+      <div class="footer-bar">
+        <div class="website">🛒 chusfish.com</div>
+        <div class="swipe-text">Desliza <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4: Ceviche -->
+  <div class="ad-wrapper" id="slide4">
+    <div class="bg-accent"></div><div class="bg-accent-2"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    <img src="assets/ceviche_chus.png" class="product-img" style="top: 10%;" alt="Ceviche">
+    
+    <div class="content-box">
+      <div class="badge">🍋 Listo para Servir</div>
+      <h2 class="title">Ceviche<br><span>Chus's Fish</span></h2>
+      <p class="subtitle">La receta secreta de la casa, irresistible.</p>
+      <div class="footer-bar">
+        <div class="website">🛒 chusfish.com</div>
+        <div class="swipe-text">Desliza <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: Langosta / CTA Final -->
+  <div class="ad-wrapper" id="slide5">
+    <div class="bg-accent"></div><div class="bg-accent-2"></div>
+    <img src="logo.jpeg" class="logo" alt="Logo">
+    <img src="assets/langosta_editada.png" class="product-img" style="top: 5%; width: 650px;" alt="Langosta">
+    
+    <div class="content-box">
+      <div class="badge badge-orange">⭐ Calidad Premium</div>
+      <h2 class="title">Langosta<br><span>Entera Fresca</span></h2>
+      <p class="subtitle">Para esas cenas especiales. ¡Compra en nuestra web!</p>
+      <div class="footer-bar" style="background: linear-gradient(135deg, #c8a96e, #9a7a48); margin-top: 10px; padding: 25px 40px; border-radius: 20px; border: none; justify-content: center;">
+        <div style="color: #060e1c; font-size: 2.8rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em;">
+          PIDE AHORA EN CHUSFISH.COM
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function descargarTodas() {
+      const slides = ['slide1', 'slide2', 'slide3', 'slide4', 'slide5'];
+      const btn = document.querySelector('.btn-download');
+      btn.innerText = "Generando imágenes (espera unos segundos)...";
+      btn.disabled = true;
+
+      for (let i = 0; i < slides.length; i++) {
+        const element = document.getElementById(slides[i]);
+        // Para html2canvas, removemos temporalmente el scale para capturar a resolución completa
+        const originalTransform = element.style.transform;
+        element.style.transform = 'scale(1)';
+        element.style.marginBottom = '50px';
+
+        const canvas = await html2canvas(element, { scale: 1, useCORS: true, backgroundColor: '#060e1c' });
+        
+        // Restaurar escala
+        element.style.transform = originalTransform;
+        element.style.marginBottom = '-640px';
+
+        const link = document.createElement('a');
+        link.download = `chusfish_carrusel_${i+1}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        // Pequeña pausa para que el navegador procese múltiples descargas
+        await new Promise(r => setTimeout(r, 800));
+      }
+
+      btn.innerText = "¡Descarga completada! Revisa tus archivos";
+      setTimeout(() => {
+        btn.innerText = "Descargar Carrusel Completo (5 imágenes)";
+        btn.disabled = false;
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

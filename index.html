@@ -1241,6 +1241,53 @@
     }
     .btn-install:hover { background: rgba(200,169,110,0.2); transform: translateY(-2px); }
     @media(max-width:768px){ .btn-install { width:100%; justify-content:center; } }
+
+    /* ══ ONBOARDING TUTORIAL MODAL ══════════════════════════ */
+    .tutorial-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(4,10,20,0.85); backdrop-filter: blur(10px);
+      display: flex; align-items: center; justify-content: center;
+      padding: 1.5rem; opacity: 0; pointer-events: none; transition: opacity 0.4s;
+    }
+    .tutorial-overlay.open { opacity: 1; pointer-events: all; }
+    .tutorial-box {
+      background: linear-gradient(135deg, #0d2137 0%, #060e1c 100%);
+      border: 1px solid var(--gold-dk); border-radius: 20px;
+      width: 100%; max-width: 480px; position: relative; overflow: hidden;
+      transform: translateY(40px) scale(0.95); opacity: 0;
+      transition: transform 0.4s cubic-bezier(0.34,1.45,0.64,1), opacity 0.4s;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    }
+    .tutorial-overlay.open .tutorial-box { transform: translateY(0) scale(1); opacity: 1; }
+    
+    .tutorial-header { padding: 1.2rem 1.5rem; border-bottom: 1px solid rgba(200,169,110,0.15); display: flex; justify-content: space-between; align-items: center; }
+    .tutorial-title-top { font-family: 'Montserrat', sans-serif; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); font-weight: 600; }
+    .tutorial-close { background: none; border: none; color: var(--muted); font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; transition: background 0.2s; }
+    .tutorial-close:hover { color: var(--gold); background: rgba(200,169,110,0.1); }
+    
+    .tutorial-body { position: relative; height: 340px; overflow: hidden; }
+    .tutorial-step {
+      position: absolute; inset: 0; padding: 2rem;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+      opacity: 0; transform: translateX(50px); pointer-events: none; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    .tutorial-step.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+    .tutorial-step.prev { transform: translateX(-50px); }
+    
+    .t-icon { font-size: 4rem; margin-bottom: 1.5rem; filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5)); }
+    .t-title { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; color: var(--white); margin-bottom: 1rem; line-height: 1.1; }
+    .t-title em { color: var(--gold); font-style: italic; }
+    .t-desc { font-size: 0.85rem; color: var(--text); line-height: 1.7; font-weight: 300; }
+    
+    .tutorial-footer { padding: 1.5rem; border-top: 1px solid rgba(200,169,110,0.15); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); }
+    .tutorial-dots { display: flex; gap: 0.6rem; }
+    .t-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(200,169,110,0.2); transition: 0.3s; }
+    .t-dot.active { background: var(--gold); width: 24px; border-radius: 10px; box-shadow: 0 0 10px rgba(200,169,110,0.5); }
+    
+    .t-btn { padding: 0.75rem 1.6rem; background: linear-gradient(135deg, var(--gold-dk), var(--gold)); color: var(--deep); border: none; border-radius: 30px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.1em; transition: 0.3s; box-shadow: 0 5px 15px rgba(200,169,110,0.2); }
+    .t-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(200,169,110,0.4); }
+    .t-btn.outline { background: transparent; color: var(--muted); border: 1px solid rgba(200,169,110,0.3); box-shadow: none; }
+    .t-btn.outline:hover { color: var(--gold); border-color: var(--gold); background: rgba(200,169,110,0.1); transform: translateY(0); }
   </style>
 </head>
 <body>
@@ -1803,6 +1850,14 @@
         _db.collection('chusfish').doc('config').get()
       ]);
       const all  = (catSnap.exists && catSnap.data().products) || [];
+      
+      // Interceptar imagen de la langosta para que muestre el recorte original sobre hielo
+      all.forEach(p => {
+        if (p.name && p.name.toLowerCase().includes('langosta') && !p.name.toLowerCase().includes('cola')) {
+          p.img = 'assets/langosta_editada.png';
+        }
+      });
+
       const cfgIds = cfgSnap.exists && cfgSnap.data().featuredIds;
       const ids = (cfgIds && cfgIds.length) ? cfgIds : FEATURED_IDS;
       const featured = ids.map(id => all.find(p => p.id === id)).filter(Boolean);
@@ -1819,6 +1874,54 @@
   })();
   })();
 </script>
+
+<!-- ═══ TUTORIAL ONBOARDING MODAL ════════════════════════ -->
+<div id="tutorial-overlay" class="tutorial-overlay">
+  <div class="tutorial-box">
+    <div class="tutorial-header">
+      <div class="tutorial-title-top">Guía Rápida</div>
+      <button class="tutorial-close" onclick="closeTutorial()">✕</button>
+    </div>
+    <div class="tutorial-body" id="tutorial-body">
+      <!-- Paso 1 -->
+      <div class="tutorial-step active" id="ts-0">
+        <div class="t-icon">🛒</div>
+        <div class="t-title">Explorá <em>el menú</em></div>
+        <div class="t-desc">Navegá por nuestro catálogo interactivo. Descubrí todas las opciones de mariscos y pescados premium, frescos y listos para vos.</div>
+      </div>
+      <!-- Paso 2 -->
+      <div class="tutorial-step" id="ts-1">
+        <div class="t-icon">👆</div>
+        <div class="t-title">Elegí tus <em>productos</em></div>
+        <div class="t-desc">Abrí el producto que se te antoje y dale al botón de "Pedir". Podés anotar mentalmente todo lo que vas a querer llevar.</div>
+      </div>
+      <!-- Paso 3 -->
+      <div class="tutorial-step" id="ts-2">
+        <div class="t-icon">💬</div>
+        <div class="t-title">Todo directo por <em>WhatsApp</em></div>
+        <div class="t-desc">Sin cuentas ni registros molestos. Envianos tu orden directo a nuestro WhatsApp y ahí te confirmamos el total.</div>
+      </div>
+      <!-- Paso 4 -->
+      <div class="tutorial-step" id="ts-3">
+        <div class="t-icon">🚚</div>
+        <div class="t-title">Recibí en <em>tu puerta</em></div>
+        <div class="t-desc">Pagás al recibir (Sinpe o Efectivo). Te llevamos la frescura del mar y la mejor cadena de frío directo a tu condominio.</div>
+      </div>
+    </div>
+    <div class="tutorial-footer">
+      <div class="tutorial-dots" id="tutorial-dots">
+        <div class="t-dot active"></div>
+        <div class="t-dot"></div>
+        <div class="t-dot"></div>
+        <div class="t-dot"></div>
+      </div>
+      <div style="display:flex; gap:0.5rem;">
+        <button class="t-btn outline" id="tut-prev" onclick="tutPrev()" style="display:none">Atrás</button>
+        <button class="t-btn" id="tut-next" onclick="tutNext()">Siguiente</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ PRODUCT MODAL ═══════════════════════════════════ -->
 <div id="prod-overlay" class="prod-overlay">
@@ -2045,7 +2148,7 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
     <a href="#identity"     class="drawer-link"><span class="drawer-link-icon">🐟</span> Nosotros</a>
     <a href="#categorias"   class="drawer-link"><span class="drawer-link-icon">🦐</span> Categorías</a>
     <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">🛒</span> Catálogo</a>
-    <a href="#como-pedir"    class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
+    <a href="#como-pedir" class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
     <a href="#zonas"         class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
   </div>
   <div class="drawer-footer">
@@ -2227,6 +2330,71 @@ if ('serviceWorker' in navigator) {
     if (v && v.paused) { v.muted = true; v.play().catch(function() {}); }
   });
 })();
+
+/* ── TUTORIAL ONBOARDING ────────────────────────────────── */
+let curStep = 0;
+const totalSteps = 4;
+
+function showTutStep(idx) {
+  for(let i=0; i<totalSteps; i++) {
+    const el = document.getElementById('ts-'+i);
+    const dot = document.getElementById('tutorial-dots').children[i];
+    el.classList.remove('active', 'prev');
+    dot.classList.remove('active');
+    
+    if (i === idx) {
+      el.classList.add('active');
+      dot.classList.add('active');
+    } else if (i < idx) {
+      el.classList.add('prev');
+    }
+  }
+  
+  document.getElementById('tut-prev').style.display = (idx === 0) ? 'none' : 'block';
+  const nextBtn = document.getElementById('tut-next');
+  if (idx === totalSteps - 1) {
+    nextBtn.textContent = '¡Empezar a comprar!';
+  } else {
+    nextBtn.textContent = 'Siguiente';
+  }
+}
+
+function tutNext() {
+  if (curStep < totalSteps - 1) {
+    curStep++;
+    showTutStep(curStep);
+  } else {
+    closeTutorial();
+  }
+}
+
+function tutPrev() {
+  if (curStep > 0) {
+    curStep--;
+    showTutStep(curStep);
+  }
+}
+
+function closeTutorial() {
+  document.getElementById('tutorial-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // Guardar que ya se vio, para que no moleste en futuras visitas (puedes borrar localStorage para testear)
+  localStorage.setItem('chus_tut_v2', 'true');
+}
+
+function openTutorial() {
+  curStep = 0;
+  showTutStep(0);
+  document.getElementById('tutorial-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+window.addEventListener('load', () => {
+  // Comentar la línea del localStorage si quieres que salga SIEMPRE
+  // if (!localStorage.getItem('chus_tut_v2')) {
+    setTimeout(openTutorial, 1000);
+  // }
+});
 </script>
 </body>
 </html>
