@@ -1041,6 +1041,151 @@
     .post-canvas.format-story .post-canvas-price {
       font-size: 8rem;
     }
+
+    /* ═══ FACTURA / COMPROBANTE ══════════════════════════════
+       Dos zonas: editor (izquierda, tema oscuro del panel) y
+       documento (derecha, papel marfil que es lo que se exporta
+       a PNG con html2canvas). El documento tiene ancho FIJO de
+       720px para que el PNG salga idéntico en cualquier pantalla;
+       el ajuste visual se hace escalando el contenedor padre.
+    ═════════════════════════════════════════════════════════ */
+    #invoice-modal .modal-box { max-width: 1180px; }
+    .invoice-layout { display: grid; grid-template-columns: 340px 1fr; gap: 0; align-items: stretch; }
+    .invoice-editor {
+      padding: 1.4rem 1.5rem; border-right: 1px solid var(--gb);
+      max-height: 74vh; overflow-y: auto;
+    }
+    .invoice-editor-title {
+      font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 0.3rem;
+    }
+    .invoice-editor-sub { font-size: 0.66rem; color: var(--muted); line-height: 1.5; margin-bottom: 1.2rem; }
+    .invoice-row {
+      background: rgba(6,14,28,0.5); border: 1px solid var(--gb);
+      border-radius: 10px; padding: 0.7rem 0.8rem; margin-bottom: 0.6rem;
+    }
+    .invoice-row-name { font-size: 0.74rem; color: var(--white); margin-bottom: 0.5rem; line-height: 1.3; }
+    .invoice-row-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.5rem; align-items: end; }
+    .invoice-mini-label { font-size: 0.54rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 0.25rem; }
+    .invoice-input {
+      width: 100%; background: rgba(6,14,28,0.8); border: 1px solid var(--gb);
+      border-radius: 8px; color: var(--white); font-size: 0.78rem;
+      padding: 0.45rem 0.55rem; outline: none; transition: border-color 0.25s;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .invoice-input:focus { border-color: var(--gold); }
+    .invoice-row-total { font-size: 0.78rem; color: var(--gold); white-space: nowrap; padding-bottom: 0.5rem; min-width: 62px; text-align: right; }
+    .invoice-row-del {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.3rem 0; margin-top: 0.15rem; transition: color 0.2s;
+    }
+    .invoice-row-del:hover { color: var(--red); }
+    .invoice-row.excluded { opacity: 0.4; }
+    .invoice-editor-sep { height: 1px; background: var(--gb); margin: 1.2rem 0; }
+
+    /* ── Documento (lo que se exporta) ── */
+    .invoice-preview-wrap {
+      background: rgba(4,10,20,0.5); padding: 1.4rem;
+      max-height: 74vh; overflow: auto; display: flex; justify-content: center;
+    }
+    .invoice-scaler { transform-origin: top left; }
+    #invoice-doc {
+      width: 720px; background: #fbf8f2; color: #16283d;
+      font-family: 'Montserrat', sans-serif;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+    }
+    .inv-head {
+      background: #0a1628; padding: 26px 34px 22px;
+      display: flex; justify-content: space-between; align-items: flex-start;
+      border-bottom: 3px solid #c8a96e;
+    }
+    .inv-brand { font-family: 'Cormorant Garamond', serif; font-size: 34px; color: #c8a96e; line-height: 1; }
+    .inv-brand em { font-style: italic; font-weight: 300; }
+    .inv-tagline {
+      font-size: 8px; letter-spacing: 0.34em; text-transform: uppercase;
+      color: #7a95aa; margin-top: 8px;
+    }
+    .inv-head-right { text-align: right; }
+    .inv-doctype {
+      font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: #7a95aa; margin-bottom: 6px;
+    }
+    .inv-number { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: #f0f4f8; letter-spacing: 0.04em; }
+    .inv-date { font-size: 9px; color: #7a95aa; margin-top: 6px; letter-spacing: 0.08em; }
+
+    .inv-parties { display: grid; grid-template-columns: 1fr 1fr; }
+    .inv-party { padding: 20px 34px; }
+    .inv-party + .inv-party { border-left: 1px solid rgba(22,40,61,0.1); }
+    .inv-party-label {
+      font-size: 8px; letter-spacing: 0.26em; text-transform: uppercase;
+      color: #9a7a48; margin-bottom: 9px;
+    }
+    .inv-party-name { font-size: 14px; font-weight: 600; color: #16283d; margin-bottom: 5px; }
+    .inv-party-line { font-size: 10.5px; color: #4a5f75; line-height: 1.65; }
+
+    .inv-table { width: 100%; border-collapse: collapse; }
+    .inv-table thead th {
+      background: #f1ebdf; padding: 9px 34px;
+      font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: #9a7a48; text-align: left; font-weight: 600;
+      border-top: 1px solid rgba(154,122,72,0.25);
+      border-bottom: 1px solid rgba(154,122,72,0.25);
+    }
+    .inv-table thead th.num { text-align: right; }
+    .inv-table tbody td {
+      padding: 11px 34px; font-size: 11px; color: #16283d;
+      border-bottom: 1px solid rgba(22,40,61,0.07); vertical-align: top;
+    }
+    .inv-table tbody td.num { text-align: right; white-space: nowrap; }
+    .inv-item-name { font-weight: 500; line-height: 1.35; }
+    .inv-item-note { font-size: 9px; color: #7a8fa3; margin-top: 2px; }
+
+    .inv-totals { display: flex; justify-content: flex-end; padding: 16px 34px 0; }
+    .inv-totals-inner { width: 280px; }
+    .inv-total-line {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: #4a5f75; padding: 5px 0;
+    }
+    .inv-total-line.discount { color: #1e7d4f; }
+    .inv-grand {
+      display: flex; justify-content: space-between; align-items: baseline;
+      background: #0a1628; margin: 12px -34px 0; padding: 14px 34px;
+      border-top: 2px solid #c8a96e;
+    }
+    .inv-grand-label {
+      font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: #c8a96e;
+    }
+    .inv-grand-val { font-family: 'Cormorant Garamond', serif; font-size: 27px; color: #f0f4f8; }
+
+    .inv-note {
+      margin: 0 34px; padding: 12px 14px; background: #f1ebdf;
+      border-left: 3px solid #c8a96e; font-size: 10px; color: #4a5f75; line-height: 1.6;
+    }
+    .inv-foot { padding: 20px 34px 24px; text-align: center; }
+    .inv-thanks { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 15px; color: #16283d; }
+    .inv-contact { font-size: 9px; color: #7a8fa3; margin-top: 7px; letter-spacing: 0.1em; }
+    .inv-legal { font-size: 7.5px; color: #a8b6c4; margin-top: 10px; letter-spacing: 0.04em; line-height: 1.5; }
+
+    /* ── Blindaje del documento ──────────────────────────────
+       El panel tiene reglas responsive GLOBALES sobre <table>
+       (pensadas para la tabla de productos) que a ≤768px ocultan
+       la primera columna y a ≤640px convierten la tabla en
+       tarjetas. La factura mide 720px fijos y debe verse IGUAL
+       en cualquier pantalla, porque es lo que se exporta a PNG.
+       El selector por #id gana en especificidad a esas reglas.
+    ───────────────────────────────────────────────────────── */
+    #invoice-doc table  { display: table; width: 100%; min-width: 0; }
+    #invoice-doc thead  { display: table-header-group; }
+    #invoice-doc tbody  { display: table-row-group; }
+    #invoice-doc tr     { display: table-row; }
+    #invoice-doc thead th, #invoice-doc tbody td { display: table-cell; }
+
+    @media (max-width: 980px) {
+      .invoice-layout { grid-template-columns: 1fr; }
+      .invoice-editor { border-right: none; border-bottom: 1px solid var(--gb); max-height: none; }
+      .invoice-preview-wrap { max-height: 60vh; padding: 1rem 0.5rem; }
+    }
   </style>
 </head>
 <body>
@@ -2020,6 +2165,124 @@
   </div>
 </div>
 
+<!-- ═══ FACTURA / COMPROBANTE ═════════════════ -->
+<div id="invoice-modal" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Factura del pedido</h3>
+      <button class="modal-close-btn" onclick="closeInvoice()">&times;</button>
+    </div>
+
+    <div class="invoice-layout">
+      <!-- Editor: ajuste de pesos y montos finales -->
+      <div class="invoice-editor">
+        <div class="invoice-editor-title">Ajuste final</div>
+        <div class="invoice-editor-sub">
+          Corregí el peso y el precio real de cada producto.
+          La factura se actualiza al instante.
+        </div>
+
+        <div id="invoice-items-editor"></div>
+
+        <div class="invoice-editor-sep"></div>
+
+        <div class="invoice-row">
+          <div class="invoice-row-grid" style="grid-template-columns:1fr 1fr">
+            <div>
+              <label class="invoice-mini-label">Envío (₡)</label>
+              <input class="invoice-input" id="inv-delivery" type="number" min="0" step="100" inputmode="numeric">
+            </div>
+            <div>
+              <label class="invoice-mini-label">Descuento (₡)</label>
+              <input class="invoice-input" id="inv-discount" type="number" min="0" step="100" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+
+        <div class="invoice-row">
+          <label class="invoice-mini-label">Método de pago</label>
+          <input class="invoice-input" id="inv-payment" placeholder="Efectivo / SINPE / Transferencia">
+        </div>
+
+        <div class="invoice-row">
+          <label class="invoice-mini-label">Nota para el cliente (opcional)</label>
+          <input class="invoice-input" id="inv-note" placeholder="Ej: Peso final ajustado al empacar">
+        </div>
+      </div>
+
+      <!-- Documento: esto es exactamente lo que se exporta a PNG -->
+      <div class="invoice-preview-wrap" id="invoice-preview-wrap">
+        <div class="invoice-scaler" id="invoice-scaler">
+          <div id="invoice-doc">
+            <div class="inv-head">
+              <div>
+                <div class="inv-brand">Chus<em>'s Fish</em></div>
+                <div class="inv-tagline">Frescura que habla sola</div>
+              </div>
+              <div class="inv-head-right">
+                <div class="inv-doctype">Comprobante de compra</div>
+                <div class="inv-number" id="inv-doc-number">FAC-000000</div>
+                <div class="inv-date" id="inv-doc-date">—</div>
+              </div>
+            </div>
+
+            <div class="inv-parties">
+              <div class="inv-party">
+                <div class="inv-party-label">Cliente</div>
+                <div class="inv-party-name" id="inv-doc-client">—</div>
+                <div class="inv-party-line" id="inv-doc-client-lines"></div>
+              </div>
+              <div class="inv-party">
+                <div class="inv-party-label">Entrega</div>
+                <div class="inv-party-line" id="inv-doc-delivery-lines"></div>
+              </div>
+            </div>
+
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th>Descripción</th>
+                  <th class="num">Cantidad</th>
+                  <th class="num">Precio unit.</th>
+                  <th class="num">Importe</th>
+                </tr>
+              </thead>
+              <tbody id="inv-doc-items"></tbody>
+            </table>
+
+            <div class="inv-totals">
+              <div class="inv-totals-inner">
+                <div id="inv-doc-total-lines"></div>
+                <div class="inv-grand">
+                  <span class="inv-grand-label">Total a pagar</span>
+                  <span class="inv-grand-val" id="inv-doc-grand">₡0</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="inv-note" id="inv-doc-note" style="display:none"></div>
+
+            <div class="inv-foot">
+              <div class="inv-thanks">¡Gracias por su preferencia!</div>
+              <div class="inv-contact">WhatsApp 6001-7370 &nbsp;·&nbsp; chusfish.com</div>
+              <div class="inv-legal">
+                Comprobante de venta para control interno del cliente.
+                No constituye factura electrónica autorizada por la D.G.T.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeInvoice()">Cerrar</button>
+      <button class="btn-cancel" id="inv-save-btn" onclick="saveInvoiceData()">Guardar ajustes</button>
+      <button class="btn-save" id="inv-png-btn" onclick="downloadInvoicePNG()">Descargar imagen</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div id="toast"></div>
 
@@ -2922,6 +3185,9 @@ function updateOrdersBadge() {
 }
 
 function calcOrderTotal(o) {
+  // Si ya se emitió factura, ese es el monto REAL cobrado (peso final ajustado),
+  // no el estimado del pedido. Dashboard e historial deben reflejar la realidad.
+  if (o.invoice && typeof o.invoice.total === 'number') return o.invoice.total;
   if (!o.items || !o.items.length) return 0;
   const itemsTotal = o.items.reduce((sum, i) => sum + (parseFloat(i.price) || 0) * (parseFloat(i.qty) || 1), 0);
   const delivery = parseFloat(o.deliveryFee) || 0;
@@ -2987,10 +3253,12 @@ function renderShoppingList() {
     });
   });
 
+  // esc() obligatorio: el nombre y la unidad vienen de items[] del pedido, que
+  // lo escribe el cliente. Sin escapar es un XSS almacenado en la sesión admin.
   const itemsHtml = Object.entries(totals).map(([name, d]) =>
     `<div class="shopping-item">
-      <span class="shopping-item-name">${name}</span>
-      <span class="shopping-item-qty">${d.qty % 1 === 0 ? d.qty : d.qty.toFixed(1)} ${d.unit}</span>
+      <span class="shopping-item-name">${esc(name)}</span>
+      <span class="shopping-item-qty">${d.qty % 1 === 0 ? d.qty : d.qty.toFixed(1)} ${esc(d.unit)}</span>
     </div>`
   ).join('');
 
@@ -3130,7 +3398,8 @@ function renderOrders() {
     if (o.status === 'en_camino') actions.push(`<button class="order-act-btn order-act-deliver" onclick="setOrderStatus('${o.id}','entregado')">Entregado</button>`);
     if (o.status !== 'cancelado' && o.status !== 'entregado') actions.push(`<button class="order-act-btn order-act-cancel" onclick="setOrderStatus('${o.id}','cancelado')">Cancelar</button>`);
     actions.push(`<a class="order-act-btn order-act-wa" href="${waDirectLink}" target="_blank">💬 WA</a>`);
-    actions.push(`<a class="order-act-btn order-act-invoice" href="${waInvoiceLink}" target="_blank">🧾 Factura WA</a>`);
+    actions.push(`<button class="order-act-btn order-act-invoice" onclick="openInvoice('${o.id}')">🧾 Factura</button>`);
+    actions.push(`<a class="order-act-btn order-act-wa" href="${waInvoiceLink}" target="_blank">📄 Texto WA</a>`);
     const noteVal = esc(o.note || '');
     const thumbsHtml = (o.items || []).map(i => {
       const p = products.find(x => x.name === i.name);
@@ -3145,7 +3414,10 @@ function renderOrders() {
           ${payment ? `<div class="order-client-meta" style="margin-top:2px">💳 ${esc(payment)}</div>` : ''}
           ${deliveryFeeHtml}
         </div>
-        <span class="order-status ${o.status || 'pendiente'}">${(o.status||'pendiente').replace('_',' ')}</span>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span class="order-status ${o.status || 'pendiente'}">${(o.status||'pendiente').replace('_',' ')}</span>
+          ${o.invoice?.number ? `<span class="order-status entregado" title="Factura emitida">🧾 ${esc(o.invoice.number)}</span>` : ''}
+        </div>
       </div>
       ${thumbsHtml ? `<div class="order-items-imgs">${thumbsHtml}</div>` : ''}
       <div class="order-items">${itemsHtml || 'Sin detalle de productos'}</div>
@@ -3179,7 +3451,324 @@ async function setOrderStatus(id, status) {
     updateOrdersBadge();
     renderOrders();
     toast(`Pedido marcado como "${status}"`);
+    // Al cerrar la venta abrimos la factura: es el momento en que se conoce
+    // el peso real empacado y hay que ajustar el monto antes de cobrar.
+    if (status === 'entregado') openInvoice(id);
   } catch(e) { toast('Error: ' + e.message); }
+}
+
+/* ════════════════════════════════════════════
+   FACTURA / COMPROBANTE DE COMPRA
+   El pescado se vende por peso y el empaque nunca
+   da el peso exacto pedido, así que el admin ajusta
+   cantidad y precio final antes de emitir. El
+   documento se exporta a PNG para enviar por WhatsApp.
+════════════════════════════════════════════ */
+let invoiceState = null;
+const INVOICE_DOC_WIDTH = 720; // ancho fijo del documento: PNG idéntico en toda pantalla
+
+// Redondeo único de toda la factura: se redondea CADA LÍNEA y luego se suman.
+// Así el total impreso siempre cuadra con la suma de los importes visibles.
+function invRound(n) { const v = parseFloat(n); return Number.isFinite(v) ? Math.round(v) : 0; }
+// Separador de miles con punto, igual que fmt(). Ojo: toLocaleString('es-CR')
+// devuelve espacio fino como separador ("21 600"), que no es el uso en CR.
+function invCRC(n) { return '₡' + String(invRound(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+function invNum(v, fallback) { const n = parseFloat(v); return Number.isFinite(n) && n >= 0 ? n : fallback; }
+function invUnitLabel(unit) { return String(unit == null ? '' : unit).replace(/^\s*\//, '').trim(); }
+function invQty(q) {
+  const n = parseFloat(q) || 0;
+  return n % 1 === 0 ? String(n) : n.toFixed(2).replace(/0$/, '');
+}
+function invoiceNumberFor(orderId) {
+  return 'FAC-' + String(orderId || '').slice(-6).toUpperCase();
+}
+
+function openInvoice(orderId) {
+  const o = orders.find(x => x.id === orderId);
+  if (!o) { toast('No se encontró el pedido'); return; }
+
+  const saved = o.invoice && typeof o.invoice === 'object' ? o.invoice : null;
+  const sourceItems = saved && Array.isArray(saved.items) ? saved.items : (o.items || []);
+
+  invoiceState = {
+    orderId:  o.id,
+    number:   (saved && saved.number) || invoiceNumberFor(o.id),
+    issuedAt: (saved && saved.issuedAt) || new Date().toISOString(),
+    items: sourceItems.map(i => ({
+      name:    i.name || 'Producto',
+      unit:    i.unit || '',
+      qty:     invNum(i.qty, 1),
+      price:   invNum(i.price, 0),
+      include: i.include !== false,
+    })),
+    deliveryFee: invNum(saved ? saved.deliveryFee : o.deliveryFee, 0),
+    discount:    invNum(saved ? saved.discount : 0, 0),
+    payment:     (saved && saved.payment) || o.customer?.payment || o.payment || '',
+    note:        (saved && saved.note) || '',
+    client: {
+      name:    o.customer?.name    || o.name    || '',
+      phone:   o.customer?.phone   || o.phone   || '',
+      address: o.customer?.address || o.address || '',
+      zone:    o.customer?.zone    || o.zone    || '',
+      fecha:   o.customer?.fecha   || o.fecha   || '',
+    },
+  };
+
+  document.getElementById('inv-delivery').value = invoiceState.deliveryFee || '';
+  document.getElementById('inv-discount').value = invoiceState.discount || '';
+  document.getElementById('inv-payment').value  = invoiceState.payment;
+  document.getElementById('inv-note').value     = invoiceState.note;
+
+  renderInvoiceEditor();
+  updateInvoiceDoc();
+  document.getElementById('invoice-modal').classList.add('open');
+  // El modal aún no tiene ancho medible hasta que pinta, de ahí el rAF.
+  requestAnimationFrame(fitInvoiceScale);
+}
+
+function closeInvoice() {
+  document.getElementById('invoice-modal').classList.remove('open');
+  invoiceState = null;
+}
+
+// El editor se pinta UNA sola vez al abrir. Repintarlo en cada tecla
+// haría perder el foco del input que se está escribiendo.
+function renderInvoiceEditor() {
+  const box = document.getElementById('invoice-items-editor');
+  if (!box || !invoiceState) return;
+
+  if (!invoiceState.items.length) {
+    box.innerHTML = '<div class="invoice-editor-sub">Este pedido no tiene productos detallados.</div>';
+    return;
+  }
+
+  box.innerHTML = invoiceState.items.map((it, idx) => {
+    const unit = invUnitLabel(it.unit);
+    return `<div class="invoice-row${it.include ? '' : ' excluded'}" id="inv-row-${idx}">
+      <div class="invoice-row-name">${esc(it.name)}</div>
+      <div class="invoice-row-grid">
+        <div>
+          <label class="invoice-mini-label">Cantidad${unit ? ' (' + esc(unit) + ')' : ''}</label>
+          <input class="invoice-input" type="number" min="0" step="0.01" inputmode="decimal"
+                 id="inv-qty-${idx}" value="${it.qty}" oninput="onInvoiceInput()">
+        </div>
+        <div>
+          <label class="invoice-mini-label">Precio unit.</label>
+          <input class="invoice-input" type="number" min="0" step="50" inputmode="numeric"
+                 id="inv-price-${idx}" value="${it.price}" oninput="onInvoiceInput()">
+        </div>
+        <div>
+          <div class="invoice-row-total" id="inv-line-${idx}">₡0</div>
+          <button class="invoice-row-del" id="inv-tog-${idx}" onclick="toggleInvoiceItem(${idx})">
+            ${it.include ? 'Quitar' : 'Incluir'}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function onInvoiceInput() {
+  syncInvoiceFromInputs();
+  updateInvoiceDoc();
+}
+
+function syncInvoiceFromInputs() {
+  if (!invoiceState) return;
+  invoiceState.items.forEach((it, idx) => {
+    const q = document.getElementById('inv-qty-' + idx);
+    const p = document.getElementById('inv-price-' + idx);
+    if (q) it.qty   = invNum(q.value, 0);
+    if (p) it.price = invNum(p.value, 0);
+  });
+  const val = id => (document.getElementById(id) || {}).value;
+  invoiceState.deliveryFee = invNum(val('inv-delivery'), 0);
+  invoiceState.discount    = invNum(val('inv-discount'), 0);
+  invoiceState.payment     = (val('inv-payment') || '').trim();
+  invoiceState.note        = (val('inv-note') || '').trim();
+}
+
+function toggleInvoiceItem(idx) {
+  if (!invoiceState || !invoiceState.items[idx]) return;
+  const it = invoiceState.items[idx];
+  it.include = !it.include;
+  const row = document.getElementById('inv-row-' + idx);
+  const tog = document.getElementById('inv-tog-' + idx);
+  if (row) row.classList.toggle('excluded', !it.include);
+  if (tog) tog.textContent = it.include ? 'Quitar' : 'Incluir';
+  updateInvoiceDoc();
+}
+
+function calcInvoiceTotals() {
+  const lines = invoiceState.items
+    .filter(i => i.include)
+    .map(i => Object.assign({}, i, { lineTotal: invRound(i.qty * i.price) }));
+  const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
+  const delivery = invRound(invoiceState.deliveryFee);
+  // El descuento nunca puede dejar el total en negativo.
+  const discount = Math.min(invRound(invoiceState.discount), subtotal + delivery);
+  return { lines, subtotal, delivery, discount, total: subtotal + delivery - discount };
+}
+
+function updateInvoiceDoc() {
+  if (!invoiceState) return;
+  const t = calcInvoiceTotals();
+  const c = invoiceState.client;
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+
+  set('inv-doc-number', invoiceState.number);
+  set('inv-doc-date', new Date(invoiceState.issuedAt)
+    .toLocaleDateString('es-CR', { day: '2-digit', month: 'long', year: 'numeric' }));
+
+  set('inv-doc-client', c.name || 'Cliente');
+  setHtml('inv-doc-client-lines', [
+    c.phone   ? 'Tel. ' + esc(c.phone) : '',
+    c.address ? esc(c.address) : '',
+  ].filter(Boolean).join('<br>') || '—');
+
+  setHtml('inv-doc-delivery-lines', [
+    c.fecha              ? 'Fecha: ' + esc(c.fecha) : '',
+    c.zone               ? 'Zona: '  + esc(c.zone)  : '',
+    invoiceState.payment ? 'Pago: '  + esc(invoiceState.payment) : '',
+  ].filter(Boolean).join('<br>') || '—');
+
+  setHtml('inv-doc-items', t.lines.length
+    ? t.lines.map(l => {
+        const unit = invUnitLabel(l.unit);
+        return `<tr>
+          <td><div class="inv-item-name">${esc(l.name)}</div></td>
+          <td class="num">${esc(invQty(l.qty))}${unit ? ' ' + esc(unit) : ''}</td>
+          <td class="num">${invCRC(l.price)}${unit ? '<span style="color:#a8b6c4"> /' + esc(unit) + '</span>' : ''}</td>
+          <td class="num">${invCRC(l.lineTotal)}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:#7a8fa3">Sin productos</td></tr>');
+
+  const totalLines = [`<div class="inv-total-line"><span>Subtotal</span><span>${invCRC(t.subtotal)}</span></div>`];
+  if (t.delivery > 0) {
+    totalLines.push(`<div class="inv-total-line"><span>Envío${c.zone ? ' · ' + esc(c.zone) : ''}</span><span>${invCRC(t.delivery)}</span></div>`);
+  }
+  if (t.discount > 0) {
+    totalLines.push(`<div class="inv-total-line discount"><span>Descuento</span><span>-${invCRC(t.discount)}</span></div>`);
+  }
+  setHtml('inv-doc-total-lines', totalLines.join(''));
+  set('inv-doc-grand', invCRC(t.total));
+
+  const noteEl = document.getElementById('inv-doc-note');
+  if (noteEl) {
+    noteEl.textContent = invoiceState.note;
+    noteEl.style.display = invoiceState.note ? '' : 'none';
+  }
+
+  // Importe por línea en el editor
+  invoiceState.items.forEach((it, idx) => {
+    const el = document.getElementById('inv-line-' + idx);
+    if (el) el.textContent = it.include ? invCRC(it.qty * it.price) : '—';
+  });
+
+  fitInvoiceScale();
+}
+
+// El documento mide 720px fijos. Lo encogemos con transform para que quepa
+// en el modal sin tocar su tamaño real (el PNG siempre sale a 720px).
+function fitInvoiceScale() {
+  const wrap   = document.getElementById('invoice-preview-wrap');
+  const scaler = document.getElementById('invoice-scaler');
+  const doc    = document.getElementById('invoice-doc');
+  if (!wrap || !scaler || !doc) return;
+  const avail = wrap.clientWidth - 28;
+  if (avail <= 0) return;
+  const scale = Math.max(0.3, Math.min(1, avail / INVOICE_DOC_WIDTH));
+  scaler.style.transform = 'scale(' + scale + ')';
+  // transform no afecta al layout, así que fijamos la caja al tamaño escalado
+  // para que no aparezcan barras de scroll fantasma.
+  scaler.style.width  = (INVOICE_DOC_WIDTH * scale) + 'px';
+  scaler.style.height = (doc.offsetHeight * scale) + 'px';
+}
+
+window.addEventListener('resize', () => { if (invoiceState) fitInvoiceScale(); });
+
+async function downloadInvoicePNG() {
+  const doc = document.getElementById('invoice-doc');
+  const btn = document.getElementById('inv-png-btn');
+  if (!doc || !invoiceState) return;
+
+  const label = btn.textContent;
+  btn.textContent = 'Generando...';
+  btn.disabled = true;
+
+  // html2canvas SÍ hereda el transform:scale del contenedor, así que en pantallas
+  // chicas capturaría el documento encogido (en móvil salía a 341px, ilegible).
+  // Lo neutralizamos durante la captura para que el PNG siempre mida 720×2.
+  const scaler = document.getElementById('invoice-scaler');
+  const wrap   = document.getElementById('invoice-preview-wrap');
+  const prevScaler = scaler.getAttribute('style') || '';
+  const prevOverflow = wrap.style.overflow;
+  wrap.style.overflow = 'hidden'; // evita el salto de scroll mientras se captura
+  scaler.style.transform = 'none';
+  scaler.style.width  = INVOICE_DOC_WIDTH + 'px';
+  scaler.style.height = 'auto';
+
+  try {
+    const canvas = await html2canvas(doc, {
+      scale: 2, backgroundColor: '#fbf8f2', useCORS: true, logging: false,
+    });
+    // Sin normalizar, "María" quedaba como "mar-a": hay que quitar las tildes
+    // ANTES de filtrar caracteres, no reemplazarlas por guiones.
+    const slug = (invoiceState.client.name || 'cliente')
+      .normalize('NFD').replace(/[^\x20-\x7e]/g, '')
+      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const link = document.createElement('a');
+    link.download = 'factura-' + invoiceState.number + '-' + slug + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    toast('Factura descargada — ya podés adjuntarla en WhatsApp');
+  } catch (e) {
+    toast('No se pudo generar la imagen: ' + e.message);
+  } finally {
+    scaler.setAttribute('style', prevScaler);
+    wrap.style.overflow = prevOverflow;
+    fitInvoiceScale();
+    btn.textContent = label;
+    btn.disabled = false;
+  }
+}
+
+async function saveInvoiceData() {
+  if (!invoiceState) return;
+  syncInvoiceFromInputs();
+  const t = calcInvoiceTotals();
+  const payload = {
+    number:      invoiceState.number,
+    issuedAt:    invoiceState.issuedAt,
+    items:       invoiceState.items.map(i => ({
+      name: i.name, unit: i.unit, qty: i.qty, price: i.price,
+      include: i.include, total: invRound(i.qty * i.price),
+    })),
+    deliveryFee: invRound(invoiceState.deliveryFee),
+    discount:    t.discount,
+    payment:     invoiceState.payment,
+    note:        invoiceState.note,
+    subtotal:    t.subtotal,
+    total:       t.total,
+  };
+
+  const btn = document.getElementById('inv-save-btn');
+  btn.disabled = true;
+  try {
+    await ORDERS_REF.doc(invoiceState.orderId).update({
+      invoice: payload, updatedAt: new Date().toISOString(),
+    });
+    const o = orders.find(x => x.id === invoiceState.orderId);
+    if (o) o.invoice = payload;
+    renderOrders();
+    toast('Factura guardada — el total real quedó registrado');
+  } catch (e) {
+    toast('Error al guardar: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 document.querySelectorAll('.orders-filter-btn').forEach(btn => {

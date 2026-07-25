@@ -11,6 +11,10 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a1628">
 
+  <!-- Driver.js (Tutorial Interactivo) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css" />
+  <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
+
   <!-- SEO esencial -->
   <link rel="canonical" href="https://chusfish.com/catalogo.html">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
@@ -1350,6 +1354,72 @@
     .carousel-dots { position: absolute; bottom: 7px; left: 0; right: 0; display: flex; justify-content: center; gap: 5px; pointer-events: none; }
     .carousel-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.45); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; pointer-events: all; }
     .carousel-dot.active { background: #fff; transform: scale(1.25); }
+
+    /* ══ MODAL GUIADO (Driver.js Premium) ══ */
+    .driver-popover {
+      background-color: #060e1c !important;
+      color: #fff !important;
+      border: 1px solid rgba(200,169,110,0.3) !important;
+      border-radius: var(--radius) !important;
+      box-shadow: 0 14px 36px rgba(0,0,0,0.65) !important;
+      font-family: 'Montserrat', sans-serif !important;
+      padding: 1rem !important;
+      max-width: 320px !important;
+    }
+    .driver-popover-title {
+      font-family: 'Cormorant Garamond', serif !important;
+      color: var(--gold) !important;
+      font-size: 1.25rem !important;
+      margin-bottom: 0.4rem !important;
+      font-weight: 600 !important;
+    }
+    .driver-popover-description {
+      color: var(--muted) !important;
+      font-size: 0.8rem !important;
+      line-height: 1.4 !important;
+    }
+    .driver-popover-footer button {
+      background-color: rgba(200,169,110,0.1) !important;
+      color: var(--gold-lt) !important;
+      border: 1px solid rgba(200,169,110,0.4) !important;
+      text-shadow: none !important;
+      border-radius: 30px !important;
+      padding: 6px 14px !important;
+      transition: all 0.3s ease !important;
+      font-weight: 500 !important;
+      font-size: 0.8rem !important;
+    }
+    .driver-popover-footer button:hover {
+      background-color: rgba(200,169,110,0.2) !important;
+      transform: translateY(-2px) !important;
+    }
+    .driver-popover-close-btn {
+      color: var(--muted) !important;
+    }
+    .driver-popover-close-btn:hover {
+      color: var(--gold) !important;
+    }
+    .driver-popover-progress-text {
+      color: var(--muted) !important;
+    }
+    .tutorial-skip-box {
+      margin-top: 1rem;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      color: var(--muted);
+      border-top: 1px solid rgba(255,255,255,0.05);
+      padding-top: 0.8rem;
+    }
+    .tutorial-skip-box input[type="checkbox"] {
+      accent-color: var(--gold);
+      width: 14px; height: 14px;
+      cursor: pointer;
+    }
+    .tutorial-skip-box label {
+      cursor: pointer;
+    }
   </style>
   <!-- Meta Pixel -->
   <script>
@@ -3047,7 +3117,75 @@ window.addEventListener('load', () => {
     // Delay de 2.5 segundos para garantizar que las imágenes JS tengan tiempo de cargar y que la animación se disfrute.
     setTimeout(() => {
       preloader.classList.add('fade-out');
-      setTimeout(() => preloader.remove(), 800); // Quitar del DOM tras la animación
+      setTimeout(() => {
+        preloader.remove(); // Quitar del DOM tras la animación
+        
+        // ══ Iniciar Tutorial Driver.js ══
+        const startDriver = () => {
+          if (document.querySelector('.p-card') && !localStorage.getItem('tutorial_pescado_visto')) {
+            const driverObj = window.driver.js.driver({
+              allowClose: false,
+              showProgress: true,
+              nextBtnText: 'Siguiente',
+              prevBtnText: 'Atrás',
+              doneBtnText: 'Entendido',
+              onPopoverRender: (popover) => {
+                const desc = popover.wrapper.querySelector('.driver-popover-description');
+                if (desc && !desc.querySelector('.tutorial-skip-box')) {
+                  const div = document.createElement('div');
+                  div.className = 'tutorial-skip-box';
+                  div.innerHTML = `
+                    <input type="checkbox" id="tut-skip-chk">
+                    <label for="tut-skip-chk">No volver a mostrar el tutorial</label>
+                  `;
+                  const chk = div.querySelector('#tut-skip-chk');
+                  chk.addEventListener('change', (e) => {
+                    if (e.target.checked) localStorage.setItem('tutorial_pescado_visto', '1');
+                    else localStorage.removeItem('tutorial_pescado_visto');
+                  });
+                  desc.appendChild(div);
+                }
+              },
+              steps: [
+                {
+                  element: '.filter-bar',
+                  popover: {
+                    title: 'Tipos de Corte',
+                    description: 'Navega para encontrar Salmón, Atún fresco o cortes para Sushi.',
+                    side: 'bottom', align: 'center'
+                  }
+                },
+                {
+                  element: '.dest-card, .p-card',
+                  popover: {
+                    title: 'Arma tu Pedido',
+                    description: 'Haz clic en "Ver más" o en "Agregar" para seleccionar el peso en gramos y añadirlo a tu carrito.',
+                    side: 'bottom', align: 'start'
+                  }
+                },
+                {
+                  element: '#cart-float',
+                  popover: {
+                    title: 'Tu Compra',
+                    description: 'Aquí verás el total de tu pedido y los productos agregados.',
+                    side: 'top', align: 'end'
+                  }
+                },
+                {
+                  popover: {
+                    title: '¡Todo Fresco y Listo!',
+                    description: 'Revisa tu carrito y envía tu pedido directamente a nuestro WhatsApp para prepararlo al momento.'
+                  }
+                }
+              ]
+            });
+            driverObj.drive();
+          } else if (!localStorage.getItem('tutorial_pescado_visto')) {
+            setTimeout(startDriver, 300); // Esperar a que los productos rendericen
+          }
+        };
+        setTimeout(startDriver, 500);
+      }, 800);
     }, 2500);
   }
 });
