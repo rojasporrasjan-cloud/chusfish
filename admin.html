@@ -2306,6 +2306,7 @@
       <button class="btn-cancel" id="inv-save-btn" onclick="saveInvoiceData()">Guardar ajustes</button>
       <button class="btn-cancel" id="inv-png-btn" onclick="downloadInvoicePNG()">Descargar imagen</button>
       <button class="btn-save" id="inv-share-btn" onclick="shareInvoicePNG()">📲 Enviar por WhatsApp</button>
+      <a class="btn-save" id="inv-wa-link" target="_blank" rel="noopener" style="display:none;text-decoration:none">Abrir chat ↗</a>
     </div>
   </div>
 </div>
@@ -3478,6 +3479,9 @@ async function setOrderStatus(id, status) {
     updateOrdersBadge();
     renderOrders();
     toast(`Pedido marcado como "${status}"`);
+    // Al confirmar ya se le aparta el consecutivo al pedido, aunque todavía no
+    // se abra la factura: así cada pedido queda con SU número desde el inicio.
+    if (status === 'confirmado') assignOrderInvoiceNumber(id);
     // Al cerrar la venta abrimos la factura: es el momento en que se conoce
     // el peso real empacado y hay que ajustar el monto antes de cobrar.
     if (status === 'entregado') openInvoice(id);
@@ -3552,6 +3556,30 @@ async function invConsumeNumber() {
   return invFormatNumber(res.n, res.pad, res.prefix);
 }
 
+// Le pone número a un pedido SIN abrir el modal. Se usa al confirmar, para que
+// cada pedido cargue su propio consecutivo desde ese momento y nunca se vea el
+// mismo número en dos pedidos distintos.
+async function assignOrderInvoiceNumber(orderId) {
+  const o = orders.find(x => x.id === orderId);
+  if (!o || (o.invoice && o.invoice.number)) return null;
+
+  let num = null;
+  try {
+    num = await invConsumeNumber();
+  } catch (e) {
+    toast('No se pudo tomar el consecutivo: ' + e.message);
+    return null;
+  }
+  if (!num) return null; // sin numeración configurada: se resuelve al abrir la factura
+
+  try {
+    await ORDERS_REF.doc(orderId).update({ 'invoice.number': num });
+    o.invoice = Object.assign({}, o.invoice, { number: num });
+    renderOrders();
+  } catch (e) {}
+  return num;
+}
+
 // Aparta el número definitivo y lo deja escrito en el pedido de una vez,
 // para que no se pierda ni se repita aunque falle lo que venga después.
 async function ensureInvoiceNumber() {
@@ -3619,11 +3647,17 @@ function openInvoice(orderId) {
   document.getElementById('inv-payment').value  = invoiceState.payment;
   document.getElementById('inv-note').value     = invoiceState.note;
 
+  hideInvoiceWaLink();
   renderInvoiceEditor();
   updateInvoiceDoc();
   document.getElementById('invoice-modal').classList.add('open');
   // El modal aún no tiene ancho medible hasta que pinta, de ahí el rAF.
   requestAnimationFrame(fitInvoiceScale);
+
+  // Si el pedido todavía no tiene número (llegó antes de configurar la
+  // numeración, o se abre sin haberlo confirmado), se le aparta el suyo aquí.
+  // Sin esto todos los pedidos mostraban el mismo próximo número.
+  if (!invoiceState.numberAssigned) ensureInvoiceNumber();
 }
 
 function closeInvoice() {
@@ -3722,9 +3756,9 @@ function updateInvoiceDoc() {
   const numHint = document.getElementById('inv-number-hint');
   if (numHint) {
     numHint.textContent = invoiceState.numberAssigned
-      ? 'Ya emitida — este número queda fijo en este pedido.'
+      ? 'Este número ya quedó fijo en este pedido. Ningún otro lo usa.'
       : (invPeekNumber()
-          ? 'Se aparta al guardar o descargar. Mientras tanto nadie más lo usa.'
+          ? 'Apartándolo para este pedido…'
           : 'Sin numeración configurada. Ponela en Configuración › Numeración de facturas.');
   }
   set('inv-doc-date', new Date(invoiceState.issuedAt)
@@ -3869,6 +3903,25 @@ async function downloadInvoicePNG() {
   }
 }
 
+function invoiceWaLink() {
+  const phone = invoiceState && invoiceState.client ? invoiceState.client.phone : '';
+  const digits = String(phone || '').replace(/\D/g, '');
+  // Sin teléfono no se puede abrir un chat concreto: se abre WhatsApp Web a secas.
+  return digits ? 'https://wa.me/' + waPhone(phone) : 'https://web.whatsapp.com/';
+}
+
+function showInvoiceWaLink() {
+  const a = document.getElementById('inv-wa-link');
+  if (!a) return;
+  a.href = invoiceWaLink();
+  a.style.display = '';
+}
+
+function hideInvoiceWaLink() {
+  const a = document.getElementById('inv-wa-link');
+  if (a) a.style.display = 'none';
+}
+
 /* Enviar la imagen sin pasar por la carpeta de descargas.
    wa.me NO permite adjuntar archivos, así que no hay forma de mandar la
    imagen por link. Los dos caminos reales:
@@ -3898,13 +3951,24 @@ async function shareInvoicePNG() {
       return;
     }
 
-    if (navigator.clipboard && window.ClipboardItem) {
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      toast('Factura copiada — abrí el chat en WhatsApp Web y pegala con Ctrl+V');
-      return;
+    // Escritorio: WhatsApp Web no acepta adjuntos por link, así que se copia la
+    // imagen al portapapeles (con la página todavía enfocada) y de una vez se
+    // abre el chat de ESE cliente para pegarla con Ctrl+V.
+    if (!navigator.clipboard || !window.ClipboardItem) {
+      throw new Error('este navegador no permite compartir imágenes');
     }
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
 
-    throw new Error('este navegador no permite compartir imágenes');
+    const win = window.open(invoiceWaLink(), '_blank');
+    if (win) {
+      toast('Chat abierto y factura copiada — pegala con Ctrl+V y enviá');
+    } else {
+      // La pestaña viene después de un await, así que el navegador puede
+      // bloquearla. Un enlace real nunca se bloquea: lo dejamos a la vista.
+      showInvoiceWaLink();
+      toast('Factura copiada — tocá "Abrir chat" y pegala con Ctrl+V');
+    }
+    return;
   } catch (e) {
     if (e && e.name === 'AbortError') return; // cerró el menú de compartir: no es error
     toast('No se pudo enviar directo (' + (e.message || 'error') + '). Usá "Descargar imagen".');
