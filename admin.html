@@ -1649,6 +1649,26 @@
             <button class="config-save-btn" id="cfg-save-zones">Guardar zonas</button>
           </div>
 
+          <!-- Panel: Numeración de facturas -->
+          <div class="config-panel">
+            <div class="config-panel-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><path d="M4 2v20l3-2 3 2 3-2 3 2 3-2V2l-3 2-3-2-3 2-3-2z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="14" y2="13"/></svg>
+              Numeración de facturas
+            </div>
+            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+              Igual que el talonario de papel: escribí el número con el que sigue la próxima factura
+              y el sistema lo va subiendo solo en cada una.
+            </p>
+            <div class="config-field">
+              <label class="config-label">Próxima factura</label>
+              <input type="text" id="cfg-invoice-next" class="config-input" placeholder="Ej: CF-5001" autocomplete="off">
+              <p style="font-size:0.65rem;color:var(--muted);margin-top:0.4rem;line-height:1.5" id="cfg-invoice-preview">
+                Escribilo tal cual querés que salga, con los ceros de adelante.
+              </p>
+            </div>
+            <button class="config-save-btn" id="cfg-save-invoice">Guardar numeración</button>
+          </div>
+
           <!-- Panel: Ofertas especiales (3 slots) -->
           <div class="config-panel" style="grid-column:1/-1">
             <div class="config-panel-title">
@@ -2182,6 +2202,12 @@
           La factura se actualiza al instante.
         </div>
 
+        <div class="invoice-row" id="inv-number-row">
+          <label class="invoice-mini-label">N.º de factura</label>
+          <div id="inv-number-display" style="font-size:0.95rem;color:var(--gold);letter-spacing:0.04em">—</div>
+          <div id="inv-number-hint" style="font-size:0.6rem;color:var(--muted);margin-top:0.3rem;line-height:1.4"></div>
+        </div>
+
         <div id="invoice-items-editor"></div>
 
         <div class="invoice-editor-sep"></div>
@@ -2278,7 +2304,8 @@
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeInvoice()">Cerrar</button>
       <button class="btn-cancel" id="inv-save-btn" onclick="saveInvoiceData()">Guardar ajustes</button>
-      <button class="btn-save" id="inv-png-btn" onclick="downloadInvoicePNG()">Descargar imagen</button>
+      <button class="btn-cancel" id="inv-png-btn" onclick="downloadInvoicePNG()">Descargar imagen</button>
+      <button class="btn-save" id="inv-share-btn" onclick="shareInvoicePNG()">📲 Enviar por WhatsApp</button>
     </div>
   </div>
 </div>
@@ -3483,6 +3510,74 @@ function invoiceNumberFor(orderId) {
   return 'FAC-' + String(orderId || '').slice(-6).toUpperCase();
 }
 
+/* ── Consecutivo tipo talonario ────────────────────────────
+   En Configuración el dueño escribe el número con el que sigue
+   el talonario de papel (ej: "Factura 002635"); se guarda partido
+   en prefijo + número + cantidad de dígitos, y de ahí el sistema
+   lo sube solo. El número NO se toma al abrir la factura: se aparta
+   al guardarla o descargarla, para que abrir y cerrar por error no
+   deje huecos en la numeración. */
+function invParseNumberInput(raw) {
+  const m = String(raw == null ? '' : raw).trim().match(/^(.*?)(\d+)$/);
+  if (!m) return null;
+  return { prefix: m[1], next: parseInt(m[2], 10), pad: m[2].length };
+}
+function invFormatNumber(n, pad, prefix) {
+  const digits = String(Math.max(0, Math.floor(n)));
+  const width = Math.max(1, parseInt(pad) || 1);
+  return (prefix || '') + (digits.length >= width ? digits : '0'.repeat(width - digits.length) + digits);
+}
+// Mientras no esté configurado, la factura sigue saliendo con el código viejo.
+function invPeekNumber() {
+  const n = parseFloat(appConfig.invoiceNext);
+  return Number.isFinite(n) ? invFormatNumber(n, appConfig.invoicePad, appConfig.invoicePrefix) : null;
+}
+
+// Transacción: dos facturas emitidas casi a la vez nunca pueden llevarse el mismo número.
+async function invConsumeNumber() {
+  const res = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(CFG_REF);
+    const d = (snap.exists && snap.data()) || {};
+    const cur = parseFloat(d.invoiceNext);
+    if (!Number.isFinite(cur)) return null;
+    const n = Math.floor(cur);
+    tx.set(CFG_REF, { invoiceNext: n + 1 }, { merge: true });
+    return { n: n, pad: d.invoicePad, prefix: d.invoicePrefix };
+  });
+  if (!res) return null;
+  appConfig.invoiceNext   = res.n + 1;
+  appConfig.invoicePad    = res.pad;
+  appConfig.invoicePrefix = res.prefix;
+  renderInvoiceConfig();
+  return invFormatNumber(res.n, res.pad, res.prefix);
+}
+
+// Aparta el número definitivo y lo deja escrito en el pedido de una vez,
+// para que no se pierda ni se repita aunque falle lo que venga después.
+async function ensureInvoiceNumber() {
+  if (!invoiceState) return null;
+  if (invoiceState.numberAssigned) return invoiceState.number;
+
+  let num = null;
+  try {
+    num = await invConsumeNumber();
+  } catch (e) {
+    toast('No se pudo tomar el consecutivo: ' + e.message);
+    return invoiceState.number;
+  }
+  if (!num) num = invoiceState.number; // sin numeración configurada: queda el código automático
+
+  invoiceState.number = num;
+  invoiceState.numberAssigned = true;
+  try {
+    await ORDERS_REF.doc(invoiceState.orderId).update({ 'invoice.number': num });
+    const o = orders.find(x => x.id === invoiceState.orderId);
+    if (o) o.invoice = Object.assign({}, o.invoice, { number: num });
+  } catch (e) {}
+  updateInvoiceDoc();
+  return num;
+}
+
 function openInvoice(orderId) {
   const o = orders.find(x => x.id === orderId);
   if (!o) { toast('No se encontró el pedido'); return; }
@@ -3490,9 +3585,14 @@ function openInvoice(orderId) {
   const saved = o.invoice && typeof o.invoice === 'object' ? o.invoice : null;
   const sourceItems = saved && Array.isArray(saved.items) ? saved.items : (o.items || []);
 
+  const savedNumber = saved && saved.number;
+
   invoiceState = {
     orderId:  o.id,
-    number:   (saved && saved.number) || invoiceNumberFor(o.id),
+    // Ya emitida: se respeta su número. Nueva: se muestra el próximo del
+    // talonario como adelanto, pero todavía sin apartarlo.
+    number:   savedNumber || invPeekNumber() || invoiceNumberFor(o.id),
+    numberAssigned: !!savedNumber,
     issuedAt: (saved && saved.issuedAt) || new Date().toISOString(),
     items: sourceItems.map(i => ({
       name:    i.name || 'Producto',
@@ -3618,6 +3718,15 @@ function updateInvoiceDoc() {
   const setHtml = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
 
   set('inv-doc-number', invoiceState.number);
+  set('inv-number-display', invoiceState.number);
+  const numHint = document.getElementById('inv-number-hint');
+  if (numHint) {
+    numHint.textContent = invoiceState.numberAssigned
+      ? 'Ya emitida — este número queda fijo en este pedido.'
+      : (invPeekNumber()
+          ? 'Se aparta al guardar o descargar. Mientras tanto nadie más lo usa.'
+          : 'Sin numeración configurada. Ponela en Configuración › Numeración de facturas.');
+  }
   set('inv-doc-date', new Date(invoiceState.issuedAt)
     .toLocaleDateString('es-CR', { day: '2-digit', month: 'long', year: 'numeric' }));
 
@@ -3689,47 +3798,117 @@ function fitInvoiceScale() {
 
 window.addEventListener('resize', () => { if (invoiceState) fitInvoiceScale(); });
 
-async function downloadInvoicePNG() {
-  const doc = document.getElementById('invoice-doc');
-  const btn = document.getElementById('inv-png-btn');
-  if (!doc || !invoiceState) return;
+// Sin normalizar, "María" quedaba como "mar-a": hay que quitar las tildes
+// ANTES de filtrar caracteres, no reemplazarlas por guiones.
+function invSlug(s) {
+  return String(s == null ? '' : s)
+    .normalize('NFD').replace(/[^\x20-\x7e]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+function invoiceFileName() {
+  // El número puede traer prefijo con espacios ("CF-5001"): al nombre del
+  // archivo va limpio, si no queda un nombre raro al adjuntarlo.
+  return 'factura-' + invSlug(invoiceState.number) + '-' +
+         (invSlug(invoiceState.client.name) || 'cliente') + '.png';
+}
 
-  const label = btn.textContent;
-  btn.textContent = 'Generando...';
-  btn.disabled = true;
-
-  // html2canvas SÍ hereda el transform:scale del contenedor, así que en pantallas
-  // chicas capturaría el documento encogido (en móvil salía a 341px, ilegible).
-  // Lo neutralizamos durante la captura para que el PNG siempre mida 720×2.
+// Captura compartida por "Descargar" y "Enviar por WhatsApp".
+// html2canvas SÍ hereda el transform:scale del contenedor, así que en pantallas
+// chicas capturaría el documento encogido (en móvil salía a 341px, ilegible).
+// Lo neutralizamos durante la captura para que el PNG siempre mida 720×2.
+async function renderInvoiceCanvas() {
+  const doc    = document.getElementById('invoice-doc');
   const scaler = document.getElementById('invoice-scaler');
   const wrap   = document.getElementById('invoice-preview-wrap');
+  if (!doc || !scaler || !wrap) return null;
+
   const prevScaler = scaler.getAttribute('style') || '';
   const prevOverflow = wrap.style.overflow;
   wrap.style.overflow = 'hidden'; // evita el salto de scroll mientras se captura
   scaler.style.transform = 'none';
   scaler.style.width  = INVOICE_DOC_WIDTH + 'px';
   scaler.style.height = 'auto';
-
   try {
-    const canvas = await html2canvas(doc, {
+    return await html2canvas(doc, {
       scale: 2, backgroundColor: '#fbf8f2', useCORS: true, logging: false,
     });
-    // Sin normalizar, "María" quedaba como "mar-a": hay que quitar las tildes
-    // ANTES de filtrar caracteres, no reemplazarlas por guiones.
-    const slug = (invoiceState.client.name || 'cliente')
-      .normalize('NFD').replace(/[^\x20-\x7e]/g, '')
-      .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  } finally {
+    scaler.setAttribute('style', prevScaler);
+    wrap.style.overflow = prevOverflow;
+    fitInvoiceScale();
+  }
+}
+
+function invCanvasToBlob(canvas) {
+  return new Promise((res) => canvas.toBlob(res, 'image/png'));
+}
+
+async function downloadInvoicePNG() {
+  const btn = document.getElementById('inv-png-btn');
+  if (!invoiceState) return;
+
+  const label = btn.textContent;
+  btn.textContent = 'Generando...';
+  btn.disabled = true;
+
+  // El PNG es lo que ve el cliente: el número tiene que quedar apartado antes de capturar.
+  await ensureInvoiceNumber();
+
+  try {
+    const canvas = await renderInvoiceCanvas();
     const link = document.createElement('a');
-    link.download = 'factura-' + invoiceState.number + '-' + slug + '.png';
+    link.download = invoiceFileName();
     link.href = canvas.toDataURL('image/png');
     link.click();
     toast('Factura descargada — ya podés adjuntarla en WhatsApp');
   } catch (e) {
     toast('No se pudo generar la imagen: ' + e.message);
   } finally {
-    scaler.setAttribute('style', prevScaler);
-    wrap.style.overflow = prevOverflow;
-    fitInvoiceScale();
+    btn.textContent = label;
+    btn.disabled = false;
+  }
+}
+
+/* Enviar la imagen sin pasar por la carpeta de descargas.
+   wa.me NO permite adjuntar archivos, así que no hay forma de mandar la
+   imagen por link. Los dos caminos reales:
+   · Celular/tablet: navigator.share con el archivo abre el menú del sistema
+     y desde ahí elige WhatsApp y el contacto.
+   · Computadora: se copia al portapapeles y se pega en el chat con Ctrl+V. */
+async function shareInvoicePNG() {
+  const btn = document.getElementById('inv-share-btn');
+  if (!invoiceState) return;
+
+  const label = btn.textContent;
+  btn.textContent = 'Preparando...';
+  btn.disabled = true;
+
+  await ensureInvoiceNumber();
+
+  try {
+    const canvas = await renderInvoiceCanvas();
+    const blob = await invCanvasToBlob(canvas);
+    if (!blob) throw new Error('no se pudo generar la imagen');
+
+    const file = new File([blob], invoiceFileName(), { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      // Solo el archivo: si además se manda texto, WhatsApp a veces descarta la imagen.
+      await navigator.share({ files: [file] });
+      toast('Elegí WhatsApp y el contacto en el menú que se abrió');
+      return;
+    }
+
+    if (navigator.clipboard && window.ClipboardItem) {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      toast('Factura copiada — abrí el chat en WhatsApp Web y pegala con Ctrl+V');
+      return;
+    }
+
+    throw new Error('este navegador no permite compartir imágenes');
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // cerró el menú de compartir: no es error
+    toast('No se pudo enviar directo (' + (e.message || 'error') + '). Usá "Descargar imagen".');
+  } finally {
     btn.textContent = label;
     btn.disabled = false;
   }
@@ -3738,6 +3917,12 @@ async function downloadInvoicePNG() {
 async function saveInvoiceData() {
   if (!invoiceState) return;
   syncInvoiceFromInputs();
+
+  const saveBtn = document.getElementById('inv-save-btn');
+  saveBtn.disabled = true;
+  await ensureInvoiceNumber();
+  saveBtn.disabled = false;
+
   const t = calcInvoiceTotals();
   const payload = {
     number:      invoiceState.number,
@@ -3827,7 +4012,7 @@ document.getElementById('cfg-save-featured').addEventListener('click', async () 
   }
   appConfig.featuredIds = ids;
   try {
-    await CFG_REF.set(appConfig, { merge: true });
+    await CFG_REF.set(cfgSavePayload(), { merge: true });
     toast('Productos destacados guardados');
   } catch(e) { toast('Error al guardar: ' + e.message); }
 });
@@ -3851,11 +4036,71 @@ function renderConfig() {
   if (closeEl) closeEl.value = appConfig.closeTime || '13:00';
   updateBannerPreview();
   renderZones();
+  renderInvoiceConfig();
   const deliveryDays = appConfig.deliveryDays || [];
   document.querySelectorAll('.day-cb').forEach(cb => {
     cb.checked = deliveryDays.includes(parseInt(cb.value));
   });
 }
+
+/* El contador de facturas se escribe SOLO por transacción (invConsumeNumber)
+   o desde su propio botón. Los demás "Guardar" de Configuración mandan el
+   appConfig que tienen en memoria, que puede estar viejo si otra pestaña ya
+   emitió facturas; por eso se saca del payload y merge:true lo deja intacto. */
+function cfgSavePayload() {
+  const c = Object.assign({}, appConfig);
+  delete c.invoiceNext;
+  return c;
+}
+
+function renderInvoiceConfig() {
+  const inp = document.getElementById('cfg-invoice-next');
+  if (!inp) return;
+  if (document.activeElement !== inp) inp.value = invPeekNumber() || '';
+  updateInvoiceNumberPreview();
+}
+
+function updateInvoiceNumberPreview() {
+  const inp = document.getElementById('cfg-invoice-next');
+  const out = document.getElementById('cfg-invoice-preview');
+  if (!inp || !out) return;
+  if (!inp.value.trim()) {
+    out.textContent = 'Sin configurar: las facturas salen con el código automático (FAC-…).';
+    return;
+  }
+  const p = invParseNumberInput(inp.value);
+  if (!p) {
+    out.textContent = 'Tiene que terminar en número. Ejemplo: CF-5001';
+    return;
+  }
+  out.textContent = 'Van a salir así: ' + invFormatNumber(p.next, p.pad, p.prefix) +
+    ' · ' + invFormatNumber(p.next + 1, p.pad, p.prefix) +
+    ' · ' + invFormatNumber(p.next + 2, p.pad, p.prefix) + ' …';
+}
+
+(function initInvoiceConfig() {
+  const inp = document.getElementById('cfg-invoice-next');
+  const btn = document.getElementById('cfg-save-invoice');
+  if (!inp || !btn) return;
+  inp.addEventListener('input', updateInvoiceNumberPreview);
+  btn.addEventListener('click', async () => {
+    const p = invParseNumberInput(inp.value);
+    if (!p) { toast('Escribí el número de la próxima factura, ej: CF-5001'); return; }
+    btn.disabled = true;
+    try {
+      await CFG_REF.set({ invoicePrefix: p.prefix, invoiceNext: p.next, invoicePad: p.pad }, { merge: true });
+      appConfig.invoicePrefix = p.prefix;
+      appConfig.invoiceNext   = p.next;
+      appConfig.invoicePad    = p.pad;
+      toast('Listo — la próxima factura será ' + invFormatNumber(p.next, p.pad, p.prefix));
+      updateInvoiceNumberPreview();
+    } catch (e) {
+      toast('Error al guardar: ' + e.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+})();
 
 function getBannerColor() {
   var el = document.getElementById('cfg-banner-color');
@@ -3989,7 +4234,7 @@ document.getElementById('cfg-save-banner').addEventListener('click', async () =>
   appConfig.openTime          = document.getElementById('cfg-open-time').value;
   appConfig.closeTime         = document.getElementById('cfg-close-time').value;
   try {
-    await CFG_REF.set(appConfig, { merge: true });
+    await CFG_REF.set(cfgSavePayload(), { merge: true });
     toast('Banner y horario guardados');
   } catch(e) { toast('Error al guardar: ' + e.message); }
 });
@@ -4001,7 +4246,7 @@ document.getElementById('cfg-save-zones').addEventListener('click', async () => 
       const sfVal = parseFloat(sfEl.value);
       appConfig.shippingFee = (!isNaN(sfVal) && sfVal >= 0) ? sfVal : 0;
     }
-    await CFG_REF.set(appConfig, { merge: true });
+    await CFG_REF.set(cfgSavePayload(), { merge: true });
     toast('Zonas guardadas correctamente');
   } catch(e) { toast('Error al guardar: ' + e.message); }
 });
@@ -4009,7 +4254,7 @@ document.getElementById('cfg-save-zones').addEventListener('click', async () => 
 document.getElementById('cfg-save-days').addEventListener('click', async () => {
   appConfig.deliveryDays = Array.from(document.querySelectorAll('.day-cb:checked')).map(cb => parseInt(cb.value));
   try {
-    await CFG_REF.set(appConfig, { merge: true });
+    await CFG_REF.set(cfgSavePayload(), { merge: true });
     toast('Días de entrega guardados');
   } catch(e) { toast('Error al guardar: ' + e.message); }
 });
@@ -4075,7 +4320,7 @@ document.getElementById('cfg-save-especial').addEventListener('click', async () 
   }
   appConfig.especiales = especiales;
   try {
-    await CFG_REF.set(appConfig, { merge: true });
+    await CFG_REF.set(cfgSavePayload(), { merge: true });
     toast('Ofertas especiales guardadas');
   } catch(e) { toast('Error al guardar: ' + e.message); }
 });
