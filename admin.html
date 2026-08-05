@@ -1162,6 +1162,20 @@
       margin: 0 34px; padding: 12px 14px; background: #f1ebdf;
       border-left: 3px solid #c8a96e; font-size: 10px; color: #4a5f75; line-height: 1.6;
     }
+    /* Aviso de pago: el cliente tiene que poner el n.º de factura como
+       referencia del SINPE, que es para lo que se usaba el talonario. */
+    .inv-pay-ref {
+      margin: 16px 34px 0; padding: 12px 15px;
+      background: #fff; border: 1px solid rgba(154,122,72,0.45);
+      border-left: 3px solid #c8a96e;
+      font-size: 10.5px; color: #16283d; line-height: 1.65;
+    }
+    .inv-pay-ref-label {
+      font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: #9a7a48; margin-bottom: 6px;
+    }
+    .inv-pay-ref strong { color: #16283d; }
+    .inv-pay-ref + .inv-note { margin-top: 10px; } /* si además hay nota del admin */
     .inv-foot { padding: 20px 34px 24px; text-align: center; }
     .inv-thanks { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 15px; color: #16283d; }
     .inv-contact { font-size: 9px; color: #7a8fa3; margin-top: 7px; letter-spacing: 0.1em; }
@@ -2284,6 +2298,13 @@
                   <span class="inv-grand-val" id="inv-doc-grand">₡0</span>
                 </div>
               </div>
+            </div>
+
+            <div class="inv-pay-ref">
+              <div class="inv-pay-ref-label">Importante para su pago</div>
+              Al realizar su pago por <strong>SINPE Móvil</strong> o transferencia, por favor colocar
+              de referencia el <strong>número de factura</strong> que se encuentra en la parte de
+              arriba, lado derecho. Muchas gracias.
             </div>
 
             <div class="inv-note" id="inv-doc-note" style="display:none"></div>
