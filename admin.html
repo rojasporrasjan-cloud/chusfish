@@ -671,8 +671,13 @@
 
     /* ─── LISTA DE COMPRAS ─────────────────── */
     .shopping-list-wrap { background:var(--glass); border:1px solid var(--gb); border-radius:var(--radius); padding:1.4rem; margin-bottom:1.4rem; }
-    .shopping-list-title { font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin-bottom:0.4rem; }
-    .shopping-list-sub { font-size:0.72rem; color:var(--muted); margin-bottom:1rem; }
+    .shopping-list-header { display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; }
+    .shopping-list-title { font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--gold); margin:0; }
+    .shopping-list-sub { font-size:0.72rem; color:var(--muted); margin-bottom:0; margin-top:0.4rem; }
+    .shopping-list-toggle { font-size:0.65rem; color:var(--gold-dk); transition:transform 0.3s; }
+    .shopping-list-toggle.open { transform:rotate(180deg); }
+    .shopping-list-body { overflow:hidden; transition:max-height 0.35s ease; max-height:0; }
+    .shopping-list-body.open { max-height:3000px; }
     .shopping-item { display:flex; justify-content:space-between; align-items:center; padding:0.5rem 0; border-bottom:1px solid rgba(200,169,110,0.08); font-size:0.82rem; }
     .shopping-item:last-child { border-bottom:none; }
     .shopping-item-name { color:var(--text); }
@@ -3314,7 +3319,17 @@ function renderFinancialSummary() {
       <div class="finance-card-val" style="font-size:1rem">${nextDelivery[0]}</div>
       <div class="finance-card-sub">${nextDelivery[1].count} pedidos · ₡${nextDelivery[1].total.toLocaleString()}</div>
     </div>` : ''}
+    </div>` : ''}
   `;
+}
+
+function toggleShoppingList() {
+  const body = document.getElementById('shopping-list-body');
+  const icon = document.getElementById('shopping-toggle-icon');
+  if (!body || !icon) return;
+  const isOpen = body.classList.toggle('open');
+  icon.classList.toggle('open', isOpen);
+  localStorage.setItem('chusfish_shopping_open', isOpen ? '1' : '0');
 }
 
 function renderShoppingList() {
@@ -3348,16 +3363,26 @@ function renderShoppingList() {
   const waMsg = `🛒 *Lista de compras Chus's Fish*\n\n${listText}\n\n📦 ${activeOrders.length} pedidos por preparar`;
   const waLink = `https://wa.me/50660017370?text=${encodeURIComponent(waMsg)}`;
 
+  const isOpen = localStorage.getItem('chusfish_shopping_open') === '1' ? 'open' : '';
   section.innerHTML = `
     <div class="shopping-list-wrap">
-      <div class="shopping-list-title">🛒 Lista de compras</div>
-      <div class="shopping-list-sub">${activeOrders.length} pedidos pendientes/confirmados · Total de ingredientes a preparar</div>
-      ${itemsHtml}
-      <div class="shopping-list-actions">
-        <a class="shopping-wa-btn" href="${waLink}" target="_blank">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.553 4.1 1.524 5.823L0 24l6.266-1.499A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.655-.52-5.17-1.424l-.37-.22-3.72.889.917-3.617-.24-.38A9.958 9.958 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
-          Enviarme por WhatsApp
-        </a>
+      <div class="shopping-list-header" onclick="toggleShoppingList()">
+        <div>
+          <div class="shopping-list-title">🛒 Lista de compras</div>
+          <div class="shopping-list-sub">${activeOrders.length} pedidos pendientes/confirmados · Total de ingredientes a preparar</div>
+        </div>
+        <svg class="shopping-list-toggle ${isOpen}" id="shopping-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="shopping-list-body ${isOpen}" id="shopping-list-body">
+        <div style="padding-top:1rem; border-top:1px solid rgba(200,169,110,0.15); margin-top:1rem;">
+          ${itemsHtml}
+          <div class="shopping-list-actions">
+            <a class="shopping-wa-btn" href="${waLink}" target="_blank">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.553 4.1 1.524 5.823L0 24l6.266-1.499A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.655-.52-5.17-1.424l-.37-.22-3.72.889.917-3.617-.24-.38A9.958 9.958 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+              Enviarme por WhatsApp
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   `;
