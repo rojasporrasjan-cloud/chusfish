@@ -2335,6 +2335,37 @@
 <!-- TOAST -->
 <div id="toast"></div>
 
+<!-- ═══ EDITAR PEDIDO (DATOS CLIENTE) ══════════════════ -->
+<div id="edit-order-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header">
+      <h3>Editar datos del cliente</h3>
+      <button class="modal-close-btn" onclick="closeEditOrder()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-order-id">
+      <div class="form-grid" style="grid-template-columns:1fr">
+        <div class="form-group">
+          <label class="form-label">Nombre completo *</label>
+          <input class="form-input" id="edit-order-name" placeholder="Nombre del cliente">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono *</label>
+          <input class="form-input" id="edit-order-phone" type="tel" placeholder="8888-8888">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Dirección de entrega</label>
+          <textarea class="form-textarea" id="edit-order-address" placeholder="Provincia, cantón, señas..." rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditOrder()">Cancelar</button>
+      <button class="btn-save" id="edit-order-save-btn" onclick="saveEditOrder()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ════════════════════════════════════════════
    CONFIG
@@ -3136,7 +3167,7 @@ document.getElementById('confirm-modal').addEventListener('click', e => {
 
 /* ESC key */
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeProductModal(); closeConfirmDelete(); closeMobileSidebar(); }
+  if (e.key === 'Escape') { closeProductModal(); closeConfirmDelete(); closeMobileSidebar(); closeEditOrder(); }
 });
 
 /* ── UNIDAD HINT ───────────────────────── */
@@ -3446,6 +3477,7 @@ function renderOrders() {
     if (o.status === 'confirmado') actions.push(`<button class="order-act-btn order-act-deliver" style="color:#9b59b6;border-color:rgba(142,68,173,0.3)" onclick="setOrderStatus('${o.id}','en_camino')">En camino</button>`);
     if (o.status === 'en_camino') actions.push(`<button class="order-act-btn order-act-deliver" onclick="setOrderStatus('${o.id}','entregado')">Entregado</button>`);
     if (o.status !== 'cancelado' && o.status !== 'entregado') actions.push(`<button class="order-act-btn order-act-cancel" onclick="setOrderStatus('${o.id}','cancelado')">Cancelar</button>`);
+    actions.push(`<button class="order-act-btn order-act-wa" style="color:var(--gold);border-color:rgba(200,169,110,0.3)" onclick="openEditOrder('${o.id}')">✏️ Editar</button>`);
     actions.push(`<a class="order-act-btn order-act-wa" href="${waDirectLink}" target="_blank">💬 WA</a>`);
     actions.push(`<button class="order-act-btn order-act-invoice" onclick="openInvoice('${o.id}')">🧾 Factura</button>`);
     actions.push(`<a class="order-act-btn order-act-wa" href="${waInvoiceLink}" target="_blank">📄 Texto WA</a>`);
@@ -3490,6 +3522,57 @@ async function saveOrderNote(id, note) {
     const o = orders.find(x => x.id === id);
     if (o) o.note = note;
   } catch(e) {}
+}
+
+/* ── EDITAR DATOS DEL CLIENTE EN UN PEDIDO ─────────────── */
+function openEditOrder(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) { toast('Pedido no encontrado'); return; }
+  document.getElementById('edit-order-id').value = id;
+  document.getElementById('edit-order-name').value = o.customer?.name || o.name || '';
+  document.getElementById('edit-order-phone').value = o.customer?.phone || o.phone || '';
+  document.getElementById('edit-order-address').value = o.customer?.address || o.address || '';
+  document.getElementById('edit-order-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => document.getElementById('edit-order-name').focus(), 350);
+}
+
+function closeEditOrder() {
+  document.getElementById('edit-order-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+async function saveEditOrder() {
+  const id = document.getElementById('edit-order-id').value;
+  const name = document.getElementById('edit-order-name').value.trim();
+  const phone = document.getElementById('edit-order-phone').value.trim();
+  const address = document.getElementById('edit-order-address').value.trim();
+  if (!name) { toast('⚠ El nombre es obligatorio'); return; }
+  if (!phone) { toast('⚠ El teléfono es obligatorio'); return; }
+  const btn = document.getElementById('edit-order-save-btn');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    await ORDERS_REF.doc(id).update({
+      'customer.name': name,
+      'customer.phone': phone,
+      'customer.address': address,
+      updatedAt: new Date().toISOString()
+    });
+    const o = orders.find(x => x.id === id);
+    if (o) {
+      if (!o.customer) o.customer = {};
+      o.customer.name = name;
+      o.customer.phone = phone;
+      o.customer.address = address;
+    }
+    closeEditOrder();
+    renderOrders();
+    toast('✅ Datos del cliente actualizados');
+  } catch(e) {
+    toast('Error al guardar: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar Cambios';
+  }
 }
 
 async function setOrderStatus(id, status) {
