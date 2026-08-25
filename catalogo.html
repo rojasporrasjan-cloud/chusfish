@@ -92,7 +92,10 @@
   <link rel="dns-prefetch" href="//res.cloudinary.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="auth.js?v=4"></script>
+<script src="ui.js?v=2"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1408,7 +1411,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Inicio
   </a>
-  <a href="pedido.html" class="nav-wa" style="font-size:0.62rem;padding:0.45rem 1rem">📦 Mi pedido</a>
+  <a href="mi-cuenta.html" class="nav-wa" id="cf-account-link" style="font-size:0.62rem;padding:0.45rem 1rem">👤 <span class="cf-acc-label">Ingresar</span></a>
   <a href="https://wa.me/50660017370" target="_blank" class="nav-wa">Pedir Ahora</a>
   <button class="nav-install-btn" id="cat-pwa-nav-btn" onclick="triggerInstall()" title="Instalar app">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1427,7 +1430,9 @@
   <div class="cat-drawer-links">
     <a href="index.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">🏠</span> Inicio</a>
     <a href="catalogo.html" class="cat-drawer-link active"><span class="cat-drawer-link-icon">🛒</span> Catálogo</a>
-    <a href="pedido.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">📦</span> Mi pedido</a>
+    <a href="mi-cuenta.html" class="cat-drawer-link cf-account-link"><span class="cat-drawer-link-icon">👤</span> <span class="cf-acc-label">Mi cuenta</span></a>
+    <a href="premios.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">🎁</span> La Reserva</a>
+    <a href="pedido.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">📦</span> Buscar pedido</a>
     <button class="cat-drawer-link" style="background:none;border:none;cursor:pointer;text-align:left;width:100%;font-family:'Montserrat',sans-serif;color:var(--text)" onclick="triggerInstall()"><span class="cat-drawer-link-icon">📲</span> Instalar App</button>
   </div>
   <div class="cat-drawer-footer">
@@ -1636,7 +1641,9 @@
 
 <script>
 /* ═══ FIREBASE ═══ */
-firebase.initializeApp({
+// auth.js (cargado en el head) ya inicializo la app. Compat tira
+// "app already exists" si se llama dos veces, de ahi la guarda.
+if (!firebase.apps.length) firebase.initializeApp({
   apiKey:            'AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk',
   authDomain:        'chus-fish.firebaseapp.com',
   projectId:         'chus-fish',
@@ -1821,6 +1828,9 @@ const PRODUCTS_DEFAULT = [
 
 /* Se carga desde Firestore en initCatalog() */
 let PRODUCTS = [];
+// ui.js lo lee para buscar y para totalizar el carrito. `let` en el nivel
+// superior NO crea window.PRODUCTS, hay que publicarlo a mano.
+function publicarProductos(){ window.PRODUCTS = PRODUCTS; }
 
 /* ════════════════════════════════════════ */
 const CAT_ORDER = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
@@ -1938,6 +1948,8 @@ async function initCatalog() {
     '<p id="cat-loading" style="text-align:center;color:var(--muted);padding:5rem 1rem;font-size:0.8rem;letter-spacing:0.1em">Cargando productos⬦</p>');
 
   PRODUCTS = (await loadFromFirestore()) || PRODUCTS_DEFAULT;
+  publicarProductos();
+  if (window.CFUI) CFUI.refrescarCarrito();   // ya hay precios para el total
 
   // Interceptar imagen de la langosta para que muestre el recorte original sobre hielo
   PRODUCTS.forEach(p => {
@@ -2047,6 +2059,49 @@ document.getElementById('search-input').addEventListener('input', e => {
   searchQ = e.target.value.toLowerCase().trim();
   applyFilter();
 });
+
+/* ── Puente con la hoja de busqueda de ui.js ──────────────────────
+   Si esta funcion existe, ui.js filtra aca mismo en vez de recargar. */
+window.CF_FILTER = function (cat, q, id) {
+  activeCat = cat || 'all';
+  searchQ   = (q || '').toLowerCase().trim();
+
+  var input = document.getElementById('search-input');
+  if (input) input.value = q || '';
+  var sel = document.getElementById('mobile-filter');
+  if (sel) sel.value = activeCat;
+  document.querySelectorAll('.filter-pill').forEach(function (b) {
+    b.classList.toggle('active', b.dataset.cat === activeCat);
+  });
+
+  applyFilter();
+
+  if (id) {
+    // Abrir la ficha del producto elegido en la busqueda.
+    setTimeout(function () { openModal(parseInt(id, 10)); }, 120);
+  } else {
+    var dest = document.querySelector('.results-bar') || document.querySelector('.catalog-wrap');
+    if (dest) dest.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+/* Llegada desde otra pagina: catalogo.html?cat=...&q=...&id=... */
+(function () {
+  var u = new URLSearchParams(location.search);
+  if (!u.has('cat') && !u.has('q') && !u.has('id') && !u.has('carrito')) return;
+  var aplicar = function () {
+    if (u.has('carrito')) { openCart(); return; }
+    window.CF_FILTER(u.get('cat') || 'all', u.get('q') || '', u.get('id'));
+  };
+  // Esperar a que el catalogo este renderizado.
+  if (document.querySelector('.p-card')) setTimeout(aplicar, 200);
+  else {
+    var t = setInterval(function () {
+      if (document.querySelector('.p-card')) { clearInterval(t); aplicar(); }
+    }, 150);
+    setTimeout(function () { clearInterval(t); }, 6000);
+  }
+})();
 
 /* ════════════════════════════════════════ */
 function isKg(unit)    { return (unit || '').toLowerCase().includes('kg'); }
@@ -2241,6 +2296,8 @@ let cart = [];
 
 function saveCart() {
   try { localStorage.setItem('chusfish_cart', JSON.stringify(cart.map(i => ({ id: i.product.id, qty: i.qty })))); } catch(e) {}
+  // La barra de carrito de ui.js lee de localStorage: se avisa al guardar.
+  if (window.CFUI) CFUI.refrescarCarrito();
 }
 
 function restoreCart() {
@@ -2293,11 +2350,15 @@ function updateDeliveryFee(price) {
   currentDeliveryFee = price || 0;
   const el = document.getElementById('cart-delivery-fee');
   if (!el) return;
+  // Antes, con envio 0, esta linea desaparecia. Pero en Chus's Fish el envio
+  // ES gratis: conviene decirlo, no callarlo.
+  el.style.display = '';
   if (currentDeliveryFee > 0) {
-    el.style.display = '';
     el.textContent = `+ Envío zona: ₡${currentDeliveryFee.toLocaleString()}`;
+    el.style.color = '';
   } else {
-    el.style.display = 'none';
+    el.textContent = 'Envío gratis';
+    el.style.color = 'var(--gold-lt)';
   }
 }
 
@@ -2625,7 +2686,9 @@ function showBanner(msg) {
         document.getElementById('of-zone-field').style.display = '';
       }
     }
-    if (typeof cfg.shippingFee === 'number' && cfg.shippingFee > 0) {
+    // Se llama SIEMPRE, tambien con 0: con envio gratis queremos mostrar
+    // "Envio gratis", no dejar la linea escondida.
+    if (typeof cfg.shippingFee === 'number') {
       updateDeliveryFee(cfg.shippingFee);
     }
 
@@ -2899,11 +2962,11 @@ function openCartOrderForm() {
   if (total > 0) {
     const grandTotal = total + currentDeliveryFee;
     totalsHtml = '<div class="ofs-totals">';
-    totalsHtml += '<div class="ofs-row"><span>Subtotal productos</span><span>₡ ' + fmt(total) + '</span></div>';
-    if (currentDeliveryFee > 0) {
-      totalsHtml += '<div class="ofs-row"><span>Envío</span><span>₡ ' + fmt(currentDeliveryFee) + '</span></div>';
-    }
-    totalsHtml += '<div class="ofs-row-total"><span>Total estimado</span><span>₡ ' + fmt(grandTotal) + '</span></div>';
+    totalsHtml += '<div class="ofs-row"><span>Subtotal productos</span><span>' + fmt(total) + '</span></div>';
+    totalsHtml += currentDeliveryFee > 0
+      ? '<div class="ofs-row"><span>Envío</span><span>' + fmt(currentDeliveryFee) + '</span></div>'
+      : '<div class="ofs-row"><span>Envío</span><span style="color:var(--gold-lt);font-weight:600">Gratis</span></div>';
+    totalsHtml += '<div class="ofs-row-total"><span>Total estimado</span><span>' + fmt(grandTotal) + '</span></div>';
     totalsHtml += '</div>';
     totalsHtml += '<p class="ofs-note">* Monto de referencia. El total final puede variar según el peso y se confirma por WhatsApp.</p>';
   }
@@ -2922,8 +2985,24 @@ function openCartOrderForm() {
     el.value = '';
     el.classList.remove('of-error');
   });
+
+  // Si tiene sesion, no le hacemos escribir de nuevo lo mismo de siempre.
+  const cfp = (window.CF && CF.profile) || null;
+  if (cfp) {
+    if (cfp.name)    document.getElementById('of-name').value    = cfp.name;
+    if (cfp.phone)   document.getElementById('of-phone').value   = cfp.phone;
+    if (cfp.address) document.getElementById('of-address').value = cfp.address;
+  }
   const zoneChips = document.getElementById('of-zone-chips');
-  if (zoneChips) { zoneChips.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected')); zoneChips.classList.remove('of-error'); }
+  if (zoneChips) {
+    zoneChips.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected'));
+    zoneChips.classList.remove('of-error');
+    if (cfp && cfp.zone) {
+      const mine = Array.from(zoneChips.querySelectorAll('.zone-chip'))
+        .find(c => c.dataset.value === cfp.zone);
+      if (mine) mine.click();   // click, no .selected: recalcula el costo de envio
+    }
+  }
   const dateChips = document.getElementById('of-date-chips');
   if (dateChips) { dateChips.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected')); dateChips.classList.remove('of-error'); }
   // Default payment to SINPE
@@ -2996,7 +3075,9 @@ document.getElementById('order-form').addEventListener('submit', async function(
   finalMsg += '*Nombre:* ' + name + '\n';
   finalMsg += '*Teléfono:* ' + phone + '\n';
   if (zoneVisible && zone) finalMsg += '*Zona de entrega:* ' + zone + '\n';
-  if (currentDeliveryFee > 0) finalMsg += '*Costo de envío:* ₡' + currentDeliveryFee.toLocaleString() + '\n';
+  finalMsg += currentDeliveryFee > 0
+    ? '*Costo de envío:* ₡' + currentDeliveryFee.toLocaleString() + '\n'
+    : '*Envío:* Gratis\n';
   if (dateVisible && fecha) finalMsg += '*Fecha de entrega:* ' + fecha + '\n';
   finalMsg += '*Dirección:* ' + address + '\n';
   finalMsg += '*Pago:* ' + payment + '\n\n';
@@ -3016,7 +3097,13 @@ document.getElementById('order-form').addEventListener('submit', async function(
   const waLink = 'https://wa.me/50660017370?text=' + encodeURIComponent(finalMsg);
 
   // Guardamos el pedido en segundo plano, sin bloquear la apertura de WhatsApp.
+  // El uid es lo que despues permite acreditarle los puntos y que vea el
+  // pedido en su cuenta. Si no tiene sesion va null: se sigue pudiendo pedir
+  // sin cuenta, solo que ese pedido no suma puntos.
+  const cfUid = (window.CF && CF.user) ? CF.user.uid : null;
+
   const saveOrder = db_cat.collection('orders').add({
+    uid: cfUid,
     customer: { name, phone, address, zone: zone || null, fecha: fecha || null, payment },
     items: itemsForOrder,
     deliveryFee: currentDeliveryFee || 0,
@@ -3032,6 +3119,11 @@ document.getElementById('order-form').addEventListener('submit', async function(
   // Abrimos WhatsApp DENTRO del gesto del usuario (antes de cualquier await) para que
   // el navegador no bloquee la ventana emergente. Esa era la causa de los pedidos sin aviso.
   const waWin = window.open(waLink, '_blank');
+
+  // Se guardan los datos en el perfil para que la proxima vez venga prellenado.
+  if (cfUid && window.CF) {
+    CF.saveProfile({ name, phone, address, zone: zone || '' }).catch(() => {});
+  }
 
   cart = [];
   saveCart();

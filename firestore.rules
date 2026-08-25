@@ -1,43 +1,217 @@
 rules_version = '2';
 
-// ════════════════════════════════════════════════════════════════
-//  Chus's Fish — Reglas de seguridad de Firestore
-//  Objetivo: que NADIE pueda leer los datos de los clientes (pedidos)
-//  desde el navegador. Solo el administrador autenticado.
+// ================================================================
+//  Chus's Fish - Reglas de seguridad de Firestore
 //
-//  Desplegar con:  firebase deploy --only firestore:rules
-//  o pegar en: Firebase Console → Firestore Database → Reglas → Publicar
-// ════════════════════════════════════════════════════════════════
+//  !! ORDEN DE DESPLIEGUE - NO INVERTIR !!
+//    1o  Crear a mano el documento  admins/{UID-de-Jesus}  en la consola.
+//        (el UID sale en Firebase Console > Authentication > Users,
+//         columna "User UID" de chussfish2022@gmail.com)
+//    2o  Recien entonces publicar estas reglas.
+//
+//    Si se publican primero, el panel de admin queda sin poder escribir
+//    y hay que revertir a mano.
+//
+//  Desplegar:  npx firebase-tools deploy --only firestore:rules
+//  o pegar en: Firebase Console > Firestore Database > Reglas > Publicar
+// ================================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Catálogo y configuración del sitio (docs: catalog, config) ──
-    // Lectura PÚBLICA (la web necesita mostrar productos, banner, zonas,
-    // destacados, etc.). Escritura SOLO para el admin autenticado.
+    /* ---- Helpers ------------------------------------------- */
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Ser admin NO es "estar logueado": es tener doc en /admins.
+    // Cuando existan cuentas de clientes, todos van a estar logueados.
+    function isAdmin() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Campos de users/ que SOLO el admin puede tocar.
+    // Si el cliente pudiera escribir 'points' se regala los premios solo.
+    // Ojo con `resource`: en un create es null y `resource.data` revienta
+    // la regla entera (no devuelve false, tira error de evaluacion).
+    function touchesProtectedUserFields() {
+      return resource != null
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(['points', 'lifetimePoints', 'tier', 'ordersCount',
+                        'totalSpent', 'role', 'createdAt']);
+    }
+
+    // Un usuario recien registrado no puede nacer con puntos ni rol admin.
+    //
+    // Acceso directo a los campos a proposito: exige que el alta mande los
+    // seis. Si falta alguno la regla falla y se deniega (falla cerrado), que
+    // es lo que queremos, porque el alta la hace nuestro propio auth.js.
+    function cleanNewUser() {
+      return request.resource.data.points         == 0
+          && request.resource.data.lifetimePoints == 0
+          && request.resource.data.ordersCount    == 0
+          && request.resource.data.totalSpent     == 0
+          && request.resource.data.tier           == 'bronce'
+          && request.resource.data.role           == 'customer';
+    }
+
+
+    /* ---- Quien es admin ------------------------------------ */
+    // Se administra SOLO desde la consola de Firebase. Nadie lo escribe
+    // desde el navegador, ni el propio admin.
+    match /admins/{uid} {
+      allow read:  if isAdmin();
+      allow write: if false;
+    }
+
+
+    /* ---- Catalogo y configuracion del sitio ---------------- */
+    // docs: catalog, config
+    // Lectura publica (la web necesita productos, banner, zonas, destacados).
+    // Escritura SOLO admin. Antes era `request.auth != null`, lo que con
+    // cuentas de clientes habria dejado a cualquiera borrar el catalogo.
     match /chusfish/{doc} {
       allow read:  if true;
-      allow write: if request.auth != null;
+      allow write: if isAdmin();
     }
 
-    // ── Pedidos ──
-    // El cliente (anónimo) puede CREAR un pedido desde el formulario,
-    // pero NO puede leer, editar ni borrar ninguno.
-    // Leer/editar/borrar: SOLO el admin autenticado.
+
+    /* ---- Pedidos ------------------------------------------- */
     match /orders/{orderId} {
-      allow create: if request.resource.data.status == 'pendiente'
-                    && request.resource.data.items is list;
-      allow read, update, delete: if request.auth != null;
+
+      // Cualquiera puede crear un pedido (se sigue permitiendo pedir sin
+      // cuenta). Pero no puede atribuirselo a otra persona ni auto-asignarse
+      // puntos: eso lo acredita el admin al marcar "entregado".
+      //
+      // El admin SI puede crear pedidos a nombre de cualquier cliente: es lo
+      // que pasa cuando el pedido entra por telefono o WhatsApp y Jesus lo
+      // carga a mano para que al cliente le sumen los puntos.
+      allow create: if isAdmin() || (
+                         request.resource.data.status == 'pendiente'
+                      && request.resource.data.items is list
+                      && (!('uid' in request.resource.data)
+                          || request.resource.data.uid == null
+                          || request.resource.data.uid == request.auth.uid)
+                      && (!('pointsEarned' in request.resource.data)
+                          || request.resource.data.pointsEarned == 0)
+                      && (!('pointsRedeemed' in request.resource.data)
+                          || request.resource.data.pointsRedeemed == 0)
+                    );
+
+      // El cliente logueado ve SOLO sus pedidos; el admin ve todos.
+      allow read: if isAdmin()
+                  || (isSignedIn() && resource.data.uid == request.auth.uid);
+
+      // El bloque LEGACY que dejaba leer `orders` en abierto se ELIMINO al
+      // activar las cuentas (ago-2026). Se probo que con esa linea puesta
+      // un cliente podia leer los pedidos de otro: nombre, telefono y
+      // direccion de toda la clientela. mi-cuenta.html lo reemplaza leyendo
+      // por uid, y pedido.html (busqueda por telefono) quedo sin uso.
+
+      allow update, delete: if isAdmin();
     }
 
-    // ── Avisos "notificarme cuando esté disponible" ──
-    // El cliente puede crear el aviso; solo el admin lo gestiona.
+
+    /* ---- Usuarios / clientes ------------------------------- */
+    match /users/{uid} {
+      allow get:    if isOwner(uid) || isAdmin();
+      allow list:   if isAdmin();
+      allow create: if isOwner(uid) && cleanNewUser();
+
+      // El cliente edita su perfil (nombre, telefono, direcciones, favoritos)
+      // pero no sus puntos, tier ni rol.
+      allow update: if isAdmin()
+                    || (isOwner(uid) && !touchesProtectedUserFields());
+      allow delete: if isAdmin();
+
+      // Libro mayor de puntos - auditoria. Nunca se suman puntos sin asiento.
+      // El cliente lo lee (su historial), solo el admin lo escribe.
+      match /ledger/{entryId} {
+        allow read:  if isOwner(uid) || isAdmin();
+        allow write: if isAdmin();
+      }
+    }
+
+
+    /* ---- Codigos de descuento ------------------------------ */
+    // El ID del documento ES el codigo, en mayusculas: coupons/BIENVENIDO10
+    //
+    // Truco: `get` permite leer UN codigo si ya lo conoces (para validarlo
+    // en el carrito), pero `list` esta cerrado: nadie puede pedir la lista
+    // completa de codigos y descubrir promos que no le tocaban.
+    match /coupons/{code} {
+      allow get:   if true;
+      allow list:  if isAdmin();
+      allow write: if isAdmin();
+
+      // Control de uso por persona. El descuento real lo confirma el admin
+      // en el modal de factura, asi que el canje lo registra el.
+      match /redemptions/{uid} {
+        allow read:  if isOwner(uid) || isAdmin();
+        allow write: if isAdmin();
+      }
+    }
+
+
+    /* ---- Catalogo de premios canjeables -------------------- */
+    // Lectura publica a proposito: que la gente VEA los premios aunque no
+    // tenga cuenta es lo que la empuja a registrarse.
+    match /rewards/{rewardId} {
+      allow read:  if true;
+      allow write: if isAdmin();
+    }
+
+
+    /* ---- Canjes de premios --------------------------------- */
+    // El cliente no puede descontarse los puntos solo (no escribe users/).
+    // Lo que hace es SOLICITAR el canje; el admin lo aprueba en el panel y
+    // ahi si se descuentan los puntos con transaccion y asiento en el ledger.
+    //
+    // Las reglas ya validan contra la base que:
+    //   - el premio existe y esta activo
+    //   - el costo declarado es el costo REAL del premio (no uno inventado)
+    //   - el cliente tiene saldo suficiente en ese momento
+    // El doble gasto (pedir 2 canjes antes de que aprueben el 1o) lo corta
+    // la transaccion del admin, que revalida el saldo antes de descontar.
+    match /redemptions/{redemptionId} {
+
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.status == 'solicitado'
+                    && request.resource.data.cost is int
+                    && request.resource.data.cost > 0
+                    && get(/databases/$(database)/documents/rewards/$(request.resource.data.rewardId)).data.cost
+                       == request.resource.data.cost
+                    && get(/databases/$(database)/documents/rewards/$(request.resource.data.rewardId)).data.active == true
+                    && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.points
+                       >= request.resource.data.cost;
+
+      // Ojo: en `list` la regla se evalua por documento, asi que exigir
+      // resource.data.uid obliga al cliente a consultar con
+      // .where('uid','==',suUid). Sin ese filtro Firestore rechaza la query
+      // entera, que es justo lo que queremos.
+      allow read: if isAdmin() || (isSignedIn() && resource.data.uid == request.auth.uid);
+
+      // Solo el admin resuelve. El cliente no cancela ni edita: si se
+      // arrepiente, se lo dice a Jesus por WhatsApp como todo lo demas.
+      allow update, delete: if isAdmin();
+    }
+
+
+    /* ---- Avisos "notificarme cuando este disponible" ------- */
     match /notifications/{notifId} {
       allow create: if true;
-      allow read, update, delete: if request.auth != null;
+      allow read, update, delete: if isAdmin();
     }
 
-    // ── Todo lo demás: denegado por defecto ──
+
+    /* ---- Todo lo demas: denegado --------------------------- */
     match /{document=**} {
       allow read, write: if false;
     }

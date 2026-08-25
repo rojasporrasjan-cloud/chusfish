@@ -115,7 +115,10 @@
   <link rel="dns-prefetch" href="//res.cloudinary.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="auth.js?v=4"></script>
+<script src="ui.js?v=2"></script>
 
   <style>
     /*
@@ -1261,6 +1264,8 @@
     <li><a href="#identity">Nosotros</a></li>
     <li><a href="catalogo.html">Catálogo</a></li>
     <li><a href="#pillars">Calidad</a></li>
+    <li><a href="premios.html">La Reserva</a></li>
+    <li><a href="mi-cuenta.html" id="cf-account-link"><span class="cf-acc-label">Ingresar</span></a></li>
   </ul>
   <a href="https://wa.me/50660017370" target="_blank" class="nav-cta">Pedir Ahora</a>
   <div class="hamburger" id="hamburger"><span></span><span></span><span></span></div>
@@ -1683,7 +1688,8 @@
     init(); tick();
 
   /* ── TARJETAS DESTACADAS desde Firestore ───── */
-  firebase.initializeApp({
+  // auth.js (head) ya inicializo la app; compat falla si se llama dos veces.
+  if (!firebase.apps.length) firebase.initializeApp({
     apiKey:            'AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk',
     authDomain:        'chus-fish.firebaseapp.com',
     projectId:         'chus-fish',
@@ -2025,6 +2031,7 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
   const waLink = 'https://wa.me/50660017370?text=' + encodeURIComponent(msg);
 
   const saveOrder = firebase.firestore().collection('orders').add({
+    uid: (window.CF && CF.user) ? CF.user.uid : null,
     customer: { name, phone, address, zone: null, fecha: null, payment: 'SINPE Móvil' },
     items: itemsForOrder,
     deliveryFee: 0,
@@ -2052,6 +2059,8 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
     <a href="#identity"     class="drawer-link"><span class="drawer-link-icon">🐟</span> Nosotros</a>
     <a href="#categorias"   class="drawer-link"><span class="drawer-link-icon">🦐</span> Categorías</a>
     <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">🛒</span> Catálogo</a>
+    <a href="mi-cuenta.html" class="drawer-link cf-account-link"><span class="drawer-link-icon">👤</span> <span class="cf-acc-label">Mi cuenta</span></a>
+    <a href="premios.html"  class="drawer-link"><span class="drawer-link-icon">🎁</span> La Reserva</a>
     <a href="#como-pedir"   class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
     <a href="#zonas"         class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
   </div>

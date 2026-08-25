@@ -15,3 +15,8 @@ assets/camarones_gourmet.png
 chusfish-qr*.png
 chusfish-qr*.svg
 qr_chusfish.png
+
+# Emulador de Firebase (solo local)
+*-debug.log
+firebase-export-*/
+.firebase/

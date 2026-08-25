@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chusfish-v-csp-fix-2';
+const CACHE_NAME = 'chusfish-v-cuentas-1';
 
 self.addEventListener('install', (e) => {
   // Fuerza al SW a instalarse inmediatamente
