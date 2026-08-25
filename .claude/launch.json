@@ -3,10 +3,8 @@
   "configurations": [
     {
       "name": "chusfish",
-      "runtimeExecutable": "node",
-      "runtimeArgs": [
-        "dev-server.js"
-      ],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", ".", "--listen", "5000"],
       "port": 5000
     }
   ]
