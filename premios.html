@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>La Reserva | Chus's Fish</title>
 <meta name="description" content="La Reserva de Chus's Fish: canjeá tus puntos por producto selecto, descuentos y envíos sin costo." />
 <link rel="icon" href="icon-192.png" />
@@ -208,6 +208,36 @@
   .rw-miss{font-size:.62rem;color:var(--dim);margin-top:.4rem;letter-spacing:.04em}
   .rw.off .rw-media i,.rw.off .rw-media img{opacity:.4;filter:grayscale(.5)}
 
+  /* ── LA COLECCION EN CELULAR ──────────────────────────────────
+     Con `minmax(240px,1fr)` en una pantalla de 390px entraba UNA sola
+     tarjeta por fila: la pagina medía casi 11.000px para seis premios y
+     habia que desplazar muchisimo para comparar dos.
+     En cuadricula de dos se ven cuatro premios de un vistazo, que es de lo
+     que se trata una tienda de canje. La foto pasa de 4:5 a 3:4 para que la
+     fila no quede tan alta, y el texto baja en proporcion. */
+  @media(max-width:600px){
+    .grid{grid-template-columns:repeat(2,1fr);gap:1.5rem .75rem;padding-bottom:3rem}
+    .rw-media{aspect-ratio:3/4}
+    .rw-media i{font-size:2.4rem}
+    .rw-b{padding-top:.7rem}
+    .rw-cat{font-size:.5rem;letter-spacing:.15em}
+    .rw-n{font-size:1rem;margin:.28rem 0 .38rem}
+    .rw-cost{font-size:.68rem}
+    .rw-miss{font-size:.57rem;margin-top:.3rem}
+    .rw-flag{font-size:.46rem;padding:.26rem .48rem;letter-spacing:.1em}
+    .skel{aspect-ratio:3/4}
+    /* El velo de "Ver el premio" es un efecto de raton: en tactil no aporta
+       y solo tapa la foto si el dedo se queda encima. */
+    .rw-veil{display:none}
+  }
+
+  /* Muy angosto (360px o menos): dos columnas siguen entrando, pero el
+     nombre necesita algo mas de aire para no cortarse feo. */
+  @media(max-width:360px){
+    .grid{gap:1.2rem .6rem}
+    .rw-n{font-size:.92rem}
+  }
+
   /* ── VACÍO / CARGA ── */
   .empty{grid-column:1/-1;text-align:center;padding:5rem 1rem;color:var(--muted)}
   .empty i{font-size:2.4rem;font-style:normal;display:block;margin-bottom:1.2rem;opacity:.5}
@@ -291,11 +321,28 @@
   .sheet-foot small{font-size:.63rem;color:var(--dim);line-height:1.6;flex-basis:100%}
 
   @media(max-width:860px){
-    .sheet{padding:0;place-items:stretch}
-    /* 100dvh y no 100vh: en iOS la barra de direcciones se come el final de
-       la pantalla y el boton de canjear queda debajo del pliegue. El 100%
-       queda como respaldo para navegadores sin dvh. */
-    .sheet-in{max-width:none;max-height:none;height:100%;height:100dvh;
+    /* ── LA FICHA NO TAPA LA BARRA DE PESTAÑAS ──────────────────
+       La ficha va en z-index 401 y la barra de pestañas de ui.js en 250:
+       la cubria entera. Con un premio abierto, tocar "Mi cuenta" o
+       "Catalogo" no hacia NADA — el toque le pegaba a la ficha — y parecia
+       que la pagina se habia quedado pegada.
+
+       No alcanza con subirle el `bottom` al contenedor: `.sheet-in` tenia
+       `height:100dvh`, o sea la pantalla ENTERA, y se desbordaba igual esos
+       59px por debajo. Ahora el alto correcto lo lleva el contenedor y el
+       interior simplemente lo llena.
+
+       Se sigue usando dvh y no vh: en iOS la barra de direcciones se come
+       el final de la pantalla y el boton de canjear quedaba bajo el pliegue.
+       El primer `height` es el respaldo para navegadores sin dvh. */
+    .sheet-ov{bottom:calc(59px + env(safe-area-inset-bottom))}
+    .sheet{
+      padding:0;place-items:stretch;
+      bottom:auto;
+      height:calc(100% - 59px - env(safe-area-inset-bottom));
+      height:calc(100dvh - 59px - env(safe-area-inset-bottom));
+    }
+    .sheet-in{max-width:none;max-height:none;height:100%;
       grid-template-columns:1fr;grid-template-rows:auto 1fr;border:0}
     .sheet-media{min-height:230px}
     .sheet-media i{font-size:5.5rem}
@@ -343,13 +390,24 @@
   .rw-media i{font-size:2.6rem}
   .hero-rw-media i{font-size:5rem}
   .sheet-media i{font-size:6rem}
+
+  /* ── Zonas seguras del iPhone (muesca / gesto inferior) ── */
+  @supports (top: env(safe-area-inset-top)) {
+    nav { padding-top: env(safe-area-inset-top); box-sizing: content-box; }
+    body { padding-top: calc(var(--nav-h) + env(safe-area-inset-top)); }
+  }
+
+  @media (max-width: 860px) {
+    /* Ver nota de fluidez en catalogo.html. */
+    nav { backdrop-filter: none; -webkit-backdrop-filter: none; background: #050c18; }
+  }
 </style>
 </head>
 <body>
 
 <nav>
   <a href="index.html" class="nav-logo">
-    <img src="logo.jpeg" alt="Chus's Fish" />
+    <img src="logo-256.jpg" alt="Chus's Fish" />
     <div class="nav-logo-text">Chus<span>'s Fish</span></div>
   </a>
   <a href="catalogo.html" class="nav-lnk hide-sm">Catálogo</a>
@@ -417,14 +475,15 @@
 
 <div class="note" id="note"></div>
 
-<script src="auth.js?v=4"></script>
-<script src="ui.js?v=2"></script>
+<script src="auth.js?v=9"></script>
+<script src="ui.js?v=8"></script>
 <script>
 (function(){
   'use strict';
 
   var $ = function(s){ return document.querySelector(s); };
   var db=null, rewards=[], unsub=null, filtro='todos', abierto=null, ultimoFoco=null;
+  var unsubPend=null, pendientes=0;   // puntos ya comprometidos en canjes sin resolver
 
   function aviso(msg){
     var n=$('#note'); n.textContent=msg; n.classList.add('on');
@@ -432,7 +491,17 @@
   }
 
   /* ═══ Estado del cliente ═══ */
-  var saldo   = function(){ return CF.user ? ((CF.profile && CF.profile.points)||0) : null; };
+  /* Saldo REALMENTE disponible: los puntos menos lo que ya pidió y Jesús
+     todavía no resolvió. Las reglas de Firestore comparan cada canje contra
+     el saldo completo, así que con 1.250 puntos se podían pedir tres premios
+     de 600: los tres decían "Listo, es tuyo" y después el panel rechazaba
+     los que no alcanzaban. Prometer algo que se va a caer es peor que
+     no dejarlo pedir. */
+  var saldo   = function(){
+    if (!CF.user) return null;
+    return Math.max(0, ((CF.profile && CF.profile.points) || 0) - pendientes);
+  };
+  var saldoTotal = function(){ return CF.user ? ((CF.profile && CF.profile.points)||0) : null; };
   var stock   = function(r){ return (typeof r.stock==='number' && r.stock>=0) ? r.stock : Infinity; };
   var activos = function(){ return rewards.filter(function(r){ return r.active!==false; }); };
   var agotado = function(r){ return stock(r)<=0; };
@@ -459,16 +528,25 @@
     var t=CF.tierOf((CF.profile && CF.profile.lifetimePoints)||0);
     var n=activos().filter(function(r){ return alcanza(r,p); }).length;
     $('#purse-l').textContent='Tu saldo · Nivel '+t.name;
-    $('#purse-n').innerHTML=CF.fmtNum(p)+'<small>puntos</small>';
+
+    // El numero grande son los puntos que TIENE. Lo reservado se explica
+    // aparte: ver "350" cuando ganaste 1.250 parece que te robaron puntos.
+    $('#purse-n').innerHTML=CF.fmtNum(saldoTotal())+'<small>puntos</small>';
 
     // El más barato que todavía no alcanza: da un objetivo concreto.
     var meta=activos().filter(function(r){ return !agotado(r) && (Number(r.cost)||0)>p; })
       .sort(function(a,b){ return (a.cost||0)-(b.cost||0); })[0];
+    var reservado = pendientes > 0
+      ? '<br><span style="opacity:.8">'+CF.fmtNum(pendientes)+
+        ' están reservados en canjes que Jesús está revisando</span>'
+      : '';
     $('#purse-meta').innerHTML = n
       ? 'Te alcanza para <b>'+n+(n===1?' premio':' premios')+'</b>'+
-        (meta ? '<br>Faltan <b>'+CF.fmtNum(meta.cost-p)+'</b> para «'+CF.esc(meta.name)+'»' : '')
-      : (meta ? 'Faltan <b>'+CF.fmtNum(meta.cost-p)+' puntos</b> para tu primer premio: «'+CF.esc(meta.name)+'»'
-              : 'Seguí comprando para acumular puntos.');
+        (meta ? '<br>Faltan <b>'+CF.fmtNum(meta.cost-p)+'</b> para «'+CF.esc(meta.name)+'»' : '')+reservado
+      // Este es JUSTO el caso donde hace falta la aclaracion: si lo reservado
+      // le deja sin alcanzar nada, sin explicacion parece que perdio puntos.
+      : ((meta ? 'Faltan <b>'+CF.fmtNum(meta.cost-p)+' puntos</b> para tu primer premio: «'+CF.esc(meta.name)+'»'
+               : 'Seguí comprando para acumular puntos.') + reservado);
   }
 
   /* ═══ FILTROS ═══ */
@@ -758,9 +836,26 @@
     });
   }
 
-  CF.onUser(function(){
+  /* Canjes propios que siguen esperando respuesta. */
+  function escucharPendientes(){
+    if(unsubPend || !CF.user) return;
+    unsubPend=db.collection('redemptions')
+      .where('uid','==',CF.user.uid)
+      .onSnapshot(function(snap){
+        var suma=0;
+        snap.forEach(function(d){
+          var r=d.data();
+          if((r.status||'solicitado')==='solicitado') suma += Number(r.cost)||0;
+        });
+        if(suma!==pendientes){ pendientes=suma; pintar(); }
+      }, function(e){ console.error('[canjes pendientes]', e); });
+  }
+
+  CF.onUser(function(u){
     db=CF.db;
     escuchar();
+    if(u) escucharPendientes();
+    else { if(unsubPend){ unsubPend(); unsubPend=null; } pendientes=0; }
     pintar();
     if(abierto){
       var r=rewards.filter(function(x){ return x.id===abierto; })[0];

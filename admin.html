@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Admin — Chus's Fish</title>
   <link rel="icon" href="logo.jpeg" type="image/png">
   <link rel="apple-touch-icon" href="logo.jpeg">
@@ -642,10 +642,15 @@
     .order-date  { font-size:0.65rem; color:var(--muted); }
     .order-delivery { font-size:0.7rem; color:var(--gold-lt); }
     .order-actions { display:flex; gap:0.4rem; flex-wrap:wrap; }
+    /* Sirve para <button> y para <a>. En un <a> el navegador mete su azul y
+       su subrayado por defecto: sin estas dos lineas los botones de WhatsApp
+       de Clientes, Canjes y la ficha salian azules y subrayados. */
     .order-act-btn {
+      display:inline-block; text-decoration:none; color:inherit;
       padding:0.4rem 0.8rem; border-radius:20px; border:1px solid var(--gb);
       font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:600;
       cursor:pointer; transition:all 0.2s; background:transparent;
+      font-family:inherit; line-height:1.4;
     }
     .order-act-confirm { color:var(--blue);  border-color:rgba(41,128,185,0.3); }
     .order-act-confirm:hover { background:rgba(41,128,185,0.15); }
@@ -692,6 +697,21 @@
     .finance-card-label { font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-bottom:0.3rem; }
     .finance-card-val { font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--gold); line-height:1; }
     .finance-card-sub { font-size:0.68rem; color:var(--muted); margin-top:0.2rem; }
+
+    /* Resumen de pedidos compacto en celular.
+       Cada tarjeta ocupaba el ancho entero: antes de ver el primer pedido
+       habia que bajar ~1.200px (cuatro tarjetas, la lista de compras, el
+       buscador y seis filtros). Para la pantalla que se abre veinte veces
+       al dia era demasiado pulgar.
+       OJO: este bloque va DESPUES de las reglas base a proposito — dentro
+       del @media de mas arriba perdia contra el minmax(180px,1fr) de aca. */
+    @media (max-width: 768px) {
+      .finance-grid { grid-template-columns: repeat(2,1fr) !important; gap: 0.55rem; margin-bottom: 1rem; }
+      .finance-card { padding: 0.75rem 0.8rem; }
+      .finance-card-label { font-size: 0.54rem; letter-spacing: 0.11em; margin-bottom: 0.15rem; }
+      .finance-card-value { font-size: 1.15rem; }
+      .finance-card-sub { font-size: 0.6rem; line-height: 1.35; margin-top: 0.15rem; }
+    }
 
     /* ─── RECETAS CSS ──────────────────────── */
     .recipe-admin-card { background:var(--glass); border:1px solid var(--gb); border-radius:var(--radius); padding:1rem 1.2rem; margin-bottom:0.8rem; }
@@ -955,6 +975,19 @@
       display:flex; align-items:center; justify-content:center;
     }
     .catalog-img-item img { width:100%; height:calc(100% - 18px); object-fit:cover; display:block; }
+    /* Etiqueta ampliada: solo cuando se elige un PRODUCTO (no una foto).
+       Se necesita ver el precio para decidir los puntos. */
+    .catalog-img-item.con-precio .catalog-img-item-name {
+      white-space:normal; height:auto; line-height:1.35;
+      padding:0.3rem 0.3rem 0.35rem; font-size:0.53rem;
+      position:absolute; left:0; right:0; bottom:0;
+      background:linear-gradient(to top, rgba(6,14,28,0.96) 60%, rgba(6,14,28,0.55));
+    }
+    .catalog-img-item.con-precio .cip-precio {
+      display:block; color:#e8c98a; font-weight:700; margin-top:0.12rem; font-size:0.58rem;
+    }
+    .catalog-img-item.con-precio img { height:100%; object-fit:cover; }
+
     .catalog-img-item-name {
       font-size:0.52rem; color:var(--muted); text-align:center;
       padding:0.15rem 0.25rem; background:rgba(0,0,0,0.5);
@@ -1205,6 +1238,39 @@
       .invoice-editor { border-right: none; border-bottom: 1px solid var(--gb); max-height: none; }
       .invoice-preview-wrap { max-height: 60vh; padding: 1rem 0.5rem; }
     }
+
+    /* Ficha del cliente */
+    .cli-ficha-ov{position:fixed;inset:0;z-index:1200;background:rgba(3,8,16,.82);
+      backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+      display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+    .cli-ficha-ov.open{display:flex}
+    .cli-ficha{width:100%;max-width:760px;background:linear-gradient(160deg,#0d2137,#060e1c);
+      border:1px solid rgba(200,169,110,.22);border-radius:14px;padding:1.8rem 1.7rem;
+      position:relative;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+    .cli-ficha-x{position:absolute;top:.9rem;right:1rem;background:none;border:0;
+      color:#7a95aa;font-size:1.4rem;cursor:pointer;line-height:1;padding:.2rem}
+    .cli-ficha-x:hover{color:#e8c98a}
+    .cf-nombre{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:#f0f4f8;line-height:1.2}
+    .cf-sub{font-size:.75rem;color:#7a95aa;margin-top:.25rem}
+    .cf-resumen{display:grid;gap:0;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));
+      border-top:1px solid rgba(255,255,255,.06);border-left:1px solid rgba(255,255,255,.06);
+      margin:1.3rem 0}
+    .cf-dato{padding:.8rem .8rem;border-right:1px solid rgba(255,255,255,.06);
+      border-bottom:1px solid rgba(255,255,255,.06)}
+    .cf-dato-n{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#f0f4f8;line-height:1.1}
+    .cf-dato-l{font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:#4d6478;margin-top:.3rem}
+    .cf-fila{display:flex;justify-content:space-between;gap:1rem;padding:.5rem 0;
+      border-bottom:1px solid rgba(255,255,255,.05);font-size:.76rem;color:#7a95aa}
+    .cf-fila b{color:#d4dde8;font-weight:500;text-align:right}
+    .cf-h{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:#c8a96e;
+      margin:1.5rem 0 .7rem}
+    .cf-item{display:flex;justify-content:space-between;gap:1rem;align-items:center;
+      padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .cf-item-t{font-size:.78rem;color:#d4dde8}
+    .cf-item-s{font-size:.65rem;color:#4d6478;margin-top:.15rem}
+    .cf-item-n{font-size:.85rem;color:#e8c98a;white-space:nowrap}
+    .cf-vacio{font-size:.74rem;color:#4d6478;padding:.8rem 0}
+    .cf-scroll{max-height:220px;overflow-y:auto}
   </style>
 </head>
 <body>
@@ -1272,6 +1338,10 @@
       <button class="sb-item" data-view="premios">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
         Premios
+      </button>
+      <button class="sb-item" data-view="cupones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9V7a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z"/><path d="M13 5v2M13 11v2M13 17v2"/></svg>
+        Cupones
       </button>
       <button class="sb-item" data-view="canjes">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2-6.3-4.6-6.3 4.6L7.9 13.8 2 9.4h7.6z"/></svg>
@@ -1432,6 +1502,9 @@
         </div>
 
         <div class="stats-grid" id="stats-grid"></div>
+        <!-- Fidelidad: sin esto el programa de puntos era invisible desde el
+             Dashboard y habia que entrar a tres secciones para saber como iba -->
+        <div class="stats-grid" id="stats-fidelidad" style="display:none"></div>
         <div class="dash-grid">
           <div class="dash-panel">
             <div class="panel-title">Productos por categoría</div>
@@ -1606,6 +1679,11 @@
               <div id="cfg-banner-color-preview" style="margin-top:0.5rem;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.72rem;font-weight:700;color:#060e1c;display:none;text-align:center">
                 Vista previa del color
               </div>
+              <p style="font-size:0.68rem;color:var(--muted);margin-top:0.5rem;line-height:1.6">
+                El <strong style="color:#c8a96e">dorado</strong> es el color de la marca y es el que
+                combina con el resto del sitio. Los otros llaman mas la atencion, pero se ven
+                como una pieza pegada de otro lado — conviene usarlos solo mientras dure el aviso.
+              </p>
             </div>
             <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
               <div style="flex:1">
@@ -1944,7 +2022,27 @@
         <div class="config-panel" style="margin-bottom:1rem">
           <div class="config-panel-title">Buscar cliente</div>
           <input type="text" class="config-input" id="cli-search" placeholder="Nombre, correo o telefono...">
-          <div style="margin-top:0.6rem;font-size:0.72rem;color:#7a95aa" id="cli-count">&nbsp;</div>
+
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;margin-top:0.75rem">
+            <select class="config-input" id="cli-orden" style="width:auto;min-width:190px">
+              <option value="puntos">Mas puntos primero</option>
+              <option value="gasto">Mas compraron primero</option>
+              <option value="pedidos">Mas pedidos primero</option>
+              <option value="reciente">Ultimo pedido mas reciente</option>
+              <option value="dormidos">Hace mas que no piden</option>
+              <option value="nombre">Por nombre (A-Z)</option>
+            </select>
+            <select class="config-input" id="cli-grupo" style="width:auto;min-width:170px">
+              <option value="todos">Todos los clientes</option>
+              <option value="compraron">Ya compraron</option>
+              <option value="sin-comprar">Sin comprar todavia</option>
+              <option value="con-puntos">Con puntos disponibles</option>
+              <option value="dormidos-90">Sin pedir hace 3 meses</option>
+            </select>
+            <button class="order-act-btn" id="cli-export" style="margin-left:auto">Exportar a Excel</button>
+          </div>
+
+          <div style="margin-top:0.7rem;font-size:0.72rem;color:#7a95aa" id="cli-count">&nbsp;</div>
         </div>
         <div id="cli-list"></div>
       </div>
@@ -2005,6 +2103,7 @@
             <div style="flex:1;min-width:120px">
               <label class="config-label">Costo en puntos</label>
               <input type="number" class="config-input" id="rw-cost" min="1" step="1" placeholder="500">
+              <div id="rw-cost-ayuda" style="font-size:0.68rem;color:#7a95aa;margin-top:0.4rem;line-height:1.6"></div>
             </div>
             <div style="flex:1;min-width:120px">
               <label class="config-label">Existencias (-1 = ilimitado)</label>
@@ -2022,9 +2121,13 @@
               un producto que ya esta en el catalogo, usa su misma foto.
             </div>
             <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+              <button type="button" class="config-save-btn" id="rw-from-product"
+                style="background:linear-gradient(135deg,#9a7a48,#c8a96e);color:#060e1c">
+                Traer producto del catalogo
+              </button>
               <button type="button" class="config-save-btn" id="rw-pick-cat"
                 style="background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e">
-                Usar foto del catalogo
+                Solo la foto
               </button>
               <button type="button" class="config-save-btn" id="rw-clear-img"
                 style="background:transparent;border:1px solid rgba(224,92,74,0.4);color:#e05c4a;display:none">
@@ -2067,6 +2170,90 @@
           </div>
         </div>
         <div id="rw-list"></div>
+      </div>
+
+      <!-- ══ CUPONES ══ -->
+      <div id="view-cupones" class="view" style="display:none">
+        <div class="config-panel" style="margin-bottom:1rem">
+          <div class="config-panel-title" id="cup-form-title">Nuevo cupon</div>
+          <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.9rem">
+            El cliente escribe el codigo en el carrito y ve el descuento al instante.
+            El monto queda anotado en el pedido y aparece ya cargado en la factura,
+            donde vos lo confirmas antes de cobrar.
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Codigo</label>
+              <input type="text" class="config-input" id="cup-code" placeholder="BIENVENIDO10"
+                style="text-transform:uppercase;letter-spacing:0.08em">
+              <div style="font-size:0.68rem;color:#7a95aa;margin-top:0.3rem">Sin espacios. Se guarda en mayusculas.</div>
+            </div>
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Tipo de descuento</label>
+              <select class="config-input" id="cup-type">
+                <option value="percent">Porcentaje (%)</option>
+                <option value="amount">Monto fijo (&#8353;)</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:120px">
+              <label class="config-label" id="cup-value-label">Porcentaje</label>
+              <input type="number" class="config-input" id="cup-value" min="1" step="1" placeholder="10">
+            </div>
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Compra minima (0 = sin minimo)</label>
+              <input type="number" class="config-input" id="cup-min" min="0" step="500" value="0">
+            </div>
+            <div style="flex:1;min-width:150px" id="cup-max-wrap">
+              <label class="config-label">Tope de descuento (0 = sin tope)</label>
+              <input type="number" class="config-input" id="cup-max" min="0" step="500" value="0">
+            </div>
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:140px">
+              <label class="config-label">Usos totales (-1 = ilimitado)</label>
+              <input type="number" class="config-input" id="cup-limit" step="1" value="-1">
+            </div>
+            <div style="flex:1;min-width:140px">
+              <label class="config-label">Usos por cliente (0 = sin limite)</label>
+              <input type="number" class="config-input" id="cup-peruser" min="0" step="1" value="1">
+            </div>
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Vigente desde (opcional)</label>
+              <input type="date" class="config-input" id="cup-from">
+            </div>
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Vigente hasta (opcional)</label>
+              <input type="date" class="config-input" id="cup-until">
+            </div>
+          </div>
+
+          <div class="config-field">
+            <div class="toggle-row">
+              <span class="toggle-label">Solo para la primera compra del cliente</span>
+              <label class="toggle"><input type="checkbox" id="cup-first"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row" style="margin-top:0.6rem">
+              <span class="toggle-label">Activo</span>
+              <label class="toggle"><input type="checkbox" id="cup-active" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+
+          <div id="cup-preview" style="font-size:0.75rem;color:#c8a96e;margin-bottom:0.9rem;line-height:1.6"></div>
+
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+            <button class="config-save-btn" id="cup-save">Guardar cupon</button>
+            <button class="config-save-btn" id="cup-cancel" style="display:none;background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e">Cancelar</button>
+          </div>
+        </div>
+        <div id="cup-list"></div>
       </div>
 
       <!-- ══ CANJES ══ -->
@@ -2843,8 +3030,17 @@ function showView(name) {
   if (el) el.style.display = '';
   const btn = document.querySelector(`.sb-item[data-view="${name}"]`);
   if (btn) btn.classList.add('active');
-  const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', productos: 'Productos', categorias: 'Categorías', configuracion: 'Configuración', historial: 'Historial de ventas', notificaciones: 'Solicitudes Avisame', 'post-generator': 'Generador de Posts', clientes: 'Clientes y puntos', premios: 'Premios canjeables', canjes: 'Canjes de premios' };
+  const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', productos: 'Productos', categorias: 'Categorías', configuracion: 'Configuración', historial: 'Historial de ventas', notificaciones: 'Solicitudes Avisame', 'post-generator': 'Generador de Posts', clientes: 'Clientes y puntos', premios: 'Premios canjeables', canjes: 'Canjes de premios', cupones: 'Cupones de descuento' };
   document.getElementById('tb-title').textContent = titles[name] || name;
+
+  /* "Nuevo Producto" arriba a la derecha solo tiene sentido donde se
+     administran productos. En Clientes, Cupones o Canjes confundia: parecia
+     que el boton iba a crear un cliente o un cupon, y abria el catalogo. */
+  const addBtn = document.getElementById('tb-add-btn');
+  if (addBtn) {
+    const CON_ALTA = ['dashboard', 'productos'];
+    addBtn.style.display = CON_ALTA.includes(name) ? '' : 'none';
+  }
   if (name === 'dashboard')       renderDashboard();
   if (name === 'pedidos')         renderOrders();
   if (name === 'productos')       renderTable();
@@ -2856,6 +3052,7 @@ function showView(name) {
   if (name === 'clientes')        renderClientes();
   if (name === 'premios')         renderPremios();
   if (name === 'canjes')          renderCanjes();
+  if (name === 'cupones')         renderCupones();
 }
 
 function renderAll() {
@@ -2887,6 +3084,8 @@ function renderDashboard() {
     <div class="stat-card"><div class="stat-label">Sin imagen</div><div class="stat-value amber">${noImg}</div><div class="stat-sub">sin foto asignada</div></div>
     <div class="stat-card"><div class="stat-label">Categorías</div><div class="stat-value green">${categories}</div><div class="stat-sub">activas</div></div>
   `;
+
+  renderFidelidadKPIs();
 
   const maxCount = Math.max(...CAT_ORDER.map(c => products.filter(p => p.cat === c).length), 1);
   document.getElementById('cat-bars').innerHTML = CAT_ORDER.map(cat => {
@@ -3477,7 +3676,7 @@ function renderFinancialSummary() {
     <div class="finance-card">
       <div class="finance-card-label">Pedidos activos</div>
       <div class="finance-card-val">${active.length}</div>
-      <div class="finance-card-sub">${pending.length} pendientes de confirmar</div>
+      <div class="finance-card-sub">${pending.length} ${pending.length === 1 ? 'pendiente' : 'pendientes'} de confirmar</div>
     </div>
     <div class="finance-card">
       <div class="finance-card-label">Total a cobrar</div>
@@ -3487,7 +3686,7 @@ function renderFinancialSummary() {
     <div class="finance-card">
       <div class="finance-card-label">Por confirmar</div>
       <div class="finance-card-val">₡${pendingRevenue.toLocaleString()}</div>
-      <div class="finance-card-sub">${pending.length} pedidos pendientes</div>
+      <div class="finance-card-sub">${pending.length} ${pending.length === 1 ? 'pendiente' : 'pendientes'}</div>
     </div>
     ${nextDelivery ? `<div class="finance-card">
       <div class="finance-card-label">Próxima entrega</div>
@@ -3543,7 +3742,7 @@ function renderShoppingList() {
       <div class="shopping-list-header" onclick="toggleShoppingList()">
         <div>
           <div class="shopping-list-title">🛒 Lista de compras</div>
-          <div class="shopping-list-sub">${activeOrders.length} pedidos pendientes/confirmados · Total de ingredientes a preparar</div>
+          <div class="shopping-list-sub">${nPedidos(activeOrders.length)} pendientes o confirmados · Total de ingredientes a preparar</div>
         </div>
         <svg class="shopping-list-toggle ${isOpen}" id="shopping-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
@@ -3933,7 +4132,10 @@ function openInvoice(orderId) {
       include: i.include !== false,
     })),
     deliveryFee: invNum(saved ? saved.deliveryFee : o.deliveryFee, 0),
-    discount:    invNum(saved ? saved.discount : 0, 0),
+    // Si el pedido trae cupon, el descuento ya viene puesto: Jesus solo
+    // lo confirma o lo ajusta, no lo tiene que calcular de nuevo.
+    discount:    invNum(saved ? saved.discount : (o.discount ? o.discount.amount : 0), 0),
+    cupon:       (o.discount && o.discount.code) ? o.discount.code : null,
     payment:     (saved && saved.payment) || o.customer?.payment || o.payment || '',
     note:        (saved && saved.note) || '',
     client: {
@@ -3947,6 +4149,7 @@ function openInvoice(orderId) {
 
   document.getElementById('inv-delivery').value = invoiceState.deliveryFee || '';
   document.getElementById('inv-discount').value = invoiceState.discount || '';
+  renderAvisoCupon();
   document.getElementById('inv-payment').value  = invoiceState.payment;
   document.getElementById('inv-note').value     = invoiceState.note;
 
@@ -4317,6 +4520,10 @@ async function saveInvoiceData() {
     // Recalcular puntos con el monto REAL de la factura. awardPointsForOrder
     // es idempotente: si ya se habían dado, aplica solo la diferencia.
     awardPointsForOrder(invoiceState.orderId);
+    // El cupon se cuenta como usado recien acá: al facturar, no al pedir.
+    if (invoiceState.cupon && t.discount > 0) {
+      marcarCuponUsado(invoiceState.cupon, invoiceState.orderId, o && o.uid);
+    }
     renderOrders();
     toast('Factura guardada — el total real quedó registrado');
   } catch (e) {
@@ -5384,8 +5591,11 @@ async function loadNotifications() {
       // Arrancan al entrar, no al abrir la vista: si no, el badge de canjes
       // pendientes marca 0 hasta que a Jesus se le ocurra hacer clic ahi,
       // que es justo lo contrario de para lo que sirve un badge.
+      // Los premios tambien: el Dashboard los necesita para decir para
+      // cuantos canjes alcanzan los puntos que hay dando vueltas.
       watchRedeems();
       watchUsers();
+      watchRewards();
     } else {
       localStorage.removeItem(AUTH_KEY);
       isSuperAdmin = false;
@@ -5859,6 +6069,24 @@ function copyPostCaption() {
   </div>
 </div>
 
+
+<div class="cli-ficha-ov" id="cli-ficha-ov">
+  <div class="cli-ficha">
+    <button class="cli-ficha-x" id="cli-ficha-x" aria-label="Cerrar">&times;</button>
+    <div class="cf-nombre" id="cli-ficha-nombre">—</div>
+    <div class="cf-sub" id="cli-ficha-sub"></div>
+    <div class="cf-resumen" id="cli-ficha-resumen"></div>
+    <div id="cli-ficha-datos"></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.2rem" id="cli-ficha-acciones"></div>
+    <div class="cf-h">Sus pedidos</div>
+    <div class="cf-scroll" id="cli-ficha-pedidos"></div>
+    <div class="cf-h">Movimientos de puntos</div>
+    <div class="cf-scroll" id="cli-ficha-ledger"></div>
+    <div class="cf-h">Premios que pidio</div>
+    <div class="cf-scroll" id="cli-ficha-canjes"></div>
+  </div>
+</div>
+
 <script>
 let _catalogImgTarget = null; // 'recipe', 'promo' o 'reward'
 
@@ -5924,6 +6152,111 @@ function closeCatalogImgPicker() {
   _catalogImgTarget = null;
 }
 
+/* ═══ TRAER UN PRODUCTO DEL CATALOGO A LA RESERVA ═══════════════
+   Antes habia que escribir el nombre a mano, la descripcion a mano, y
+   apretar "usar foto del catalogo" aparte. Tres pasos para algo que en
+   realidad es uno: "quiero regalar ESTE producto".
+   Ahora se elige el producto y se rellena todo; solo queda decidir los
+   puntos, con la cuenta hecha al lado para no tener que sacarla aparte. */
+let _productoElegido = null;
+
+function abrirSelectorProducto() {
+  _catalogImgTarget = 'reward-full';
+  _productoElegido = null;
+  const cont = document.getElementById('catalog-img-grid');
+  const conFoto = (products || []);
+
+  document.querySelector('.catalog-img-modal-header h4').textContent =
+    'Elegí el producto que querés regalar';
+
+  let html = '';
+  CAT_ORDER.forEach(function (cat) {
+    const enCat = conFoto.filter(function (p) { return p.cat === cat; });
+    if (!enCat.length) return;
+    html += '<div class="catalog-img-section">' +
+      '<div class="catalog-img-section-title">' + (CAT_NAMES[cat] || cat) + '</div>' +
+      '<div class="catalog-img-row">' +
+      enCat.map(function (p) {
+        const precio = p.price ? fmt(p.price) + ' ' + esc(p.unit || '') : 'sin precio';
+        return '<div class="catalog-img-item con-precio" data-pid="' + p.id + '" ' +
+          'onclick="elegirProductoPremio(this)" title="' + esc(p.name) + '">' +
+          (p.img
+            ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">'
+            : '<div style="height:100%;display:grid;place-items:center;color:#7a95aa;font-size:1.4rem">—</div>') +
+          '<div class="catalog-img-item-name">' + esc(p.name) +
+            '<span class="cip-precio">' + precio + '</span></div>' +
+          '</div>';
+      }).join('') +
+      '</div></div>';
+  });
+
+  cont.innerHTML = html || '<p style="color:#7a95aa;padding:1rem">No hay productos en el catálogo.</p>';
+  // La clase es 'open', no 'show': con 'show' el modal quedaba invisible.
+  document.getElementById('catalog-img-overlay').classList.add('open');
+}
+
+function elegirProductoPremio(el) {
+  document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected')
+    .forEach(function (x) { x.classList.remove('selected'); });
+  el.classList.add('selected');
+  _productoElegido = (products || []).find(function (p) {
+    return String(p.id) === el.getAttribute('data-pid');
+  }) || null;
+}
+
+function aplicarProductoPremio() {
+  if (!_productoElegido) { toast('Elegí un producto primero'); return; }
+  const p = _productoElegido;
+
+  // La cantidad la decide Jesus; se propone la minima de venta.
+  const unidad = (p.unit || '').toLowerCase().includes('kg') ? '1 kg de ' : '1 ';
+  document.getElementById('rw-name').value = unidad + p.name;
+  document.getElementById('rw-desc').value = p.desc
+    ? String(p.desc).slice(0, 140)
+    : 'Se entrega junto con tu próximo pedido.';
+  document.getElementById('rw-img').value = p.img || '';
+  document.getElementById('rw-cat').value = 'Producto gratis';
+  document.getElementById('rw-cost').dataset.precio = p.price || 0;
+
+  renderRewardImgPreview();
+  actualizarAyudaPuntos();
+  closeCatalogImgPicker();
+  document.getElementById('rw-cost').focus();
+  toast('Producto traído: ahora poné los puntos');
+}
+
+/* Traduce los puntos a algo que se pueda decidir:
+   cuanto tuvo que comprar el cliente, y que porcentaje se le devuelve. */
+function actualizarAyudaPuntos() {
+  const caja = document.getElementById('rw-cost-ayuda');
+  if (!caja) return;
+  const costo  = Number(document.getElementById('rw-cost').value) || 0;
+  const precio = Number(document.getElementById('rw-cost').dataset.precio) || 0;
+  const tasa   = ptsRate();
+
+  if (!costo) {
+    caja.innerHTML = precio
+      ? 'Este producto vale <b style="color:#c8a96e">' + fmt(precio) + '</b>. ' +
+        'Poné cuántos puntos va a costar y te digo qué tan caro te sale.'
+      : 'Poné cuántos puntos va a costar.';
+    return;
+  }
+
+  // Con la tasa actual, ¿cuanto hay que comprar para juntar esos puntos?
+  const compraNecesaria = tasa > 0 ? Math.round(costo / tasa * 100) : 0;
+  let txt = 'Con ' + costo.toLocaleString('es-CR') + ' puntos, el cliente tuvo que comprar ' +
+            '<b style="color:#c8a96e">' + fmt(compraNecesaria) + '</b> para ganárselo.';
+
+  if (precio && compraNecesaria > 0) {
+    const pct = (precio / compraNecesaria) * 100;
+    const color = pct > 12 ? '#ff9b8c' : (pct > 7 ? '#e8c98a' : '#6fe0a0');
+    txt += '<br>Le estás devolviendo un <b style="color:' + color + '">' +
+           pct.toFixed(1) + '%</b> de lo que gastó' +
+           (pct > 12 ? ' — es bastante, revisá tu margen.' : '.');
+  }
+  caja.innerHTML = txt;
+}
+
 function toggleCatalogImgItem(el) {
   // Un premio lleva una sola foto; recetas y combos llevan varias.
   if (_catalogImgTarget === 'reward') {
@@ -5938,6 +6271,7 @@ function toggleCatalogImgItem(el) {
 
 function applyCatalogImgSelection() {
   if (!_catalogImgTarget) return;
+  if (_catalogImgTarget === 'reward-full') { aplicarProductoPremio(); return; }
   const selectedImgs = [];
   document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected').forEach(function(el) {
     const imgUrl = el.getAttribute('data-img');
@@ -6120,9 +6454,149 @@ function watchUsers() {
     cfUsers = [];
     snap.forEach(d => cfUsers.push({ id: d.id, ...d.data() }));
     cfUsers.sort((a,b) => (Number(b.points)||0) - (Number(a.points)||0));
-    if (currentView === 'clientes') renderClientes();
-    if (currentView === 'canjes')   renderCanjes();
+    if (currentView === 'clientes')  renderClientes();
+    if (currentView === 'canjes')    renderCanjes();
+    if (currentView === 'dashboard') renderFidelidadKPIs();
   }, (e) => console.error('[clientes]', e));
+}
+
+/* ─── Fidelidad de un vistazo, en el Dashboard ───────────────────
+   Lo que un dueño necesita saber sin entrar a ninguna seccion:
+   cuanta gente tiene cuenta, cuantos puntos hay SIN canjear (que es
+   producto que ya debe) y si hay canjes esperandolo. */
+function renderFidelidadKPIs() {
+  const box = document.getElementById('stats-fidelidad');
+  if (!box) return;
+
+  // Todavia no llegaron los datos: mejor no mostrar ceros que asustan.
+  if (!cfUsers.length) { box.style.display = 'none'; return; }
+
+  const clientes   = cfUsers.length;
+  const conPuntos  = cfUsers.filter(u => (Number(u.points) || 0) > 0).length;
+  const pendientes = cfUsers.reduce((s, u) => s + (Number(u.points) || 0), 0);
+  const porAprobar = cfRedeems.filter(r => (r.status || 'solicitado') === 'solicitado').length;
+
+  // Cuanto "vale" ese saldo: en canjes del premio mas barato disponible.
+  const baratos = cfRewards
+    .filter(r => r.active !== false && Number(r.stock) !== 0 && Number(r.cost) > 0)
+    .map(r => Number(r.cost));
+  const masBarato = baratos.length ? Math.min(...baratos) : 0;
+  const alcanzaPara = masBarato ? Math.floor(pendientes / masBarato) : null;
+
+  box.style.display = '';
+  box.innerHTML = `
+    <div class="stat-card" style="cursor:pointer" onclick="showView('clientes')">
+      <div class="stat-label">Clientes con cuenta</div>
+      <div class="stat-value gold">${clientes}</div>
+      <div class="stat-sub">${conPuntos} con puntos</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showView('premios')">
+      <div class="stat-label">Puntos sin canjear</div>
+      <div class="stat-value amber">${pendientes.toLocaleString('es-CR')}</div>
+      <div class="stat-sub">${alcanzaPara !== null
+        ? 'alcanzan para ' + alcanzaPara + (alcanzaPara === 1 ? ' canje' : ' canjes')
+        : 'sin premios cargados'}</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showView('canjes')">
+      <div class="stat-label">Canjes por aprobar</div>
+      <div class="stat-value ${porAprobar ? 'red' : 'green'}">${porAprobar}</div>
+      <div class="stat-sub">${porAprobar ? 'esperando respuesta' : 'todo al dia'}</div></div>
+  `;
+}
+
+/* ═══ ORDEN Y GRUPOS DE CLIENTES ═══════════════════════════════
+   Con 4 clientes daba igual; con 200 no se encuentra a nadie. "Hace mas
+   que no piden" es la lista para mandar un cupon de vuelta. */
+let cliOrden = 'puntos', cliGrupo = 'todos';
+
+function ultimoPedido(u) {
+  const d = u.lastOrderAt || u.updatedAt;
+  return d && d.toDate ? d.toDate().getTime() : 0;
+}
+function diasSinPedir(u) {
+  const t = ultimoPedido(u);
+  return t ? Math.floor((Date.now() - t) / 86400000) : null;
+}
+
+function filtrarClientes(lista) {
+  switch (cliGrupo) {
+    case 'compraron':    return lista.filter(u => (Number(u.ordersCount)||0) > 0);
+    case 'sin-comprar':  return lista.filter(u => !(Number(u.ordersCount)||0));
+    case 'con-puntos':   return lista.filter(u => (Number(u.points)||0) > 0);
+    case 'dormidos-90':  return lista.filter(u => {
+      const d = diasSinPedir(u);
+      return (Number(u.ordersCount)||0) > 0 && d !== null && d >= 90;
+    });
+    default: return lista;
+  }
+}
+
+function ordenarClientes(lista) {
+  const num = (v) => Number(v) || 0;
+  switch (cliOrden) {
+    case 'gasto':    return lista.sort((a,b) => num(b.totalSpent) - num(a.totalSpent));
+    case 'pedidos':  return lista.sort((a,b) => num(b.ordersCount) - num(a.ordersCount));
+    case 'reciente': return lista.sort((a,b) => ultimoPedido(b) - ultimoPedido(a));
+    // Los que nunca pidieron van al final: no estan "dormidos", nunca despertaron.
+    case 'dormidos': return lista.sort((a,b) => {
+      const da = diasSinPedir(a), db2 = diasSinPedir(b);
+      if (da === null && db2 === null) return 0;
+      if (da === null) return 1;
+      if (db2 === null) return -1;
+      return db2 - da;
+    });
+    case 'nombre':   return lista.sort((a,b) =>
+      (a.name||'').localeCompare(b.name||'', 'es', { sensitivity:'base' }));
+    default:         return lista.sort((a,b) => num(b.points) - num(a.points));
+  }
+}
+
+/* Exporta lo que se ve en pantalla, con el orden y el filtro puestos.
+   Con BOM para que Excel en Windows lea bien las tildes. */
+function exportarClientes() {
+  const q = cliFilter.trim().toLowerCase();
+  let list = !q ? cfUsers.slice() : cfUsers.filter(u =>
+    (u.name||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q) ||
+    (u.phone||'').includes(q));
+  list = ordenarClientes(filtrarClientes(list));
+
+  if (!list.length) { toast('No hay clientes que exportar'); return; }
+
+  const campo = v => {
+    const t = String(v == null ? '' : v);
+    // Se entrecomilla siempre: es CSV valido y evita tener que
+    // detectar comillas, puntos y coma o saltos de linea.
+    return '"' + t.replace(/"/g, '""') + '"';
+  };
+  const filas = [
+    ['Nombre','Correo','Telefono','Zona','Direccion','Nivel','Puntos','Puntos de por vida','Pedidos','Total comprado','Dias sin pedir','Cliente desde']
+  ];
+  list.forEach(u => {
+    const t = cfTierOf(u.lifetimePoints || 0);
+    const alta = u.createdAt && u.createdAt.toDate ? u.createdAt.toDate().toLocaleDateString('es-CR') : '';
+    const dias = diasSinPedir(u);
+    filas.push([u.name, u.email, u.phone, u.zone, u.address, t.name,
+      Number(u.points)||0, Number(u.lifetimePoints)||0, Number(u.ordersCount)||0,
+      Math.round(Number(u.totalSpent)||0), dias === null ? '' : dias, alta]);
+  });
+
+  // Excel en es-CR usa punto y coma como separador, espera CRLF y
+  // necesita el BOM para leer bien las tildes.
+  const SALTO = String.fromCharCode(13, 10);
+  const BOM   = String.fromCharCode(65279);
+  const csv = BOM + filas.map(f => f.map(campo).join(';')).join(SALTO);
+  const url = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8;' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'clientes-chusfish-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(list.length + (list.length === 1 ? ' cliente exportado' : ' clientes exportados'));
+}
+
+// "1 pedidos" se leia mal en la lista de clientes.
+function nPedidos(n) {
+  n = Number(n) || 0;
+  return n + (n === 1 ? ' pedido' : ' pedidos');
 }
 
 function renderClientes() {
@@ -6130,10 +6604,12 @@ function renderClientes() {
   const box = document.getElementById('cli-list');
   if (!box) return;
   const q = cliFilter.trim().toLowerCase();
-  const list = !q ? cfUsers : cfUsers.filter(u =>
+  let list = !q ? cfUsers.slice() : cfUsers.filter(u =>
     (u.name||'').toLowerCase().includes(q) ||
     (u.email||'').toLowerCase().includes(q) ||
     (u.phone||'').includes(q));
+
+  list = ordenarClientes(filtrarClientes(list));
 
   document.getElementById('cli-count').textContent =
     cfUsers.length ? list.length + ' de ' + cfUsers.length + ' clientes' : '';
@@ -6148,17 +6624,18 @@ function renderClientes() {
   box.innerHTML = list.map(u => {
     const t = cfTierOf(u.lifetimePoints || 0);
     const waBtn = u.phone
-      ? '<a class="order-act-btn" target="_blank" href="https://wa.me/506' +
+      ? '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' +
         esc(String(u.phone).replace(/\D/g,'')) + '">WhatsApp</a>'
       : '';
-    return '<div class="config-panel" style="margin-bottom:0.7rem">' +
+    return '<div class="config-panel" style="margin-bottom:0.7rem;cursor:pointer" ' +
+      'onclick="if(!event.target.closest(&quot;button,a&quot;)) abrirFicha(&quot;' + esc(u.id) + '&quot;)">' +
       '<div style="display:flex;flex-wrap:wrap;gap:0.8rem;align-items:center;justify-content:space-between">' +
         '<div style="min-width:180px">' +
           '<div style="font-size:0.95rem;color:#f0f4f8">' + esc(u.name || 'Sin nombre') + '</div>' +
           '<div style="font-size:0.72rem;color:#7a95aa;margin-top:0.15rem">' +
             esc(u.email || '') + (u.phone ? ' · ' + esc(u.phone) : '') + '</div>' +
           '<div style="font-size:0.68rem;color:#c8a96e;margin-top:0.25rem">Nivel ' + t.name +
-            ' · ' + (Number(u.ordersCount)||0) + ' pedidos · ' + fmt(Math.round(Number(u.totalSpent)||0)) + '</div>' +
+            ' · ' + nPedidos(u.ordersCount) + ' · ' + fmt(Math.round(Number(u.totalSpent)||0)) + '</div>' +
         '</div>' +
         '<div style="text-align:right">' +
           '<div style="font-size:1.6rem;color:#e8c98a;line-height:1">' + (Number(u.points)||0) + '</div>' +
@@ -6166,6 +6643,7 @@ function renderClientes() {
         '</div>' +
       '</div>' +
       '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem">' +
+        '<button class="order-act-btn" onclick="abrirFicha(&quot;' + esc(u.id) + '&quot;)">Ver ficha</button>' +
         '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,1)">+ Dar puntos</button>' +
         '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,-1)">- Quitar puntos</button>' +
         waBtn +
@@ -6194,6 +6672,14 @@ document.getElementById('cli-search').addEventListener('input', function () {
   cliFilter = this.value; renderClientes();
 });
 
+document.getElementById('cli-orden').addEventListener('change', function () {
+  cliOrden = this.value; renderClientes();
+});
+document.getElementById('cli-grupo').addEventListener('change', function () {
+  cliGrupo = this.value; renderClientes();
+});
+document.getElementById('cli-export').addEventListener('click', exportarClientes);
+
 /* ════════ VISTA: PREMIOS ════════ */
 let cfRewards = [], unsubRewards = null, editingRewardId = null;
 
@@ -6203,7 +6689,8 @@ function watchRewards() {
     cfRewards = [];
     snap.forEach(d => cfRewards.push({ id: d.id, ...d.data() }));
     cfRewards.sort((a,b) => (Number(a.cost)||0) - (Number(b.cost)||0));
-    if (currentView === 'premios') renderRewardList();
+    if (currentView === 'premios')   renderRewardList();
+    if (currentView === 'dashboard') renderFidelidadKPIs();
   }, (e) => console.error('[premios]', e));
 }
 
@@ -6362,6 +6849,9 @@ function renderRewardImgPreview() {
   }
 }
 
+document.getElementById('rw-from-product').addEventListener('click', abrirSelectorProducto);
+document.getElementById('rw-cost').addEventListener('input', actualizarAyudaPuntos);
+
 document.getElementById('rw-pick-cat').addEventListener('click', function () {
   openCatalogImgPicker('reward');
 });
@@ -6449,7 +6939,8 @@ function watchRedeems() {
       return tb - ta;
     });
     updateRedeemBadge();
-    if (currentView === 'canjes') renderCanjes();
+    if (currentView === 'canjes')    renderCanjes();
+    if (currentView === 'dashboard') renderFidelidadKPIs();
   }, (e) => console.error('[canjes]', e));
 }
 
@@ -6493,7 +6984,7 @@ function renderCanjes() {
       acts = '<button class="order-act-btn order-act-deliver" onclick="markRedeemDelivered(&quot;' + esc(r.id) + '&quot;)">Marcar entregado</button>';
     }
     if (r.userPhone) {
-      acts += '<a class="order-act-btn" target="_blank" href="https://wa.me/506' +
+      acts += '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' +
               esc(String(r.userPhone).replace(/\D/g,'')) + '">WhatsApp</a>';
     }
     const warn = (short && st === 'solicitado')
@@ -6735,6 +7226,611 @@ document.getElementById('tier-save').addEventListener('click', async function ()
     toast('Niveles guardados');
   } catch (e) { toast('Error: ' + e.message); }
   finally { this.disabled = false; }
+});
+
+
+/* ════════ VISTA: CUPONES ════════
+   El ID del documento ES el codigo (coupons/BIENVENIDO10). Asi el cliente
+   puede consultar el suyo sin poder listar todos: las reglas permiten `get`
+   pero no `list`. */
+
+const COUPONS_REF = db.collection('coupons');
+let cfCoupons = [], unsubCoupons = null, editandoCupon = null;
+
+function watchCupones() {
+  if (unsubCoupons) return;
+  unsubCoupons = COUPONS_REF.onSnapshot((snap) => {
+    cfCoupons = [];
+    snap.forEach(d => cfCoupons.push({ id: d.id, ...d.data() }));
+    cfCoupons.sort((a, b) => {
+      const aa = a.active === false ? 1 : 0, bb = b.active === false ? 1 : 0;
+      if (aa !== bb) return aa - bb;              // activos primero
+      return a.id.localeCompare(b.id);
+    });
+    if (currentView === 'cupones') renderListaCupones();
+  }, (e) => console.error('[cupones]', e));
+}
+
+function renderCupones() {
+  watchCupones();
+  renderListaCupones();
+  actualizarPreviewCupon();
+}
+
+function cupForm() {
+  return {
+    code:    document.getElementById('cup-code'),
+    type:    document.getElementById('cup-type'),
+    value:   document.getElementById('cup-value'),
+    min:     document.getElementById('cup-min'),
+    max:     document.getElementById('cup-max'),
+    limit:   document.getElementById('cup-limit'),
+    peruser: document.getElementById('cup-peruser'),
+    from:    document.getElementById('cup-from'),
+    until:   document.getElementById('cup-until'),
+    first:   document.getElementById('cup-first'),
+    active:  document.getElementById('cup-active'),
+  };
+}
+
+/* Un cupon mal armado se detecta cuando ya lo uso un cliente. Este texto
+   dice en castellano lo que va a pasar, antes de guardarlo. */
+function actualizarPreviewCupon() {
+  const f = cupForm();
+  const el = document.getElementById('cup-preview');
+  if (!el) return;
+
+  const esPct = f.type.value === 'percent';
+  document.getElementById('cup-value-label').textContent = esPct ? 'Porcentaje' : 'Monto en colones';
+  document.getElementById('cup-max-wrap').style.display = esPct ? '' : 'none';
+
+  const val = parseFloat(f.value.value) || 0;
+  const min = parseFloat(f.min.value) || 0;
+  const max = parseFloat(f.max.value) || 0;
+  if (!val) { el.textContent = ''; return; }
+
+  const ejemplo = Math.max(min, 20000);
+  let desc = esPct ? ejemplo * val / 100 : val;
+  if (esPct && max > 0) desc = Math.min(desc, max);
+  desc = Math.min(Math.round(desc), ejemplo);
+
+  el.innerHTML = 'En un pedido de <b>' + fmt(ejemplo) + '</b> descuenta <b>' + fmt(desc) + '</b>' +
+    (min > 0 ? ' · aplica desde ' + fmt(min) : '') +
+    (esPct && max > 0 ? ' · tope ' + fmt(max) : '');
+}
+
+['cup-type','cup-value','cup-min','cup-max'].forEach(function (id) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', actualizarPreviewCupon);
+});
+document.getElementById('cup-type').addEventListener('change', actualizarPreviewCupon);
+
+function resetCuponForm() {
+  const f = cupForm();
+  f.code.value = ''; f.value.value = ''; f.min.value = '0'; f.max.value = '0';
+  f.limit.value = '-1'; f.peruser.value = '1';
+  f.from.value = ''; f.until.value = '';
+  f.type.value = 'percent';
+  f.first.checked = false; f.active.checked = true;
+  f.code.disabled = false;
+  editandoCupon = null;
+  document.getElementById('cup-form-title').textContent = 'Nuevo cupon';
+  document.getElementById('cup-cancel').style.display = 'none';
+  actualizarPreviewCupon();
+}
+document.getElementById('cup-cancel').addEventListener('click', resetCuponForm);
+
+function aFecha(v) {
+  if (!v) return '';
+  const d = v && typeof v.toDate === 'function' ? v.toDate() : new Date(v);
+  if (isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0, 10);
+}
+
+function editCupon(id) {
+  const c = cfCoupons.find(x => x.id === id);
+  if (!c) return;
+  const f = cupForm();
+  f.code.value = c.id;
+  f.code.disabled = true;             // el codigo es el ID: no se puede renombrar
+  f.type.value = c.type || 'percent';
+  f.value.value = c.value || '';
+  f.min.value = c.minOrder || 0;
+  f.max.value = c.maxDiscount || 0;
+  f.limit.value = (typeof c.usageLimit === 'number' ? c.usageLimit : -1);
+  f.peruser.value = (typeof c.perUserLimit === 'number' ? c.perUserLimit : 1);
+  f.from.value = aFecha(c.validFrom);
+  f.until.value = aFecha(c.validUntil);
+  f.first.checked = !!c.firstOrderOnly;
+  f.active.checked = c.active !== false;
+  editandoCupon = id;
+  document.getElementById('cup-form-title').textContent = 'Editando: ' + id;
+  document.getElementById('cup-cancel').style.display = '';
+  actualizarPreviewCupon();
+  f.value.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+document.getElementById('cup-save').addEventListener('click', async function () {
+  const f = cupForm();
+  const codigo = String(f.code.value || '').trim().toUpperCase().replace(/\s+/g, '');
+  const valor  = parseFloat(f.value.value) || 0;
+
+  if (!codigo)            { toast('Escribi el codigo'); return; }
+  if (!/^[A-Z0-9-]{3,}$/.test(codigo)) {
+    toast('El codigo va con letras, numeros o guiones (minimo 3)'); return;
+  }
+  if (valor <= 0)         { toast('El descuento tiene que ser mayor a 0'); return; }
+  if (f.type.value === 'percent' && valor > 100) { toast('Un porcentaje no puede pasar de 100'); return; }
+
+  if (!editandoCupon && cfCoupons.some(c => c.id === codigo)) {
+    toast('Ya existe un cupon con ese codigo'); return;
+  }
+
+  const desde = f.from.value ? new Date(f.from.value + 'T00:00:00') : null;
+  const hasta = f.until.value ? new Date(f.until.value + 'T23:59:59') : null;
+  if (desde && hasta && hasta < desde) { toast('La fecha de fin es anterior a la de inicio'); return; }
+
+  const limite = parseInt(f.limit.value, 10);
+  const datos = {
+    type:         f.type.value,
+    value:        valor,
+    minOrder:     parseFloat(f.min.value) || 0,
+    maxDiscount:  f.type.value === 'percent' ? (parseFloat(f.max.value) || 0) : 0,
+    usageLimit:   isNaN(limite) ? -1 : limite,
+    perUserLimit: parseInt(f.peruser.value, 10) || 0,
+    validFrom:    desde,
+    validUntil:   hasta,
+    firstOrderOnly: f.first.checked,
+    active:       f.active.checked,
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+  };
+
+  this.disabled = true;
+  try {
+    if (editandoCupon) {
+      await COUPONS_REF.doc(editandoCupon).update(datos);
+      toast('Cupon actualizado');
+    } else {
+      datos.usedCount = 0;
+      datos.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await COUPONS_REF.doc(codigo).set(datos);
+      toast('Cupon ' + codigo + ' creado');
+    }
+    resetCuponForm();
+  } catch (e) { toast('Error: ' + e.message); }
+  finally { this.disabled = false; }
+});
+
+function estadoCupon(c) {
+  if (c.active === false) return { txt: 'Desactivado', color: '#e05c4a' };
+  const ahora = new Date();
+  const desde = c.validFrom && c.validFrom.toDate ? c.validFrom.toDate() : null;
+  const hasta = c.validUntil && c.validUntil.toDate ? c.validUntil.toDate() : null;
+  if (desde && ahora < desde) return { txt: 'Aun no vigente', color: '#c8a96e' };
+  if (hasta && ahora > hasta) return { txt: 'Vencido', color: '#e05c4a' };
+  const lim = Number(c.usageLimit);
+  if (!isNaN(lim) && lim >= 0 && (Number(c.usedCount) || 0) >= lim) {
+    return { txt: 'Agotado', color: '#e05c4a' };
+  }
+  return { txt: 'Activo', color: '#27ae60' };
+}
+
+function renderListaCupones() {
+  const box = document.getElementById('cup-list');
+  if (!box) return;
+  if (!cfCoupons.length) {
+    box.innerHTML = '<div class="empty-state" style="padding:2.5rem 1rem;text-align:center;color:#7a95aa">' +
+      'Todavia no hay cupones. Crea el primero arriba.</div>';
+    return;
+  }
+
+  box.innerHTML = cfCoupons.map(c => {
+    const est = estadoCupon(c);
+    const esPct = c.type === 'percent';
+    const usados = Number(c.usedCount) || 0;
+    const lim = Number(c.usageLimit);
+    const restantes = (!isNaN(lim) && lim >= 0) ? Math.max(0, lim - usados) : null;
+
+    const detalles = [];
+    if (c.minOrder > 0)    detalles.push('desde ' + fmt(c.minOrder));
+    if (esPct && c.maxDiscount > 0) detalles.push('tope ' + fmt(c.maxDiscount));
+    if (c.firstOrderOnly)  detalles.push('solo 1a compra');
+    if (c.perUserLimit > 0) detalles.push(c.perUserLimit + ' por cliente');
+    const desde = c.validFrom && c.validFrom.toDate ? c.validFrom.toDate() : null;
+    const hasta = c.validUntil && c.validUntil.toDate ? c.validUntil.toDate() : null;
+    const f = d => d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short' });
+    if (desde || hasta) {
+      detalles.push((desde ? 'del ' + f(desde) : '') + (hasta ? ' al ' + f(hasta) : ''));
+    }
+
+    return '<div class="config-panel" style="margin-bottom:0.7rem;' +
+      (c.active === false ? 'opacity:0.6' : '') + '">' +
+      '<div style="display:flex;flex-wrap:wrap;gap:0.9rem;align-items:center;justify-content:space-between">' +
+        '<div style="min-width:180px">' +
+          '<div style="font-family:monospace;font-size:1.05rem;color:#e8c98a;letter-spacing:0.1em">' +
+            esc(c.id) + '</div>' +
+          '<div style="font-size:0.72rem;color:#7a95aa;margin-top:0.25rem">' +
+            (esPct ? c.value + '% de descuento' : fmt(c.value) + ' de descuento') +
+            (detalles.length ? ' · ' + esc(detalles.join(' · ')) : '') + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:' +
+            est.color + '">' + est.txt + '</div>' +
+          '<div style="font-size:0.72rem;color:#7a95aa;margin-top:0.2rem">' +
+            'Usado ' + usados + (restantes !== null ? ' · quedan ' + restantes : ' veces') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem">' +
+        '<button class="order-act-btn" onclick="editCupon(&quot;' + esc(c.id) + '&quot;)">Editar</button>' +
+        '<button class="order-act-btn" onclick="toggleCupon(&quot;' + esc(c.id) + '&quot;)">' +
+          (c.active === false ? 'Activar' : 'Desactivar') + '</button>' +
+        '<button class="order-act-btn" onclick="copiarCupon(&quot;' + esc(c.id) + '&quot;)">Copiar codigo</button>' +
+        (usados > 0
+          ? '<button class="order-act-btn" onclick="verUsosCupon(&quot;' + esc(c.id) + '&quot;,this)">Ver quien lo uso</button>'
+          : '') +
+        '<button class="order-act-btn order-act-cancel" onclick="borrarCupon(&quot;' + esc(c.id) + '&quot;)">Borrar</button>' +
+      '</div>' +
+      '<div class="cup-usos" id="usos-' + esc(c.id) + '" style="display:none"></div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ═══ QUIEN USO UN CUPON ═══════════════════════════════════════
+   El contador decia "usado 3 veces" pero no quien, y sin eso no se puede
+   saber si una campana funciono. El dato ya se guardaba: cada vez que se
+   factura un pedido con cupon queda un registro en
+   coupons/{codigo}/orders/{idDelPedido} con el uid y la fecha. */
+async function verUsosCupon(codigo, boton) {
+  const caja = document.getElementById('usos-' + codigo);
+  if (!caja) return;
+
+  // Segundo clic: se cierra.
+  if (caja.style.display !== 'none') {
+    caja.style.display = 'none';
+    boton.textContent = 'Ver quien lo uso';
+    return;
+  }
+
+  boton.textContent = 'Ocultar';
+  caja.style.display = 'block';
+  caja.innerHTML = '<div style="padding:0.9rem 0;color:#7a95aa;font-size:0.75rem">Cargando…</div>';
+
+  try {
+    const snap = await db.collection('coupons').doc(codigo).collection('orders').get();
+    const usos = [];
+    snap.forEach(d => usos.push(d.data()));
+    usos.sort((a, b) => (b.at && b.at.toMillis ? b.at.toMillis() : 0) -
+                        (a.at && a.at.toMillis ? a.at.toMillis() : 0));
+
+    if (!usos.length) {
+      caja.innerHTML = '<div style="padding:0.9rem 0;color:#7a95aa;font-size:0.75rem">' +
+        'Todavia no hay pedidos facturados con este cupon.</div>';
+      return;
+    }
+
+    caja.innerHTML =
+      '<div style="border-top:1px solid rgba(200,169,110,0.12);margin-top:0.9rem;padding-top:0.8rem">' +
+      '<div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#7a95aa;margin-bottom:0.6rem">' +
+        usos.length + (usos.length === 1 ? ' uso' : ' usos') + '</div>' +
+      usos.map(u => {
+        const cliente = u.uid ? cfUsers.find(x => x.id === u.uid) : null;
+        // Un pedido sin cuenta tambien puede llevar cupon: no es un error.
+        const quien = cliente
+          ? esc(cliente.name || cliente.email || 'Cliente')
+          : (u.uid ? 'Cliente dado de baja' : 'Pedido sin cuenta');
+        const cuando = u.at && u.at.toDate
+          ? u.at.toDate().toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' })
+          : '';
+        return '<div style="display:flex;justify-content:space-between;gap:0.8rem;flex-wrap:wrap;' +
+          'padding:0.5rem 0;border-bottom:1px solid rgba(200,169,110,0.07);font-size:0.78rem">' +
+          '<span style="color:#d4dde8">' + quien +
+            (cliente && cliente.phone ? ' <span style="color:#7a95aa">· ' + esc(cliente.phone) + '</span>' : '') +
+          '</span>' +
+          '<span style="color:#7a95aa;white-space:nowrap">' + cuando + '</span>' +
+        '</div>';
+      }).join('') +
+      '</div>';
+  } catch (e) {
+    console.error('[usos cupon]', e);
+    caja.innerHTML = '<div style="padding:0.9rem 0;color:#ff9b8c;font-size:0.75rem">' +
+      'No se pudieron cargar los usos. Recarga la pagina.</div>';
+  }
+}
+
+async function toggleCupon(id) {
+  const c = cfCoupons.find(x => x.id === id);
+  if (!c) return;
+  try { await COUPONS_REF.doc(id).update({ active: c.active === false }); }
+  catch (e) { toast('Error: ' + e.message); }
+}
+
+async function borrarCupon(id) {
+  const c = cfCoupons.find(x => x.id === id);
+  const usados = Number(c && c.usedCount) || 0;
+  const aviso = usados > 0
+    ? 'El cupon ' + id + ' ya se uso ' + usados + ' vez/veces. Si lo borras se pierde ese historial.\n\nMejor desactivalo.\n\nBorrar igual?'
+    : 'Borrar el cupon ' + id + '?';
+  if (!confirm(aviso)) return;
+  try { await COUPONS_REF.doc(id).delete(); toast('Cupon borrado'); }
+  catch (e) { toast('Error: ' + e.message); }
+}
+
+function copiarCupon(id) {
+  try {
+    navigator.clipboard.writeText(id);
+    toast('Codigo ' + id + ' copiado');
+  } catch (e) { toast('Codigo: ' + id); }
+}
+
+
+/* ── El cupon en la factura ─────────────────────────────────────
+   Se cuenta como usado al FACTURAR, no al pedir: si el pedido se cae,
+   el cupon no se gasta. Idempotente por pedido, para que reabrir y
+   volver a guardar la factura no lo cuente dos veces. */
+function renderAvisoCupon() {
+  var cont = document.getElementById('inv-discount');
+  if (!cont) return;
+  var campo = cont.closest('.invoice-field') || cont.parentElement;
+  var viejo = document.getElementById('inv-cupon-aviso');
+  if (viejo) viejo.remove();
+  if (!invoiceState || !invoiceState.cupon) return;
+
+  var d = document.createElement('div');
+  d.id = 'inv-cupon-aviso';
+  d.style.cssText = 'font-size:0.7rem;color:#c8a96e;margin-top:0.35rem;line-height:1.5';
+  d.textContent = 'El cliente aplicó el cupón ' + invoiceState.cupon +
+                  '. Se cuenta como usado al guardar esta factura.';
+  campo.appendChild(d);
+}
+
+async function marcarCuponUsado(codigo, orderId, uid) {
+  try {
+    await db.runTransaction(async (tx) => {
+      const cRef = COUPONS_REF.doc(codigo);
+      const cSnap = await tx.get(cRef);
+      if (!cSnap.exists) return;
+
+      // Marca por pedido: si ya se conto este pedido, no se cuenta de nuevo.
+      const marcaRef = cRef.collection('orders').doc(orderId);
+      const marca = await tx.get(marcaRef);
+      if (marca.exists) return;
+
+      let usoCliente = null;
+      if (uid) {
+        const uRef = cRef.collection('redemptions').doc(uid);
+        usoCliente = await tx.get(uRef);
+      }
+
+      tx.update(cRef, { usedCount: (Number(cSnap.data().usedCount) || 0) + 1 });
+      tx.set(marcaRef, { orderId: orderId, uid: uid || null,
+                         at: firebase.firestore.FieldValue.serverTimestamp() });
+      if (uid) {
+        tx.set(cRef.collection('redemptions').doc(uid), {
+          count: ((usoCliente && usoCliente.exists ? Number(usoCliente.data().count) : 0) || 0) + 1,
+          last: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+    });
+  } catch (e) {
+    console.error('[cupon uso]', e);
+    toast('No se pudo registrar el uso del cupon: ' + e.message);
+  }
+}
+
+
+/* ════════ FICHA DEL CLIENTE ════════
+   Se abre al tocar un cliente. Junta en una pantalla lo que Jesus necesita
+   cuando alguien llama: quien es, cuantos puntos tiene, que compro, que
+   canjeo y de donde salio cada punto. */
+
+let fichaUid = null, unsubFichaLedger = null, unsubFichaCanjes = null;
+
+function abrirFicha(uid) {
+  const u = cfUsers.find(x => x.id === uid);
+  if (!u) return;
+  fichaUid = uid;
+  document.getElementById('cli-ficha-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderFicha();
+
+  if (unsubFichaLedger) unsubFichaLedger();
+  unsubFichaLedger = USERS_REF.doc(uid).collection('ledger')
+    .orderBy('createdAt', 'desc').limit(50)
+    .onSnapshot(s => {
+      const m = [];
+      s.forEach(d => m.push(d.data()));
+      pintarFichaLedger(m);
+    }, e => console.error('[ficha ledger]', e));
+
+  if (unsubFichaCanjes) unsubFichaCanjes();
+  unsubFichaCanjes = REDEEM_REF.where('uid', '==', uid)
+    .onSnapshot(s => {
+      const m = [];
+      s.forEach(d => m.push({ id: d.id, ...d.data() }));
+      m.sort((a, b) => {
+        const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+        const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+        return tb - ta;
+      });
+      pintarFichaCanjes(m);
+    }, e => console.error('[ficha canjes]', e));
+}
+
+/* Editar los datos del cliente, dentro de la ficha que ya esta abierta.
+   Antes, si alguien escribia mal la direccion, habia que pedirle que entrara
+   a corregirla el.
+   Aca NO se tocan puntos, nivel ni totales: eso lo mueve el circuito de
+   pedidos y editarlo a mano descuadraria el programa. Para puntos estan
+   "dar" y "quitar", que dejan el movimiento anotado en el historial.
+   El correo tampoco: es con lo que el cliente entra. */
+function editarDatosCliente() {
+  const u = cfUsers.find(x => x.id === fichaUid);
+  if (!u) return;
+
+  const caja = document.getElementById('cli-ficha-datos');
+  const zonas = (appConfig.zones || []).filter(z => z.active !== false).map(z => z.name);
+  // Si la zona guardada del cliente ya no esta en la lista (se desactivo o se
+  // renombro), igual se ofrece: si no, al abrir el formulario aparecia
+  // "Sin zona" y guardar le borraba la zona sin que nadie lo pidiera.
+  if (u.zone && zonas.indexOf(u.zone) < 0) zonas.unshift(u.zone);
+
+  caja.innerHTML =
+    '<div style="display:grid;gap:0.7rem;padding:0.3rem 0 0.2rem">' +
+      '<div><label class="config-label">Nombre completo</label>' +
+        '<input class="config-input" id="ed-name" value="' + esc(u.name || '') + '"></div>' +
+      '<div><label class="config-label">Telefono (8 digitos)</label>' +
+        '<input class="config-input" id="ed-phone" inputmode="numeric" value="' + esc(u.phone || '') + '"></div>' +
+      '<div><label class="config-label">Direccion</label>' +
+        '<input class="config-input" id="ed-address" value="' + esc(u.address || '') + '"></div>' +
+      '<div><label class="config-label">Zona de entrega</label>' +
+        (zonas.length
+          ? '<select class="config-input" id="ed-zone"><option value="">Sin zona</option>' +
+            zonas.map(z => '<option value="' + esc(z) + '"' +
+              (u.zone === z ? ' selected' : '') + '>' + esc(z) + '</option>').join('') + '</select>'
+          : '<input class="config-input" id="ed-zone" value="' + esc(u.zone || '') + '">') +
+      '</div>' +
+      '<p style="font-size:0.67rem;color:#7a95aa;line-height:1.55;margin:0.2rem 0 0">' +
+        'El correo no se cambia desde aca: es con lo que el cliente entra. ' +
+        'Los puntos y el nivel tampoco — para eso estan "dar" y "quitar puntos", ' +
+        'que dejan el movimiento anotado.</p>' +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.3rem">' +
+        '<button class="order-act-btn order-act-deliver" id="ed-guardar">Guardar</button>' +
+        '<button class="order-act-btn" id="ed-cancelar">Cancelar</button>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('ed-cancelar').onclick = renderFicha;
+
+  document.getElementById('ed-guardar').onclick = async function () {
+    const val = k => (document.getElementById('ed-' + k) || {}).value || '';
+    const tel = val('phone').replace(/[^0-9]/g, '');
+    if (tel && tel.length !== 8) { toast('El telefono va con 8 digitos'); return; }
+
+    this.disabled = true;
+    this.textContent = 'Guardando…';
+    try {
+      await USERS_REF.doc(u.id).update({
+        name:      val('name').trim(),
+        phone:     tel,
+        address:   val('address').trim(),
+        zone:      val('zone'),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      toast('Datos actualizados');
+      // El onSnapshot de clientes repinta solo; esto es para no dejar el
+      // formulario abierto mientras llega.
+      renderFicha();
+    } catch (e) {
+      console.error('[editar cliente]', e);
+      toast('No se pudieron guardar los datos');
+      this.disabled = false;
+      this.textContent = 'Guardar';
+    }
+  };
+}
+
+function cerrarFicha() {
+  document.getElementById('cli-ficha-ov').classList.remove('open');
+  document.body.style.overflow = '';
+  if (unsubFichaLedger) { unsubFichaLedger(); unsubFichaLedger = null; }
+  if (unsubFichaCanjes) { unsubFichaCanjes(); unsubFichaCanjes = null; }
+  fichaUid = null;
+}
+
+function fechaCorta(v) {
+  if (!v) return '';
+  const d = v && typeof v.toDate === 'function' ? v.toDate() : new Date(v);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function renderFicha() {
+  const u = cfUsers.find(x => x.id === fichaUid);
+  if (!u) { cerrarFicha(); return; }
+  const t = cfTierOf(u.lifetimePoints || 0);
+  const tel = String(u.phone || '').replace(/\D/g, '');
+
+  document.getElementById('cli-ficha-nombre').textContent = u.name || 'Sin nombre';
+  document.getElementById('cli-ficha-sub').textContent =
+    (u.email || '') + (u.phone ? ' · ' + u.phone : '');
+
+  document.getElementById('cli-ficha-resumen').innerHTML =
+    '<div class="cf-dato"><div class="cf-dato-n">' + (Number(u.points) || 0) + '</div>' +
+      '<div class="cf-dato-l">Puntos hoy</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + (Number(u.lifetimePoints) || 0) + '</div>' +
+      '<div class="cf-dato-l">Acumulados</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + t.name + '</div>' +
+      '<div class="cf-dato-l">Nivel</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + (Number(u.ordersCount) || 0) + '</div>' +
+      '<div class="cf-dato-l">Pedidos</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + fmt(Math.round(Number(u.totalSpent) || 0)) + '</div>' +
+      '<div class="cf-dato-l">Total comprado</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + (fechaCorta(u.createdAt) || '—') + '</div>' +
+      '<div class="cf-dato-l">Cliente desde</div></div>';
+
+  document.getElementById('cli-ficha-datos').innerHTML =
+    '<div class="cf-fila"><span>Direccion</span><b>' + esc(u.address || '—') + '</b></div>' +
+    '<div class="cf-fila"><span>Zona</span><b>' + esc(u.zone || '—') + '</b></div>' +
+    '<div class="cf-fila"><span>Cumpleanos</span><b>' + esc(u.birthday || '—') + '</b></div>' +
+    '<div class="cf-fila"><span>Favoritos</span><b>' + ((u.favs || []).length) + ' productos</b></div>';
+
+  document.getElementById('cli-ficha-acciones').innerHTML =
+    '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,1)">+ Dar puntos</button>' +
+    '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,-1)">- Quitar puntos</button>' +
+    '<button class="order-act-btn" onclick="editarDatosCliente()">Editar datos</button>' +
+    (tel ? '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' + esc(tel) + '">WhatsApp</a>' : '');
+
+  // Los pedidos ya estan cargados en memoria: no hace falta otra consulta.
+  const suyos = orders.filter(o => o.uid === fichaUid).sort((a, b) => {
+    const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+    const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+    return tb - ta;
+  });
+  document.getElementById('cli-ficha-pedidos').innerHTML = suyos.length
+    ? suyos.map(o => {
+        const st = o.status || 'pendiente';
+        return '<div class="cf-item"><div><div class="cf-item-t">' + fechaCorta(o.createdAt) +
+          (o.invoice && o.invoice.number ? ' · ' + esc(o.invoice.number) : '') + '</div>' +
+          '<div class="cf-item-s">' + (o.items || []).length + ' productos · ' +
+          esc(st.replace('_', ' ')) + '</div></div>' +
+          '<div class="cf-item-n">' + fmt(Math.round(calcOrderTotal(o))) + '</div></div>';
+      }).join('')
+    : '<div class="cf-vacio">Sin pedidos todavia.</div>';
+}
+
+function pintarFichaLedger(movs) {
+  const box = document.getElementById('cli-ficha-ledger');
+  if (!box) return;
+  box.innerHTML = movs.length
+    ? movs.map(m => {
+        const n = Number(m.points) || 0;
+        return '<div class="cf-item"><div><div class="cf-item-t">' +
+          esc(m.reason || (n >= 0 ? 'Puntos ganados' : 'Canje')) + '</div>' +
+          '<div class="cf-item-s">' + fechaCorta(m.createdAt) + '</div></div>' +
+          '<div class="cf-item-n" style="color:' + (n >= 0 ? '#27ae60' : '#c8a96e') + '">' +
+          (n >= 0 ? '+' : '-') + Math.abs(n) + '</div></div>';
+      }).join('')
+    : '<div class="cf-vacio">Sin movimientos.</div>';
+}
+
+function pintarFichaCanjes(cs) {
+  const box = document.getElementById('cli-ficha-canjes');
+  if (!box) return;
+  box.innerHTML = cs.length
+    ? cs.map(r => '<div class="cf-item"><div><div class="cf-item-t">' +
+        esc(r.rewardName || 'Premio') + '</div>' +
+        '<div class="cf-item-s">' + fechaCorta(r.createdAt) + ' · ' +
+        esc(r.status || 'solicitado') + '</div></div>' +
+        '<div class="cf-item-n">' + (Number(r.cost) || 0) + ' pts</div></div>').join('')
+    : '<div class="cf-vacio">Sin canjes.</div>';
+}
+
+document.getElementById('cli-ficha-x').addEventListener('click', cerrarFicha);
+document.getElementById('cli-ficha-ov').addEventListener('click', function (e) {
+  if (e.target === this) cerrarFicha();
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && fichaUid) cerrarFicha();
 });
 
 </script>

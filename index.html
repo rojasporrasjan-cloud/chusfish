@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Mariscos y Pescados Frescos a Domicilio | Chus's Fish Costa Rica</title>
 
   <!-- Favicon & PWA -->
-  <link rel="icon" href="logo.jpeg" type="image/jpeg">
-  <link rel="apple-touch-icon" href="logo.jpeg">
+  <link rel="icon" href="logo-256.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="logo-256.jpg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a1628">
 
@@ -108,7 +108,7 @@
   </script>
 
   <!-- Rendimiento: recursos críticos above-the-fold -->
-  <link rel="preload" href="logo.jpeg" as="image">
+  <link rel="preload" href="logo-256.jpg" as="image">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="dns-prefetch" href="//firestore.googleapis.com">
@@ -117,8 +117,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=4"></script>
-<script src="ui.js?v=2"></script>
+  <script src="auth.js?v=9"></script>
+<script src="ui.js?v=8"></script>
 
   <style>
     /*
@@ -277,6 +277,7 @@
       height: 100%;
       object-fit: cover;
       object-position: center;
+      background-color: #060e1c;
       /* desaturate slightly so gold text pops */
       filter: saturate(0.6) brightness(0.45);
     }
@@ -291,12 +292,23 @@
         radial-gradient(ellipse 80% 60% at 50% 50%, rgba(6,14,28,0.25) 0%, transparent 70%);
     }
 
-    /* fallback when no video file is present */
+    /* Telon de fondo del hero: la foto fija.
+       En celular es lo UNICO que se ve (el video de 3 MB no se descarga), y
+       en escritorio se ve hasta que el video arranca.
+
+       Va aca y no en el atributo `poster` del <video> porque Safari de iPhone
+       NO dibuja el poster de un <video> sin `src` — quedaba el hero en negro.
+       Como imagen de fondo CSS funciona en todos los navegadores.
+
+       Lleva el MISMO filtro que el video para que el cambio no se note: sin
+       el, la foto salia mucho mas clara y el texto dorado se perdia. */
     .hero-fallback {
       position: absolute;
       inset: 0;
+      filter: saturate(0.6) brightness(0.45);
       background:
-        radial-gradient(ellipse 70% 60% at 50% 40%, rgba(13,33,55,0.9) 0%, var(--deep) 80%),
+        radial-gradient(ellipse 70% 60% at 50% 40%, rgba(13,33,55,0.45) 0%, rgba(6,14,28,0.35) 80%),
+        url('assets/hero-poster.jpg') center/cover no-repeat,
         linear-gradient(180deg, var(--deep) 0%, #0a1e35 50%, var(--deep) 100%);
       z-index: -1;
     }
@@ -1245,7 +1257,47 @@
     .btn-install:hover { background: rgba(200,169,110,0.2); transform: translateY(-2px); }
     @media(max-width:768px){ .btn-install { width:100%; justify-content:center; } }
 
-  </style>
+
+    /* ══ CATEGORIAS CON FOTO EN LA PORTADA ══
+       Antes eran un emoji sobre fondo plano. La foto real del producto
+       vende muchisimo mas y es lo que hacen las tiendas del rubro.
+       La foto la pone el JS con el primer producto de cada categoria. */
+    .cat-card { position: relative; overflow: hidden; min-height: 168px;
+      justify-content: flex-end; padding: 1.2rem 1.1rem; align-items: flex-start;
+      text-align: left; }
+    .cat-card-foto { position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; opacity: 0.55; transition: opacity 0.5s ease, transform 1.1s ease; }
+    .cat-card:hover .cat-card-foto { opacity: 0.72; transform: scale(1.06); }
+    .cat-card-veil { position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(6,14,28,0.95) 15%, rgba(6,14,28,0.2) 75%); }
+    .cat-card .cat-card-name,
+    .cat-card .cat-card-desc { position: relative; z-index: 1; }
+    .cat-card .cat-card-name { text-shadow: 0 1px 8px rgba(0,0,0,0.6); }
+    .cat-card-mono { position: absolute; inset: 0; display: grid; place-items: center;
+      font-family: 'Cormorant Garamond', serif; font-size: 2.4rem;
+      color: var(--gold); opacity: 0.35; }
+    @media (max-width: 480px) { .cat-card { min-height: 132px; padding: 0.9rem 0.85rem; } }
+
+    /* Iconos de línea en los menús: reemplazan a los emoji, que junto a las
+       fotos de producto abarataban la interfaz. */
+    .cat-drawer-link-icon svg, .drawer-link-icon svg,
+    .nav-wa .ico-nav svg { width:17px; height:17px; fill:none; stroke:currentColor;
+      stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; display:block; }
+    .cat-drawer-link-icon, .drawer-link-icon { display:inline-flex; align-items:center;
+      justify-content:center; width:20px; color:var(--gold); }
+    .nav-wa .ico-nav { display:inline-flex; align-items:center; vertical-align:-3px;
+      margin-right:.3rem; }
+
+    .step-icon svg { width:26px; height:26px; fill:none; stroke:var(--gold);
+      stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+  
+  /* ── Zonas seguras del iPhone (muesca) ──
+     El nav flota sobre el hero, asi que solo se baja su contenido: el body
+     no lleva relleno o quedaria una franja arriba del video. */
+  @supports (top: env(safe-area-inset-top)) {
+    nav { padding-top: calc(1.4rem + env(safe-area-inset-top)); }
+  }
+</style>
 </head>
 <body>
 
@@ -1257,7 +1309,7 @@
 
 <nav id="navbar">
   <a href="index.html" class="nav-logo">
-    <img src="logo.jpeg" alt="Chus's Fish logo" loading="eager" fetchpriority="high">
+    <img src="logo-256.jpg" alt="Chus's Fish logo" loading="eager" fetchpriority="high">
     <div class="nav-logo-text">Chus<span>'s Fish</span></div>
   </a>
   <ul class="nav-links">
@@ -1285,10 +1337,15 @@
 <section id="hero">
 
   <div class="hero-video-wrap">
-    <!-- VIDEO DE FONDO — Agrega assets/hero.mp4 -->
-    <video autoplay muted loop playsinline webkit-playsinline preload="auto" id="hero-video">
-      <source src="assets/hero.mp4" type="video/mp4" />
-    </video>
+    <!-- VIDEO DE FONDO
+         Sin `src` y sin `autoplay` a proposito: asi el navegador NO descarga
+         nada. El fotograma de portada (52 KB) se ve al instante, y el video
+         (3 MB) lo engancha el JS del final SOLO en pantallas grandes y con
+         buena conexion. Antes se bajaba entero en cada visita, dos veces, y
+         hacia que la portada pesara 8 MB en un celular. -->
+    <video muted loop playsinline webkit-playsinline preload="none"
+           poster="assets/hero-poster.jpg" id="hero-video"
+           data-src="assets/hero.mp4" aria-hidden="true"></video>
     <div class="hero-video-overlay"></div>
     <div class="hero-fallback"></div>
   </div>
@@ -1354,7 +1411,7 @@
   <div class="container">
     <div class="identity-grid">
       <div class="identity-visual reveal">
-        <img loading="lazy" src="logo.jpeg" alt="Chus's Fish — Así o más rico"
+        <img loading="lazy" src="logo-512.jpg" alt="Chus's Fish — Así o más rico"
              style="width:100%;height:100%;object-fit:cover;border-radius:var(--radius);">
       </div>
       <div class="identity-text">
@@ -1381,43 +1438,35 @@
       <h2 class="categorias-title reveal reveal-delay-1">Explora <em>el menú del mar</em></h2>
     </div>
     <div class="categorias-grid">
-      <a href="catalogo.html?cat=camarones" class="cat-card reveal">
-        <div class="cat-card-icon">🦐</div>
+      <a href="catalogo.html?cat=camarones" data-foto="camarones" class="cat-card reveal">
         <div class="cat-card-name">Camarones</div>
         <div class="cat-card-desc">Importados y nacionales</div>
       </a>
-      <a href="catalogo.html?cat=filetes-premium" class="cat-card reveal reveal-delay-1">
-        <div class="cat-card-icon">🐟</div>
+      <a href="catalogo.html?cat=filetes-premium" data-foto="filetes-premium" class="cat-card reveal reveal-delay-1">
         <div class="cat-card-name">Filetes Premium</div>
         <div class="cat-card-desc">Corvina, mero, pargo</div>
       </a>
-      <a href="catalogo.html?cat=filetes-trad" class="cat-card reveal reveal-delay-2">
-        <div class="cat-card-icon">🐡</div>
+      <a href="catalogo.html?cat=filetes-trad" data-foto="filetes-trad" class="cat-card reveal reveal-delay-2">
         <div class="cat-card-name">Filetes Tradicionales</div>
         <div class="cat-card-desc">Atún, espada, tilapia</div>
       </a>
-      <a href="catalogo.html?cat=mariscos" class="cat-card reveal reveal-delay-3">
-        <div class="cat-card-icon">🦑</div>
+      <a href="catalogo.html?cat=mariscos" data-foto="mariscos" class="cat-card reveal reveal-delay-3">
         <div class="cat-card-name">Mariscos Varios</div>
         <div class="cat-card-desc">Calamar, pulpo, almeja</div>
       </a>
-      <a href="catalogo.html?cat=picadura" class="cat-card reveal">
-        <div class="cat-card-icon">🥗</div>
+      <a href="catalogo.html?cat=picadura" data-foto="picadura" class="cat-card reveal">
         <div class="cat-card-name">Picadura Ceviche</div>
         <div class="cat-card-desc">Lista para marinar</div>
       </a>
-      <a href="catalogo.html?cat=mariscadas" class="cat-card reveal reveal-delay-1">
-        <div class="cat-card-icon">🦀</div>
+      <a href="catalogo.html?cat=mariscadas" data-foto="mariscadas" class="cat-card reveal reveal-delay-1">
         <div class="cat-card-name">Mariscadas</div>
         <div class="cat-card-desc">Combos y paellas</div>
       </a>
-      <a href="catalogo.html?cat=gourmet" class="cat-card reveal reveal-delay-2">
-        <div class="cat-card-icon">⭐</div>
+      <a href="catalogo.html?cat=gourmet" data-foto="gourmet" class="cat-card reveal reveal-delay-2">
         <div class="cat-card-name">Gourmet</div>
         <div class="cat-card-desc">Selección premium</div>
       </a>
-      <a href="catalogo.html?cat=pescado-entero" class="cat-card reveal reveal-delay-3">
-        <div class="cat-card-icon">🐟</div>
+      <a href="catalogo.html?cat=pescado-entero" data-foto="pescado-entero" class="cat-card reveal reveal-delay-3">
         <div class="cat-card-name">Pescado Entero</div>
         <div class="cat-card-desc">Fresco del día</div>
       </a>
@@ -1517,7 +1566,7 @@
       <div class="step-card reveal reveal-delay-1">
         <div class="step-num">1</div>
         <div>
-          <div class="step-icon">🛒</div>
+          <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg></div>
           <div class="step-title">Elegí tus productos</div>
           <p class="step-body">Explorá el catálogo completo. Camarones, corvina, pargo, filetes y mucho más. Todo fresco y sin intermediarios.</p>
         </div>
@@ -1526,7 +1575,7 @@
       <div class="step-card reveal reveal-delay-2">
         <div class="step-num">2</div>
         <div>
-          <div class="step-icon">💬</div>
+          <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.5 7.2L3 21l1.8-6.5A8 8 0 1 1 21 12z"/></svg></div>
           <div class="step-title">Envianos tu pedido</div>
           <p class="step-body">Mandanos un WhatsApp al 6001-7370 con tu lista o usá el botón "Pedir ahora" del catálogo. Te confirmamos disponibilidad al instante.</p>
         </div>
@@ -1535,7 +1584,7 @@
       <div class="step-card reveal reveal-delay-3">
         <div class="step-num">3</div>
         <div>
-          <div class="step-icon">🚚</div>
+          <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M3 16V7h11v9M14 10h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.8"/><circle cx="17" cy="18" r="1.8"/></svg></div>
           <div class="step-title">Recibí en tu puerta</div>
           <p class="step-body">Coordinamos la entrega según tu zona. El producto llega fresco, empacado y listo para cocinar directamente a tu casa.</p>
         </div>
@@ -1688,15 +1737,11 @@
     init(); tick();
 
   /* ── TARJETAS DESTACADAS desde Firestore ───── */
-  // auth.js (head) ya inicializo la app; compat falla si se llama dos veces.
-  if (!firebase.apps.length) firebase.initializeApp({
-    apiKey:            'AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk',
-    authDomain:        'chus-fish.firebaseapp.com',
-    projectId:         'chus-fish',
-    storageBucket:     'chus-fish.firebasestorage.app',
-    messagingSenderId: '788310353696',
-    appId:             '1:788310353696:web:16ca9bd3f934b915cb1945',
-  });
+  /* La configuracion de Firebase vive en UN solo lugar: auth.js, que se carga
+     en el <head> de esta pagina. Aca habia una copia entera dentro de un
+     `if (!firebase.apps.length)` que nunca llegaba a ejecutarse — auth.js ya
+     habia creado la app. Cuatro copias del mismo bloque son cuatro sitios que
+     hay que acordarse de cambiar el dia que algo cambie. */
   const _db = firebase.firestore();
 
   /* ── Banner de cierre / horario (desde Firestore) ── */
@@ -1799,6 +1844,38 @@
       </div>`;
   }
 
+
+  /* Foto de cada categoria: la del primer producto que tenga imagen.
+     Si no hay ninguna, un monograma en serif — nunca un emoji. */
+  function pintarFotosDeCategoria(productos) {
+    document.querySelectorAll('.cat-card[data-foto]').forEach(function (card) {
+      const cat = card.dataset.foto;
+      const enCat = productos.filter(function (p) {
+        if (cat === 'camarones') return p.cat === 'camarones-imp' || p.cat === 'camarones-nac';
+        return p.cat === cat;
+      });
+      const foto = (enCat.find(function (p) { return p.img; }) || {}).img;
+      const nombre = (card.querySelector('.cat-card-name') || {}).textContent || '';
+
+      if (foto) {
+        const img = document.createElement('img');
+        img.className = 'cat-card-foto';
+        img.src = foto; img.alt = ''; img.loading = 'lazy';
+        card.insertBefore(img, card.firstChild);
+      } else {
+        const ini = (nombre.match(/[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}/g) || [])
+          .slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
+        const m = document.createElement('span');
+        m.className = 'cat-card-mono';
+        m.textContent = ini || '✦';
+        card.insertBefore(m, card.firstChild);
+      }
+      const veil = document.createElement('span');
+      veil.className = 'cat-card-veil';
+      card.insertBefore(veil, card.children[1] || null);
+    });
+  }
+
   (async function loadFeatured() {
     const grid = document.getElementById('featured-grid');
     try {
@@ -1814,6 +1891,9 @@
           p.img = 'assets/langosta_editada.png';
         }
       });
+
+      // Ponerle foto real a las tarjetas de categoria (antes: emoji).
+      pintarFotosDeCategoria(all);
 
       const cfgIds = cfgSnap.exists && cfgSnap.data().featuredIds;
       const ids = (cfgIds && cfgIds.length) ? cfgIds : FEATURED_IDS;
@@ -2056,13 +2136,13 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
     <button class="drawer-close" id="drawer-close">✕</button>
   </div>
   <div class="drawer-links">
-    <a href="#identity"     class="drawer-link"><span class="drawer-link-icon">🐟</span> Nosotros</a>
-    <a href="#categorias"   class="drawer-link"><span class="drawer-link-icon">🦐</span> Categorías</a>
-    <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon">🛒</span> Catálogo</a>
-    <a href="mi-cuenta.html" class="drawer-link cf-account-link"><span class="drawer-link-icon">👤</span> <span class="cf-acc-label">Mi cuenta</span></a>
-    <a href="premios.html"  class="drawer-link"><span class="drawer-link-icon">🎁</span> La Reserva</a>
-    <a href="#como-pedir"   class="drawer-link"><span class="drawer-link-icon">📋</span> Cómo pedir</a>
-    <a href="#zonas"         class="drawer-link"><span class="drawer-link-icon">📍</span> Zonas de entrega</a>
+    <a href="#identity"     class="drawer-link"><span class="drawer-link-icon"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-5 8.5-5 8 3 11.5 5c-3.5 2-6.5 5-11.5 5S2 12 2 12z"/><circle cx="8" cy="11" r="0.6" fill="currentColor"/></svg></span> Nosotros</a>
+    <a href="#categorias"   class="drawer-link"><span class="drawer-link-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg></span> Categorías</a>
+    <a href="catalogo.html" class="drawer-link"><span class="drawer-link-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg></span> Catálogo</a>
+    <a href="mi-cuenta.html" class="drawer-link cf-account-link"><span class="drawer-link-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></svg></span> <span class="cf-acc-label">Mi cuenta</span></a>
+    <a href="premios.html"  class="drawer-link"><span class="drawer-link-icon"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="11" rx="1"/><path d="M3 13h18M12 9v11"/><path d="M12 9S9.5 4 7.5 5.5 9 9 12 9zM12 9s2.5-5 4.5-3.5S15 9 12 9z"/></svg></span> La Reserva</a>
+    <a href="#como-pedir"   class="drawer-link"><span class="drawer-link-icon"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg></span> Cómo pedir</a>
+    <a href="#zonas"         class="drawer-link"><span class="drawer-link-icon"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></span> Zonas de entrega</a>
   </div>
   <div class="drawer-footer">
     <a href="https://wa.me/50660017370" target="_blank" class="drawer-wa-btn">
@@ -2082,7 +2162,7 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
 
 <!-- ═══ PWA INSTALL BANNER ══════════════════════════════════ -->
 <div id="idx-pwa-banner" class="pwa-banner-idx">
-  <span style="font-size:0.72rem;color:#d4dde8">📲 Instalá la app de Chus's Fish</span>
+  <span style="font-size:0.72rem;color:#d4dde8"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;vertical-align:-3px;margin-right:.35rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Instalá la app de Chus's Fish</span>
   <button class="pwa-ok-idx" id="idx-pwa-ok" onclick="idxTriggerInstall()">Instalar</button>
   <button class="pwa-no-idx" id="idx-pwa-no">✕</button>
 </div>
@@ -2090,7 +2170,7 @@ document.getElementById('order-form').addEventListener('submit', function(e) {
 <!-- iOS INSTALL MODAL -->
 <div class="ios-modal-overlay" id="idx-ios-modal-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:900;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s">
   <div style="background:linear-gradient(160deg,#0d2137,#122840);border:1px solid rgba(200,169,110,0.2);border-radius:24px 24px 0 0;padding:2rem 1.5rem 2.5rem;width:100%;max-width:480px;transform:translateY(30px);transition:transform 0.3s;text-align:center">
-    <h3 style="color:#c8a96e;font-size:1rem;margin:0 0 1rem">📲 Instalar Chus's Fish</h3>
+    <h3 style="color:#c8a96e;font-size:1rem;margin:0 0 1rem"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;vertical-align:-3px;margin-right:.35rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Instalar Chus's Fish</h3>
     <div style="display:flex;align-items:center;gap:0.7rem;text-align:left;margin:0.6rem 0">
       <div style="background:#a07840;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;flex-shrink:0">1</div>
       <p style="color:#d4dde8;font-size:0.82rem;margin:0">Tocá el botón <strong>Compartir</strong> <span style="font-size:1.1rem">⎋</span> en Safari</p>
@@ -2245,6 +2325,113 @@ if ('serviceWorker' in navigator) {
 })();
 
 
+</script>
+
+<script>
+/* ══ VIDEO DEL HERO — carga condicional ══════════════════════════
+   El video pesa 3 MB y es decoracion: se muestra al 45% de brillo, en
+   escala de grises parcial y bajo tres degradados. En un celular con datos
+   eso era la mitad del peso de la portada, para algo que casi no se ve.
+
+   Se engancha solo si se cumplen las cuatro:
+     · pantalla ancha (en celular manda el fotograma)
+     · el sistema no pide menos movimiento
+     · el navegador no reporta conexion lenta ni "ahorro de datos"
+     · la pestaña esta visible
+
+   Si alguna falla, queda el poster de 52 KB, que es lo que se ve igual. */
+(function () {
+  var v = document.getElementById('hero-video');
+  if (!v || !v.dataset.src) return;
+
+  function conexionOk() {
+    var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    if (!c) return true;                       // sin dato, asumimos que si
+    if (c.saveData) return false;              // el cliente pidio ahorrar datos
+    return !/^(slow-)?2g$/.test(c.effectiveType || '');
+  }
+
+  var pocoMovimiento = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (window.innerWidth < 900 || pocoMovimiento || !conexionOk()) return;
+
+  function cargar() {
+    if (v.src) return;
+    v.src = v.dataset.src;
+    v.load();
+    var p = v.play();
+    if (p && p.catch) p.catch(function () {});  // si el navegador lo bloquea, queda el poster
+  }
+
+  // Esperar a que la pagina termine de cargar lo importante.
+  if (document.readyState === 'complete') setTimeout(cargar, 400);
+  else window.addEventListener('load', function () { setTimeout(cargar, 400); });
+})();
+</script>
+
+<script>
+/* ══ AVISO DE VERSION NUEVA ═══════════════════════════════════════
+   El service worker ya no recarga las pestañas a la fuerza: antes, al
+   publicar una version, alguien que estaba llenando el formulario de pedido
+   perdia lo escrito sin explicacion.
+   Ahora avisa, y la pagina decide segun lo que este haciendo la persona. */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  function estaEscribiendo() {
+    // El foco puesto en un campo ya cuenta.
+    var activo = document.activeElement;
+    if (activo && /^(INPUT|TEXTAREA|SELECT)$/.test(activo.tagName)) return true;
+
+    /* Se compara con `defaultValue`, no con vacio: la pagina tiene campos que
+       nacen con contenido (la cantidad en 0.5 kg, por ejemplo). Mirando solo
+       si tenian texto, SIEMPRE daba "esta escribiendo" y el aviso salia
+       aunque no hubiera nadie tocando nada. Lo que importa es si la persona
+       CAMBIO algo. */
+    var campos = document.querySelectorAll('input, textarea');
+    for (var i = 0; i < campos.length; i++) {
+      var c = campos[i];
+      if (c.type === 'hidden') continue;
+      if ((c.value || '') !== (c.defaultValue || '')) return true;
+    }
+    return false;
+  }
+
+  function avisar() {
+    if (document.getElementById('cf-nueva-version')) return;
+    var d = document.createElement('div');
+    d.id = 'cf-nueva-version';
+    d.setAttribute('role', 'status');
+    d.style.cssText =
+      'position:fixed;left:50%;transform:translateX(-50%);' +
+      'bottom:calc(9.5rem + env(safe-area-inset-bottom));z-index:9999;' +
+      'display:flex;align-items:center;gap:.8rem;max-width:calc(100vw - 2rem);' +
+      'padding:.7rem .9rem .7rem 1.1rem;border-radius:22px;' +
+      'background:rgba(5,12,24,.96);border:1px solid rgba(200,169,110,.4);' +
+      'box-shadow:0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(10px);' +
+      'font-family:Montserrat,system-ui,sans-serif;font-size:.72rem;color:#e8c98a';
+    d.innerHTML =
+      '<span>Hay una version nueva del sitio.</span>' +
+      '<button type="button" style="flex-shrink:0;background:linear-gradient(135deg,#c8a96e,#9a7a48);' +
+      'border:0;border-radius:14px;padding:.4rem .8rem;cursor:pointer;color:#060e1c;' +
+      'font-family:inherit;font-size:.62rem;font-weight:700;letter-spacing:.1em;' +
+      'text-transform:uppercase">Actualizar</button>' +
+      '<button type="button" aria-label="Ahora no" style="flex-shrink:0;background:none;border:0;' +
+      'cursor:pointer;color:#7a95aa;font-size:1.1rem;line-height:1;padding:0 .2rem">&times;</button>';
+    var botones = d.querySelectorAll('button');
+    botones[0].onclick = function () { location.reload(); };
+    botones[1].onclick = function () { d.remove(); };
+    document.body.appendChild(d);
+  }
+
+  navigator.serviceWorker.addEventListener('message', function (e) {
+    if (!e.data || e.data.tipo !== 'sw-actualizado') return;
+    // Sin nada escrito, se recarga sola y nadie se entera.
+    if (!estaEscribiendo()) { location.reload(); return; }
+    avisar();
+  });
+})();
 </script>
 </body>
 </html>

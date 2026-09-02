@@ -17,9 +17,23 @@
    ══════════════════════════════════════════════════════════════ */
 
 const http = require('http');
+const zlib = require('zlib');
 const fs   = require('fs');
 const path = require('path');
 const url  = require('url');
+const os   = require('os');
+
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
 
 const PORT           = Number(process.env.PORT || 5000);
 const FIRESTORE_PORT = 8080;
@@ -81,7 +95,12 @@ function proxy(req, res, port) {
 }
 
 function serveStatic(req, res, pathname) {
-  let rel = decodeURIComponent(pathname);
+  let rel = '/index.html';
+  try {
+    rel = decodeURIComponent(pathname);
+  } catch (e) {
+    rel = pathname;
+  }
   if (rel === '/' || rel === '') rel = '/index.html';
 
   // No dejar salir de la carpeta del proyecto.
@@ -105,8 +124,30 @@ function serveStatic(req, res, pathname) {
   };
 
   const send = (file, st) => {
+    const ext  = path.extname(file).toLowerCase();
+    const tipo = MIME[ext] || 'application/octet-stream';
+
+    /* Comprimir el texto.
+       En produccion Netlify lo hace solo; aca no lo hacia nadie, y el
+       telefono se bajaba catalogo.html entero (218 KB) mas auth.js y ui.js
+       en CADA navegacion, por WiFi. Con gzip son unos 35 KB.
+       Las imagenes y el video quedan fuera: ya vienen comprimidos. */
+    const comprimible = /^(text\/|application\/(javascript|json|xml|manifest))/.test(tipo);
+    const aceptaGzip  = /\bgzip\b/.test(req.headers['accept-encoding'] || '');
+
+    if (comprimible && aceptaGzip && st.size > 1024) {
+      res.writeHead(200, {
+        'Content-Type': tipo,
+        'Content-Encoding': 'gzip',
+        'Vary': 'Accept-Encoding',
+        'Cache-Control': 'no-store, must-revalidate',
+      });
+      fs.createReadStream(file).pipe(zlib.createGzip({ level: 6 })).pipe(res);
+      return;
+    }
+
     res.writeHead(200, {
-      'Content-Type': MIME[path.extname(file).toLowerCase()] || 'application/octet-stream',
+      'Content-Type': MIME[ext] || 'application/octet-stream',
       'Content-Length': st.size,
       // En desarrollo nunca cacheamos: si no, editas y no ves el cambio.
       'Cache-Control': 'no-store, must-revalidate',
@@ -117,20 +158,38 @@ function serveStatic(req, res, pathname) {
   tryNext(0);
 }
 
-http.createServer((req, res) => {
-  const pathname = url.parse(req.url).pathname || '/';
+const server = http.createServer((req, res) => {
+  let pathname = '/';
+  try {
+    const u = new URL(req.url || '/', 'http://localhost');
+    pathname = u.pathname || '/';
+  } catch (e) {
+    pathname = (req.url || '/').split('?')[0] || '/';
+  }
   const target = emulatorTarget(pathname);
   if (target) proxy(req, res, target);
   else serveStatic(req, res, pathname);
-}).listen(PORT, () => {
+});
+
+server.on('error', (err) => {
+  console.error('Error en servidor HTTP:', err.message);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Excepción no capturada:', err.message);
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  const localIP = getLocalIP();
   console.log('');
   console.log('  Chus\'s Fish — desarrollo local');
   console.log('  ────────────────────────────────────────');
-  console.log('  Sitio        http://localhost:' + PORT);
-  console.log('  Mi cuenta    http://localhost:' + PORT + '/mi-cuenta.html');
-  console.log('  Premios      http://localhost:' + PORT + '/premios.html');
-  console.log('  Admin        http://localhost:' + PORT + '/admin.html');
-  console.log('  Emulador UI  http://127.0.0.1:4000');
+  console.log('  Local (PC):      http://localhost:' + PORT);
+  console.log('  Red (Teléfono):  http://' + localIP + ':' + PORT);
+  console.log('  Mi cuenta:       http://localhost:' + PORT + '/mi-cuenta.html');
+  console.log('  Premios:         http://localhost:' + PORT + '/premios.html');
+  console.log('  Admin:           http://localhost:' + PORT + '/admin.html');
+  console.log('  Emulador UI:     http://127.0.0.1:4000');
   console.log('');
   console.log('  Firestore y Auth van por proxy en este mismo puerto.');
   console.log('');

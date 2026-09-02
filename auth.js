@@ -7,7 +7,7 @@
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al cambiar este archivo hay que subir el ?v= en TODOS los HTML
       que lo cargan, si no los clientes quedan con la versión vieja.
-      Versión actual: v4
+      Versión actual: v9
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -38,9 +38,21 @@
      mentira y NO se toca la base real ni se crean usuarios de verdad.
      En chusfish.com / netlify.app esto no corre nunca.
      Levantar con:  npm run emu  +  npm run dev
+
+     También cuentan las IPs privadas (192.168.x.x, 10.x.x.x, 172.16-31.x.x),
+     para poder abrir el sitio desde OTRO aparato de la misma red — el
+     teléfono del cliente, por ejemplo — y que siga hablando con el emulador.
+     Sin esto, entrar por http://192.168.1.50:5000 pegaba contra la base
+     REAL: fallaba (las reglas no están publicadas) y encima podía escribir
+     datos de verdad desde una demo. Una IP privada nunca es producción.
+
      `firebase.firestore()` devuelve siempre la misma instancia, así que
      configurarla acá alcanza para todas las páginas que cargan auth.js. */
-  var CF_LOCAL = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  var CF_LOCAL =
+    /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) ||
+    /^192\.168\.\d{1,3}\.\d{1,3}$/.test(location.hostname) ||
+    /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(location.hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(location.hostname);
   if (CF_LOCAL) {
     try {
       // Mismo host y puerto que la pagina: dev-server.js hace de proxy a
@@ -96,6 +108,16 @@
     var lp = Number(lifetimePoints) || 0;
     for (var i = 0; i < TIERS.length; i++) if (lp < TIERS[i].min) return TIERS[i];
     return null; // ya está en el tope
+  }
+
+  /* Puntos que da un monto en un nivel dado. Con el programa apagado no
+     da nada: si diera, el sitio prometería puntos que nadie va a acreditar. */
+  function pointsForTier(amount, tier) {
+    if ((siteCfg || {}).pointsEnabled === false) return 0;
+    var rate = parseFloat((siteCfg || {}).pointsPer100);
+    if (isNaN(rate)) rate = 1;
+    var mult = tier ? (Number(tier.mult) || 1) : 1;
+    return Math.floor((Number(amount) || 0) / 100 * rate * mult);
   }
 
   /* ═══ CONFIGURACIÓN DEL SITIO ════════════════════════════════
@@ -183,6 +205,83 @@
     if (ERR[e.code] !== undefined) return ERR[e.code];
     return e.message || 'Algo salió mal.';
   }
+
+  /* ═══ CUPONES ════════════════════════════════════════════════
+     Una sola funcion de validacion para los dos lados: el carrito la usa
+     para mostrar el descuento y el panel para confirmarlo en la factura.
+     Si vive en dos lugares, tarde o temprano dicen cosas distintas. */
+
+  function normCodigo(c) {
+    return String(c || '').trim().toUpperCase().replace(/\s+/g, '');
+  }
+
+  // ctx: { subtotal, esPrimeraCompra, usosDelCliente }
+  function validarCupon(cup, ctx) {
+    ctx = ctx || {};
+    var no = function (motivo) { return { ok: false, motivo: motivo, descuento: 0 }; };
+
+    if (!cup)                 return no('Ese código no existe.');
+    if (cup.active === false) return no('Ese código ya no está disponible.');
+
+    var ahora = new Date();
+    var desde = toDate(cup.validFrom), hasta = toDate(cup.validUntil);
+    if (desde && ahora < desde) return no('Ese código todavía no está vigente.');
+    if (hasta && ahora > hasta) return no('Ese código ya venció.');
+
+    var limite = Number(cup.usageLimit);
+    if (!isNaN(limite) && limite >= 0 && (Number(cup.usedCount) || 0) >= limite) {
+      return no('Ese código ya se agotó.');
+    }
+
+    var porCliente = Number(cup.perUserLimit);
+    if (!isNaN(porCliente) && porCliente > 0 &&
+        (Number(ctx.usosDelCliente) || 0) >= porCliente) {
+      return no('Ya usaste ese código.');
+    }
+
+    if (cup.firstOrderOnly && ctx.esPrimeraCompra === false) {
+      return no('Ese código es solo para la primera compra.');
+    }
+
+    var subtotal = Number(ctx.subtotal) || 0;
+    var minimo   = Number(cup.minOrder) || 0;
+    if (minimo > 0 && subtotal < minimo) {
+      return no('Este código aplica desde ' + fmtColones(minimo) + '.');
+    }
+
+    var desc = 0;
+    if (cup.type === 'percent') {
+      desc = subtotal * (Number(cup.value) || 0) / 100;
+      var tope = Number(cup.maxDiscount) || 0;
+      if (tope > 0) desc = Math.min(desc, tope);
+    } else {
+      desc = Number(cup.value) || 0;
+    }
+    // Nunca puede dejar el total en negativo.
+    desc = Math.max(0, Math.min(Math.round(desc), subtotal));
+    if (desc <= 0) return no('Ese código no aplica a este pedido.');
+
+    return { ok: true, motivo: '', descuento: desc };
+  }
+
+  // Busca el cupon y lo valida. `allow get: if true` en las reglas permite
+  // consultar un codigo que ya conoces, pero no listarlos todos.
+  async function buscarCupon(codigo, ctx) {
+    var cod = normCodigo(codigo);
+    if (!cod) return { ok: false, motivo: 'Escribí un código.', descuento: 0 };
+    try {
+      var snap = await db.collection('coupons').doc(cod).get();
+      var cup = snap.exists ? Object.assign({ id: snap.id }, snap.data()) : null;
+      var r = validarCupon(cup, ctx);
+      r.codigo = cod;
+      r.cupon = cup;
+      return r;
+    } catch (e) {
+      console.error('[cupon]', e);
+      return { ok: false, motivo: 'No pudimos verificar el código.', descuento: 0 };
+    }
+  }
+
 
   /* ═══ ESTADO ═════════════════════════════════════════════════ */
   var state   = { user: null, profile: null, loaded: false };
@@ -336,6 +435,92 @@
     return db.collection('users').doc(state.user.uid).update(patch);
   }
 
+  /* ═══ FAVORITOS ══════════════════════════════════════════════
+     Viven en localStorage (para que anden sin cuenta) y en
+     users/{uid}.favs (para que sobrevivan al cambio de teléfono).
+
+     Los ids de producto son NÚMEROS en Firestore y en el catálogo, pero el
+     DOM los devuelve como texto: `onclick="toggleFav('12')"` y
+     `dataset.id`. Mezclar "12" con 12 hacía que el corazón saliera apagado
+     al recargar y que el botón "Quitar" de Mi cuenta no quitara nada.
+     Acá todo entra por favId() y se guarda SIEMPRE como número; las listas
+     viejas con texto se arreglan solas al leerlas. */
+  var FAVS_KEY   = 'chusfish_favs';
+  var FUSION_KEY = 'chusfish_favs_fusion';
+
+  function favId(v) { var n = parseInt(v, 10); return isNaN(n) ? null : n; }
+
+  /* Cuántos cambios nuestros van viajando a Firestore. Mientras haya alguno,
+     el perfil que tenemos en mano todavía es el de ANTES del cambio. */
+  var favsEnVuelo = 0;
+
+  function favs() {
+    try {
+      var raw = JSON.parse(localStorage.getItem(FAVS_KEY) || '[]');
+      if (!Array.isArray(raw)) return [];
+      var out = [];
+      raw.forEach(function (v) {
+        var n = favId(v);
+        if (n !== null && out.indexOf(n) < 0) out.push(n);
+      });
+      return out;
+    } catch (e) { return []; }
+  }
+
+  function guardarFavs(lista) {
+    try { localStorage.setItem(FAVS_KEY, JSON.stringify(lista)); } catch (e) {}
+  }
+
+  function esFav(id) { return favs().indexOf(favId(id)) >= 0; }
+
+  // Marca o desmarca, y lo guarda en los dos lados a la vez.
+  function toggleFav(id) {
+    var n = favId(id);
+    if (n === null) return favs();
+    var lista = favs(), i = lista.indexOf(n);
+    if (i >= 0) lista.splice(i, 1); else lista.push(n);
+    guardarFavs(lista);
+    if (state.user) {
+      favsEnVuelo++;
+      saveProfile({ favs: lista })
+        .catch(function (e) { console.error('[CF] favs', e); })
+        .then(function () { favsEnVuelo--; });
+    }
+    return lista;
+  }
+
+  /* Pone de acuerdo al aparato con la cuenta.
+     La cuenta MANDA. Antes era una unión ciega de local + remoto, y por eso
+     quitar un favorito en un teléfono lo revivía el otro, que todavía lo
+     tenía guardado. La lista que había en el aparato ANTES de iniciar sesión
+     se suma una sola vez, para no perder lo que marcó sin cuenta. */
+  function syncFavs() {
+    if (!state.user || !state.profile) return favs();
+
+    /* Con un cambio nuestro en vuelo, `state.profile.favs` está viejo:
+       pisarlo encima resucitaría justo lo que el cliente acaba de quitar.
+       Se espera a que vuelva el perfil de verdad. */
+    if (favsEnVuelo > 0) return favs();
+
+    var remotos = [];
+    (state.profile.favs || []).forEach(function (v) {
+      var n = favId(v);
+      if (n !== null && remotos.indexOf(n) < 0) remotos.push(n);
+    });
+
+    var yaFusiono = false;
+    try { yaFusiono = localStorage.getItem(FUSION_KEY) === state.user.uid; } catch (e) {}
+
+    if (yaFusiono) { guardarFavs(remotos); return remotos; }
+
+    var union = remotos.slice();
+    favs().forEach(function (n) { if (union.indexOf(n) < 0) union.push(n); });
+    guardarFavs(union);
+    try { localStorage.setItem(FUSION_KEY, state.user.uid); } catch (e) {}
+    if (union.length !== remotos.length) saveProfile({ favs: union }).catch(function () {});
+    return union;
+  }
+
   /* ═══ MODAL DE INGRESO ═══════════════════════════════════════ */
 
   var MODAL_CSS = ''
@@ -352,10 +537,19 @@
     + '.cf-ttl{font-family:"Cormorant Garamond",Georgia,serif;font-size:1.75rem;color:#e8c98a;'
     + 'text-align:center;margin:0 0 .3rem;font-weight:400}'
     + '.cf-sub{text-align:center;color:#7a95aa;font-size:.74rem;margin:0 0 1.4rem;line-height:1.5}'
-    + '.cf-gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:.6rem;'
-    + 'padding:.8rem;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:#fff;'
-    + 'color:#1f1f1f;font-family:inherit;font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s}'
-    + '.cf-gbtn:hover{background:#f1f3f5}.cf-gbtn:disabled{opacity:.55;cursor:default}'
+    /* Variante para fondo oscuro, que es la que Google publica para temas
+       oscuros: superficie #131314, texto blanco y la G a color. El botón
+       blanco entero era un bloque brillante en medio de un modal azul y
+       dorado — se veía pegado de otro sitio. La G tiene que quedar a color
+       sobre su pastilla blanca: es requisito de marca de Google. */
+    + '.cf-gbtn{width:100%;display:flex;align-items:center;justify-content:center;gap:.65rem;'
+    + 'padding:.78rem;border-radius:10px;border:1px solid rgba(255,255,255,.16);background:#131314;'
+    + 'color:#f0f4f8;font-family:inherit;font-size:.78rem;font-weight:500;cursor:pointer;'
+    + 'transition:border-color .2s,background .2s}'
+    + '.cf-gbtn:hover{background:#1c1c1e;border-color:rgba(255,255,255,.3)}'
+    + '.cf-gbtn:disabled{opacity:.55;cursor:default}'
+    + '.cf-gmark{display:grid;place-items:center;width:19px;height:19px;flex-shrink:0;'
+    + 'border-radius:50%;background:#fff}'
     + '.cf-or{display:flex;align-items:center;gap:.7rem;margin:1.1rem 0;'
     + 'color:#5b7a90;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase}'
     + '.cf-or::before,.cf-or::after{content:"";flex:1;height:1px;background:rgba(200,169,110,.16)}'
@@ -401,12 +595,13 @@
         '<p class="cf-sub" id="cf-sub">Entrá a tu cuenta para ver tus pedidos y tus puntos.</p>' +
         '<div class="cf-perk">Acumulá <b>puntos</b> en cada compra y canjealos por <b>premios</b>.</div>' +
         '<button class="cf-gbtn" id="cf-google">' +
-          '<svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">' +
+          '<span class="cf-gmark">' +
+          '<svg width="13" height="13" viewBox="0 0 48 48" aria-hidden="true">' +
             '<path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>' +
             '<path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.2 5.3-4.6 7l7.6 5.9c4.4-4.1 6.7-10.1 6.7-17.4z"/>' +
             '<path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"/>' +
             '<path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.3 0-11.7-3.7-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/>' +
-          '</svg>' +
+          '</svg></span>' +
           '<span id="cf-glabel">Continuar con Google</span>' +
         '</button>' +
         '<div class="cf-or">o con tu correo</div>' +
@@ -524,11 +719,23 @@
   function closeModal() {
     if (modalEl) modalEl.classList.remove('open');
     setMsg('');
+
+    /* El paso "solo falta tu teléfono" ya ocurre CON la sesión abierta: es
+       opcional, no una cancelación. Cerrarlo con Escape o tocando afuera
+       tiene que valer lo mismo que el botón "Lo pongo después".
+       Si no, quien entraba con Google desde el carrito quedaba logueado
+       pero el pedido que disparó el modal se perdía en silencio. */
+    if (modalMode === 'phone') {
+      var cb = onSuccess; onSuccess = null;
+      if (cb) { try { cb(state.user); } catch (e) { console.error(e); } }
+    }
   }
 
   function finish(user) {
-    closeModal();
+    // Se toma el callback ANTES de cerrar: closeModal también puede dispararlo
+    // (paso del teléfono) y así nunca corre dos veces.
     var cb = onSuccess; onSuccess = null;
+    closeModal();
     if (cb) { try { cb(user); } catch (e) { console.error(e); } }
   }
 
@@ -655,12 +862,24 @@
     cfgReady: cfgPromise,
     tierOf: tierOf,
     nextTier: nextTier,
-    // Puntos que daría un monto, con el bonus del nivel aplicado.
+
+    /* ¿El programa de puntos está encendido?
+       Lo apaga Jesús desde el panel (config.pointsEnabled). El panel ya lo
+       respetaba —`if (!ptsEnabled()) return;` antes de acreditar— pero el
+       sitio no lo miraba: con el programa apagado le seguía prometiendo al
+       cliente "te va a sumar 687 puntos" y esos puntos no llegaban nunca. */
+    get pointsEnabled() { return (siteCfg || {}).pointsEnabled !== false; },
+
+    /* Puntos que da un monto en un nivel dado.
+       Es LA fórmula: la comparten mi-cuenta.html (para el ejemplo de cada
+       nivel) y el propio pointsFor. El panel tiene su copia en
+       `pointsForAmount()` porque no puede cargar auth.js — si tocás una,
+       tocá la otra, o el cliente ve un número y recibe otro. */
+    pointsForTier: pointsForTier,
+
+    // Puntos que daría un monto al dueño de esos puntos acumulados.
     pointsFor: function (amount, lifetimePoints) {
-      var rate = parseFloat((siteCfg || {}).pointsPer100);
-      if (isNaN(rate)) rate = 1;
-      var t = tierOf(lifetimePoints);
-      return Math.floor((Number(amount) || 0) / 100 * rate * (t ? t.mult : 1));
+      return pointsForTier(amount, tierOf(lifetimePoints));
     },
 
     get user()    { return state.user; },
@@ -687,8 +906,17 @@
       });
     },
 
+    normCodigo: normCodigo,
+    validarCupon: validarCupon,
+    buscarCupon: buscarCupon,
+
     fmtNum: fmtNum,
     fmtColones: fmtColones,
+    favs: favs,
+    esFav: esFav,
+    toggleFav: toggleFav,
+    syncFavs: syncFavs,
+
     monograma: monograma,
     esc: esc,
     normPhone: normPhone,

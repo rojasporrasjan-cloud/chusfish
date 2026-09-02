@@ -1,5 +1,33 @@
 # Checklist antes de subir a Netlify — Chus's Fish
 
+> ## ⚠️ Antes de tocar las reglas de Firestore, lee esto
+>
+> **`firebase deploy --only firestore:rules` NO es un validador: PUBLICA.**
+> No hay confirmación, no hay "¿estás seguro?". Se sube y queda.
+>
+> Pasó el 31-ago-2026: se lanzó creyendo que solo compilaba y las reglas
+> nuevas entraron en producción. **Jesús se quedó sin poder entrar al panel**
+> hasta el día siguiente, porque las reglas nuevas exigen que exista
+> `admins/{UID}` y ese documento todavía no estaba creado.
+>
+> **Para comprobar que las reglas compilan sin publicar nada:**
+> ```
+> npm run emu        # el emulador las carga y avisa si tienen errores
+> ```
+>
+> **Para publicarlas de verdad, el orden importa y no se puede invertir:**
+> 1. Crear `admins/{UID de chussfish2022@gmail.com}` en la consola de Firestore.
+>    (Las propias reglas tienen `allow write: if false` en `admins`, así que
+>    **nadie** puede crearlo desde el sitio: solo a mano desde la consola.)
+> 2. Comprobar que Jesús entra al panel y ve sus pedidos.
+> 3. Recién entonces `firebase deploy --only firestore:rules`.
+>
+> Si algo sale mal, las reglas anteriores están en git:
+> ```
+> git show main:firestore.rules > firestore.rules
+> firebase deploy --only firestore:rules --project chus-fish
+> ```
+
 ## 1. Cloudinary — restringir dominios del preset (5 min)
 - Ir a: https://cloudinary.com → Settings → Upload → Upload Presets
 - Buscar el preset **"chus fish"** → editar

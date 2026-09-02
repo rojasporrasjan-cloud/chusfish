@@ -46,14 +46,20 @@ const CUENTAS = [
 const PREMIOS = [
   // Ojo: NO hay premio de "envio gratis" — en Chus's Fish el envio ya es
   // gratis siempre, asi que regalarlo no seria ningun premio.
-  { id:'p-ceviche',  name:'1 kg de Picadura para Ceviche', cost:600,  stock:-1,
+  // Los premios que son producto se llaman IGUAL que en el catalogo real:
+  // asi `traer-catalogo.js` les encuentra su foto de verdad. Un premio que
+  // no existe en el catalogo tampoco se lo podria entregar a nadie.
+  { id:'p-ceviche',  name:'1 kg de Picadura de Corvina',   cost:600,  stock:-1,
     cat:'Producto gratis', order:1, img:'assets/ceviche_chus.jpg',
     desc:'Un kilo de picadura fresca, lista para tu ceviche.' },
   { id:'p-camaron',  name:'1/2 kg de Camaron Yumbo',       cost:900,  stock:10,
     cat:'Producto gratis', order:2, featured:true, img:'assets/camarones_gourmet.jpg',
     desc:'Medio kilo de camaron nacional, sin quimicos. El favorito de la casa.' },
+  // Un descuento NO es un producto: sin foto, la tienda le pone el monograma
+  // dorado. Antes llevaba `fondo_premium.jpg`, que es un fondo decorativo de
+  // la web y no una foto de Chus — delante del dueño eso se nota.
   { id:'p-desc15',   name:'15% de descuento',              cost:1200, stock:-1,
-    cat:'Descuentos', order:3, img:'assets/fondo_premium.jpg',
+    cat:'Descuentos', order:3,
     desc:'Un 15% menos en el total de tu proximo pedido.' },
   { id:'p-corvina',  name:'1 kg de Filete de Corvina P.P.',cost:1800, stock:3,
     cat:'Producto gratis', order:4, img:'assets/filete_corvina.jpg',
@@ -96,8 +102,34 @@ async function limpiar(col) {
   return snap.size;
 }
 
+/* Borra las cuentas sueltas que van quedando de tanto probar el registro.
+   Solo toca el emulador. */
+async function limpiarCuentasHuerfanas() {
+  const conocidos = CUENTAS.map(c => c.uid);
+  let borrados = 0;
+
+  const lista = await auth.listUsers(1000);
+  for (const u of lista.users) {
+    if (conocidos.includes(u.uid)) continue;
+    try { await auth.deleteUser(u.uid); } catch (e) {}
+    const led = await db.collection('users').doc(u.uid).collection('ledger').get();
+    if (led.size) { const b = db.batch(); led.forEach(d => b.delete(d.ref)); await b.commit(); }
+    await db.collection('users').doc(u.uid).delete().catch(() => {});
+    borrados++;
+  }
+
+  // Y los perfiles sin usuario de Auth detras.
+  const perfiles = await db.collection('users').get();
+  for (const d of perfiles.docs) {
+    if (conocidos.includes(d.id)) continue;
+    await d.ref.delete().catch(() => {});
+  }
+  if (borrados) console.log('  (se borraron ' + borrados + ' cuentas sueltas de pruebas anteriores)');
+}
+
 async function main() {
   console.log('Sembrando el emulador (proyecto chus-fish)...\n');
+  await limpiarCuentasHuerfanas();
 
   /* Usuarios de Auth + su doc en users/ */
   for (const c of CUENTAS) {

@@ -152,9 +152,18 @@ service cloud.firestore {
 
       // Control de uso por persona. El descuento real lo confirma el admin
       // en el modal de factura, asi que el canje lo registra el.
+      // El cliente lee el suyo para saber si ya lo uso; escribir, solo admin.
       match /redemptions/{uid} {
         allow read:  if isOwner(uid) || isAdmin();
         allow write: if isAdmin();
+      }
+
+      // Marca de "este pedido ya conto para el cupon". Evita que reabrir y
+      // volver a guardar la factura sume el uso dos veces.
+      // OJO: las subcolecciones NO heredan los permisos del documento padre,
+      // por eso necesita su propio match.
+      match /orders/{orderId} {
+        allow read, write: if isAdmin();
       }
     }
 
@@ -204,9 +213,33 @@ service cloud.firestore {
     }
 
 
-    /* ---- Avisos "notificarme cuando este disponible" ------- */
+    /* ---- Avisos "notificarme cuando este disponible" -------
+       Se deja crear SIN cuenta a proposito: cualquiera que ve un producto
+       agotado tiene que poder pedir el aviso.
+
+       Pero antes la regla era `if true` a secas, sin validar nada. Con eso
+       un script podia escribir documentos de cualquier forma y tamano, sin
+       limite, llenando el panel de avisos falsos y engordando la factura de
+       Firebase. Ahora tiene que ser EXACTAMENTE un aviso:
+         · solo estos cuatro campos, ni uno mas
+         · telefono de 8 a 15 digitos, solo numeros
+         · nombre de producto con tope de 120 caracteres
+         · la fecha la pone el servidor, para que nadie la invente
+       No es un antispam completo (para eso haria falta un backend), pero
+       corta el abuso barato y acota lo que puede entrar. */
     match /notifications/{notifId} {
-      allow create: if true;
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['productId', 'productName', 'phone', 'createdAt'])
+                    && request.resource.data.keys().hasAll(
+                         ['productName', 'phone', 'createdAt'])
+                    && request.resource.data.phone is string
+                    && request.resource.data.phone.size() >= 8
+                    && request.resource.data.phone.size() <= 15
+                    && request.resource.data.phone.matches('^[0-9]+$')
+                    && request.resource.data.productName is string
+                    && request.resource.data.productName.size() > 0
+                    && request.resource.data.productName.size() <= 120
+                    && request.resource.data.createdAt == request.time;
       allow read, update, delete: if isAdmin();
     }
 

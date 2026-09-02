@@ -10,26 +10,37 @@
 
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al tocar este archivo hay que subir el ?v= en TODOS los HTML.
-      Versión actual: v2
+      Versión actual: v8
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
 
-  if (typeof window.CF === 'undefined') {
+  /* Sin CF (el SDK de Firebase no llego) igual se dibuja la barra de
+     pestañas: navegar es lo minimo que tiene que seguir funcionando.
+     Antes ui.js se rendia entero y el telefono quedaba sin menu abajo,
+     sin forma de ir a otra seccion.
+     Lo que necesita datos —buscar y el carrito— se apaga solo. */
+  var HAY_CF = typeof window.CF !== 'undefined';
+  if (false) {
     console.error('[CFUI] auth.js no está cargado antes de ui.js');
     return;
   }
 
   var WA = 'https://wa.me/50660017370';
 
-  /* Las mismas categorías del catálogo y del panel. El emoji es respaldo:
-     si la categoría tiene productos con foto, se usa la foto. */
   /* Las mismas categorías del catálogo y del panel. Sin emoji: cada tarjeta
      usa la foto real del primer producto de la categoría, y si no hay foto
-     cae en un monograma en serif. */
+     cae en un monograma en serif.
+
+     `ico` marca las que NO son categorías sino estados (Favoritos, Más
+     vendidos): esas llevan icono de línea en vez de foto, para que se lean
+     distinto de las categorías de producto. */
+  var ICO_FAVS = '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5c0 5-7 9.5-7 9.5z"/></svg>';
+  var ICO_TOP  = '<svg viewBox="0 0 24 24"><path d="M12 3l2.4 6.3H21l-5.3 3.9 2 6.4-5.7-4.1-5.7 4.1 2-6.4L3 9.3h6.6z"/></svg>';
+
   var CATS = [
-    { id:'favs',            name:'Favoritos' },
-    { id:'top',             name:'Más vendidos' },
+    { id:'favs',            name:'Favoritos',     ico:ICO_FAVS },
+    { id:'top',             name:'Más vendidos',  ico:ICO_TOP  },
     { id:'camarones-imp',   name:'Camarones Importados' },
     { id:'camarones-nac',   name:'Camarones Nacionales' },
     { id:'filetes-premium', name:'Filete Premium' },
@@ -56,7 +67,10 @@
   var CSS = ''
   /* ── barra de pestañas ── */
   + '.cfui-tabs{position:fixed;left:0;right:0;bottom:0;top:auto!important;z-index:250;display:none;'
-  + 'background:rgba(5,12,24,.94);backdrop-filter:blur(18px) saturate(140%);'
+  /* Fondo solido, sin desenfoque: la barra esta fija y visible durante
+     todo el desplazamiento, asi que el navegador tendria que volver a
+     desenfocar el fondo en cada cuadro. Medido: costaba unos 6 fps. */
+  + 'background:#070f1e;'
   + '-webkit-backdrop-filter:blur(18px) saturate(140%);'
   + 'border-top:1px solid rgba(200,169,110,.14);'
   + 'padding-bottom:env(safe-area-inset-bottom)}'
@@ -87,14 +101,18 @@
   + '.cfui-cart-n{width:26px;height:26px;flex-shrink:0;display:grid;place-items:center;'
   + 'background:rgba(5,12,24,.85);color:#e8c98a;font-size:.7rem;font-weight:700}'
   + '.cfui-cart-b{flex:1;min-width:0}'
-  + '.cfui-cart-t{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;'
+  + '.cfui-cart-t{display:block;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;'
   + 'font-weight:700;opacity:.75}'
-  + '.cfui-cart-m{font-family:"Cormorant Garamond",Georgia,serif;font-size:1.25rem;'
+  + '.cfui-cart-m{display:block;font-family:"Cormorant Garamond",Georgia,serif;font-size:1.25rem;'
   + 'line-height:1.1;font-weight:600}'
   + '.cfui-cart-go{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;'
   + 'font-weight:700;white-space:nowrap}'
   /* ── hoja de búsqueda ── */
-  + '.cfui-sheet{position:fixed;inset:0;z-index:350;background:#050c18;'
+  /* Con \`bottom\` explicito, no \`inset:0\`: la hoja va en z-index 350 y la
+     barra de pestañas en 250, asi que la tapaba entera. Al abrir "Buscar"
+     desaparecia el menu de abajo y no se podia ir a otra seccion sin
+     cerrar primero. */
+  + '.cfui-sheet{position:fixed;top:0;left:0;right:0;bottom:0;z-index:350;background:#050c18;'
   + 'display:flex;flex-direction:column;opacity:0;pointer-events:none;'
   + 'transform:translateY(14px);'
   + 'transition:opacity .4s cubic-bezier(.22,.61,.36,1),transform .4s cubic-bezier(.22,.61,.36,1)}'
@@ -125,10 +143,20 @@
   + '.cfui-cat i{position:absolute;inset:0;display:grid;place-items:center;'
   + 'font-style:normal;font-family:"Cormorant Garamond",Georgia,serif;'
   + 'font-size:2rem;font-weight:300;color:#c8a96e;letter-spacing:.08em;opacity:.45}'
+  /* Estados (Favoritos, Más vendidos): icono en vez de foto, sobre un fondo
+     apenas dorado, para que no se confundan con una categoría de producto. */
+  + '.cfui-cat.est{background:linear-gradient(150deg,#12283f,#0a1728)}'
+  + '.cfui-cat.est::before{content:"";position:absolute;inset:0;'
+  + 'background:radial-gradient(circle at 30% 25%,rgba(200,169,110,.14),transparent 60%)}'
+  + '.cfui-cat.est i{opacity:1}'
+  + '.cfui-cat.est i svg{width:26px;height:26px;fill:none;stroke:#c8a96e;stroke-width:1.4;'
+  + 'stroke-linecap:round;stroke-linejoin:round;opacity:.85}'
   + '.cfui-cat-b{position:absolute;left:0;right:0;bottom:0;padding:.65rem .7rem;'
   + 'background:linear-gradient(to top,rgba(5,12,24,.95),transparent)}'
-  + '.cfui-cat-n{font-size:.72rem;color:#f2f5f8;line-height:1.3;font-weight:500}'
-  + '.cfui-cat-c{font-size:.58rem;color:#c8a96e;letter-spacing:.1em;margin-top:.15rem}'
+  /* display:block — sin esto los dos <span> caen en la misma línea y se lee
+     "Camarones Importados5 productos". Vale para todos los pares de abajo. */
+  + '.cfui-cat-n{display:block;font-size:.72rem;color:#f2f5f8;line-height:1.3;font-weight:500}'
+  + '.cfui-cat-c{display:block;font-size:.58rem;color:#c8a96e;letter-spacing:.1em;margin-top:.15rem}'
   /* resultados */
   + '.cfui-res{display:flex;flex-direction:column;border-top:1px solid rgba(255,255,255,.06)}'
   + '.cfui-r{display:flex;align-items:center;gap:.85rem;padding:.8rem .2rem;'
@@ -140,11 +168,13 @@
   + 'font-size:1.15rem;font-weight:300;color:#c8a96e;letter-spacing:.06em;opacity:.7}'
   + '.cfui-r-img img{width:100%;height:100%;object-fit:cover}'
   + '.cfui-r-b{flex:1;min-width:0}'
-  + '.cfui-r-n{font-size:.82rem;color:#f2f5f8;line-height:1.35}'
-  + '.cfui-r-c{font-size:.6rem;color:#4d6478;letter-spacing:.1em;'
+  + '.cfui-r-n{display:block;font-size:.82rem;color:#f2f5f8;line-height:1.35}'
+  + '.cfui-r-c{display:block;font-size:.6rem;color:#4d6478;letter-spacing:.1em;'
   + 'text-transform:uppercase;margin-top:.2rem}'
   + '.cfui-r-p{font-family:"Cormorant Garamond",Georgia,serif;font-size:1.05rem;'
   + 'color:#e8c98a;white-space:nowrap}'
+  + '.cfui-r-p.cfui-r-cons{font-family:inherit;font-size:.62rem;letter-spacing:.12em;'
+  + 'text-transform:uppercase;color:#6f8599}'
   + '.cfui-empty{text-align:center;padding:3rem 1rem;color:#6f8599;font-size:.8rem;line-height:1.8}'
   + '.cfui-empty b{display:block;font-family:"Cormorant Garamond",Georgia,serif;'
   + 'font-size:1.8rem;color:#c8a96e;font-weight:400;margin-bottom:.7rem}'
@@ -160,6 +190,8 @@
   +   '.wa-float svg{width:20px!important;height:20px!important}'
   /* El carrito viejo (círculo) se reemplaza por la barra */
   +   '.cart-float{display:none!important}'
+  /* Solo donde la barra de pestañas existe. */
+  +   '.cfui-sheet{bottom:calc(59px + env(safe-area-inset-bottom))}'
   + '}'
   + '@media(min-width:861px){.cfui-cart{display:none!important}}'
   + '@media (prefers-reduced-motion: reduce){'
@@ -169,7 +201,27 @@
   function fmt(n){
     return '₡' + String(Math.round(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
   }
-  function esc(s){ return CF.esc(s); }
+  function esc(s){
+    if (HAY_CF) return CF.esc(s);
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  /* Rango U+0300..U+036F: las tildes y la virgulilla que `normalize('NFD')`
+     deja sueltas como caracteres aparte.
+     OJO: entre los corchetes hay dos caracteres combinantes reales, que
+     muchos editores dibujan vacíos o pegados al corchete. Está bien así,
+     no lo "arregles" borrándolos. */
+  var COMBINANTES = new RegExp('[̀-ͯ]', 'g');
+
+  /* Sin tildes y en minúscula. En una tienda tica la gente escribe "camaron",
+     no "camarón": sin esto la búsqueda por nombre no encuentra nada. */
+  function normTxt(s){
+    return String(s == null ? '' : s).toLowerCase()
+      .normalize('NFD').replace(COMBINANTES, '');
+  }
+
   function paginaActual(){
     var f = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
     if (f === '' ) f = 'index.html';
@@ -189,6 +241,8 @@
       productos = window.PRODUCTS;
       return Promise.resolve(productos);
     }
+    // Sin base no hay productos que buscar; la barra igual se dibuja.
+    if (!HAY_CF) { productos = []; return Promise.resolve(productos); }
     cargando = CF.db.collection('chusfish').doc('catalog').get()
       .then(function(s){
         productos = (s.exists && s.data().products) || [];
@@ -293,6 +347,13 @@
   }
 
   async function refrescarCarrito(){
+    /* La barra puede no existir todavia. `catalogo.html` llama a esto en
+       cuanto tiene productos, y desde que el catalogo se guarda en el
+       aparato eso ocurre en ~450 ms: antes de que montar() haya corrido.
+       No es un problema — montar() vuelve a llamar a refrescarCarrito() al
+       final. Solo hay que no reventar mientras tanto. */
+    if (!elCart) return;
+
     var items = leerCarrito();
     if (!items.length){ elCart.classList.remove('on'); posicionarCarrito(false); return; }
 
@@ -331,7 +392,9 @@
     if (prefill) elInput.value = prefill;
     pintarBusqueda(elInput.value);
     // El foco va después de la transición para que el teclado no corte la animación.
-    setTimeout(function(){ elInput.focus(); }, 260);
+    /* A proposito NO se pone el foco aqui: el teclado tapaba media
+       pantalla apenas se abria "Buscar", justo cuando lo que la persona
+       quiere es VER las categorias. Sale cuando toca la barrita. */
   }
   function cerrarBusqueda(){
     elSheet.classList.remove('on');
@@ -354,10 +417,18 @@
         var n = enCat.length;
         if (c.id === 'favs' || c.id === 'top') n = null;   // no tienen conteo fijo
         else if (!n) return '';                            // categoría vacía: no se muestra
-        var foto = enCat.filter(function(p){ return p.img; })[0];
-        return '<button class="cfui-cat" data-cat="'+esc(c.id)+'">'+
-          (foto ? '<img src="'+esc(foto.img)+'" alt="" loading="lazy" />'
-                : '<i>'+esc(CF.monograma(c.name))+'</i>')+
+
+        // Los estados llevan icono; las categorías, la foto de su producto.
+        var visual = c.ico
+          ? '<i>' + c.ico + '</i>'
+          : (function(){
+              var foto = enCat.filter(function(p){ return p.img; })[0];
+              return foto ? '<img src="'+esc(foto.img)+'" alt="" loading="lazy" />'
+                          : '<i>'+esc(HAY_CF ? CF.monograma(c.name) : '✦')+'</i>';
+            })();
+
+        return '<button class="cfui-cat'+(c.ico?' est':'')+'" data-cat="'+esc(c.id)+'">'+
+          visual+
           '<span class="cfui-cat-b"><span class="cfui-cat-n">'+esc(c.name)+'</span>'+
           (n !== null ? '<span class="cfui-cat-c">'+n+(n===1?' producto':' productos')+'</span>' : '')+
           '</span></button>';
@@ -371,9 +442,29 @@
       return;
     }
 
-    var hits = prods.filter(function(p){
-      return ((p.name||'') + ' ' + (p.desc||'') + ' ' + (p.badge||'')).toLowerCase().indexOf(q) >= 0;
-    }).slice(0, 40);
+    /* Relevancia, no orden de catálogo. Buscando "camaron" salían primero
+       cuatro salsas y empanizadores (porque nombran el camarón en la
+       descripción) y los camarones aparecían quintos.
+         0 · el nombre empieza con lo buscado
+         1 · alguna palabra del nombre empieza con lo buscado
+         2 · el nombre lo contiene en cualquier parte
+         3 · solo aparece en la descripción o el badge
+       A igual puntaje se respeta el orden del catálogo. */
+    var qn = normTxt(q);
+    var hits = prods.map(function(p, i){
+      var nombre = normTxt(p.name);
+      var resto  = normTxt((p.desc || '') + ' ' + (p.badge || ''));
+      var punt;
+      if (nombre.indexOf(qn) === 0) punt = 0;
+      else if (new RegExp('(^|\\s)' + qn.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(nombre)) punt = 1;
+      else if (nombre.indexOf(qn) >= 0) punt = 2;
+      else if (resto.indexOf(qn) >= 0) punt = 3;
+      else return null;
+      return { p: p, punt: punt, i: i };
+    }).filter(Boolean)
+      .sort(function(a, b){ return a.punt - b.punt || a.i - b.i; })
+      .slice(0, 40)
+      .map(function(x){ return x.p; });
 
     if (!hits.length){
       elBody.innerHTML = '<div class="cfui-empty"><b>✦</b>'+
@@ -396,7 +487,11 @@
           '</span>'+
           '<span class="cfui-r-b"><span class="cfui-r-n">'+esc(p.name)+'</span>'+
             '<span class="cfui-r-c">'+esc(nombreCat[p.cat]||'')+'</span></span>'+
-          '<span class="cfui-r-p">'+(typeof p.price==='number'?fmt(p.price):'—')+'</span>'+
+          // Precio 0 o sin precio es lo mismo: hay que preguntarlo. "₡0"
+          // parecia que el producto era gratis.
+          (p.price
+            ? '<span class="cfui-r-p">'+fmt(p.price)+'</span>'
+            : '<span class="cfui-r-p cfui-r-cons">Consultar</span>')+
         '</button>';
       }).join('') + '</div>';
 

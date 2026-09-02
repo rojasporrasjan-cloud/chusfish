@@ -42,6 +42,24 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
+# Imagenes y logos de la raiz. Sin esta regla caian bajo "/*.html"
+# (max-age=0) y el navegador volvia a pedir el logo en cada pagina:
+# se midieron 4 descargas del mismo logo en una sola visita a la portada.
+[[headers]]
+  for = "/*.jpg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.jpeg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
 [[headers]]
   for = "/*.js"
   [headers.values]
