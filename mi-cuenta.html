@@ -329,6 +329,31 @@
     background-size:220% 100%;animation:sk 1.6s infinite linear}
   @keyframes sk{0%{background-position:220% 0}100%{background-position:-220% 0}}
 
+  /* Atajo al panel de administración. Se distingue a proposito del resto
+     de la pantalla: no es una accion de cliente, y confundirla seria
+     mandar a alguien a un sitio donde no tiene nada que hacer. */
+  .admin-link{
+    display:flex;align-items:center;gap:.85rem;width:100%;
+    margin:1.7rem 0 0;padding:.85rem 1rem;border-radius:14px;
+    text-decoration:none;color:var(--white);
+    background:linear-gradient(135deg,rgba(200,169,110,.16),rgba(200,169,110,.06));
+    border:1px solid rgba(200,169,110,.38);
+    transition:border-color .25s var(--ease),transform .25s var(--ease);
+  }
+  .admin-link:hover{border-color:var(--gold);transform:translateY(-1px)}
+  .admin-link:active{transform:translateY(0)}
+  .admin-link-ico{
+    flex-shrink:0;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;
+    background:rgba(200,169,110,.14);color:var(--gold);
+  }
+  .admin-link-ico svg{width:19px;height:19px}
+  /* display:block en los dos: dentro de un <a> en flex, dos <span> sueltos
+     se pegan en la misma linea. Ya paso cinco veces en este proyecto. */
+  .admin-link-txt{flex:1;min-width:0}
+  .admin-link-txt b{display:block;font-size:.78rem;letter-spacing:.02em;line-height:1.3}
+  .admin-link-txt small{display:block;font-size:.66rem;color:var(--muted);margin-top:.15rem}
+  .admin-link-fl{flex-shrink:0;color:var(--gold);font-size:1rem}
+
   #toast{position:fixed;left:50%;bottom:2rem;transform:translate(-50%,180%);
     background:var(--gold);color:var(--deep);padding:.8rem 1.5rem;
     font-size:.63rem;font-weight:700;letter-spacing:.12em;z-index:900;
@@ -567,6 +592,27 @@
       <div class="saldo"><b id="u-pts">0</b><span>puntos</span></div>
 
       <div class="meta" id="meta"></div>
+
+      <!-- Atajo al panel. Nace oculto y solo aparece si la cuenta tiene
+           documento en admins/. Va ARRIBA de los botones de cliente
+           porque quien administra entra a esta pantalla justamente para
+           llegar al panel, no para ver sus propios puntos. -->
+      <a href="admin.html" class="admin-link" id="admin-link" hidden>
+        <span class="admin-link-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+               stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="9" rx="1"/>
+            <rect x="14" y="3" width="7" height="5" rx="1"/>
+            <rect x="14" y="12" width="7" height="9" rx="1"/>
+            <rect x="3" y="16" width="7" height="5" rx="1"/>
+          </svg>
+        </span>
+        <span class="admin-link-txt">
+          <b>Panel de administración</b>
+          <small>Pedidos, productos, clientes y premios</small>
+        </span>
+        <span class="admin-link-fl" aria-hidden="true">&rarr;</span>
+      </a>
 
       <div class="hero-cta">
         <a href="premios.html" class="btn sm">Ver La Reserva</a>
@@ -1294,6 +1340,23 @@
 
   /* ═══ ARRANQUE ═══ */
   /* En cuanto sabemos si hay sesion o no, fuera el cartel de carga. */
+  /* ¿Esta cuenta administra la tienda?
+     Las reglas dejan que cualquiera lea SU PROPIO documento de admins,
+     asi que a un cliente normal esto le devuelve "no existe" y no genera
+     ningun error en consola. No decide nada de seguridad: el panel
+     vuelve a comprobarlo al entrar, y las reglas lo comprueban en cada
+     lectura y escritura. Aca solo se decide si se ve un enlace. */
+  async function revisarSiEsAdmin(uid){
+    var el = document.getElementById('admin-link');
+    if (!el || !uid || !window.CF || !CF.db) return;
+    try {
+      var d = await CF.db.collection('admins').doc(uid).get();
+      el.hidden = !d.exists;
+    } catch (e) {
+      el.hidden = true;      // sin permiso ni para preguntar: no es admin
+    }
+  }
+
   function quitarCargando(){
     var c = document.getElementById('cargando');
     if (c) c.remove();
@@ -1346,6 +1409,8 @@
     quitarCargando();
 
     if(!user){
+      var alAdmin = document.getElementById('admin-link');
+      if (alAdmin) alAdmin.hidden = true;
       $('#gate').classList.add('show');
       $('#app').classList.remove('show');
       // Premios y config son de lectura publica: la puerta puede mostrarlos
@@ -1359,6 +1424,7 @@
     $('#gate').classList.remove('show');
     $('#app').classList.add('show');
     pintarHero(user, profile);
+    revisarSiEsAdmin(user.uid);
     llenarForm(user, profile);
     loadZones();
     if(wired!==user.uid){
