@@ -6611,6 +6611,21 @@ function aplicarProductoPremio() {
 
 /* Traduce los puntos a algo que se pueda decidir:
    cuanto tuvo que comprar el cliente, y que porcentaje se le devuelve. */
+/* Cuanto del gasto del cliente se le devuelve en premios.
+   3% es lo sano para este negocio: con margen de mariscos del 20-25%,
+   se lleva una parte chica y el programa igual motiva —un premio de
+   ₡2.000 sale a los 3 pedidos. Por encima del 5% empieza a doler.
+   Es UN numero: cambialo aca y toda la ayuda se recalcula. */
+const META_DEVOLUCION = 0.03;
+
+/* Los puntos que deberia costar un premio que vale `precio`. */
+function puntosSugeridos(precio) {
+  const tasa = ptsRate();
+  if (!precio || tasa <= 0) return 0;
+  const compra = precio / META_DEVOLUCION;      // cuanto tiene que comprar
+  return Math.round(compra * tasa / 100 / 50) * 50;   // redondeado a 50
+}
+
 function actualizarAyudaPuntos() {
   const caja = document.getElementById('rw-cost-ayuda');
   if (!caja) return;
@@ -6621,7 +6636,11 @@ function actualizarAyudaPuntos() {
   if (!costo) {
     caja.innerHTML = precio
       ? 'Este producto vale <b style="color:#c8a96e">' + fmt(precio) + '</b>. ' +
-        'Poné cuántos puntos va a costar y te digo qué tan caro te sale.'
+        'Lo justo serían <b style="color:#6fe0a0">' +
+        puntosSugeridos(precio).toLocaleString('es-CR') + ' puntos</b> ' +
+        '<button type="button" onclick="usarPuntosSugeridos()" style="background:none;' +
+        'border:0;color:#c8a96e;text-decoration:underline;cursor:pointer;font:inherit;' +
+        'padding:0">usar</button>.'
       : 'Poné cuántos puntos va a costar.';
     return;
   }
@@ -6632,13 +6651,45 @@ function actualizarAyudaPuntos() {
             '<b style="color:#c8a96e">' + fmt(compraNecesaria) + '</b> para ganárselo.';
 
   if (precio && compraNecesaria > 0) {
-    const pct = (precio / compraNecesaria) * 100;
-    const color = pct > 12 ? '#ff9b8c' : (pct > 7 ? '#e8c98a' : '#6fe0a0');
+    const pct   = (precio / compraNecesaria) * 100;
+    const meta  = META_DEVOLUCION * 100;
+    const sug   = puntosSugeridos(precio);
+
+    /* Los cortes salen de la meta, no de numeros sueltos: hasta una vez y
+       media va bien, hasta el doble es aceptable, y de ahi para arriba
+       estas regalando margen. */
+    const color = pct > meta * 2   ? '#ff9b8c'
+                : pct > meta * 1.5 ? '#e8c98a'
+                :                    '#6fe0a0';
+
     txt += '<br>Le estás devolviendo un <b style="color:' + color + '">' +
-           pct.toFixed(1) + '%</b> de lo que gastó' +
-           (pct > 12 ? ' — es bastante, revisá tu margen.' : '.');
+           pct.toFixed(1) + '%</b> de lo que gastó (la meta es ' + meta.toFixed(0) + '%).';
+
+    if (sug && Math.abs(sug - costo) > sug * 0.1) {
+      txt += '<br>Para quedar en la meta serían <b style="color:#6fe0a0">' +
+             sug.toLocaleString('es-CR') + ' puntos</b> ' +
+             '<button type="button" onclick="usarPuntosSugeridos()" style="background:none;' +
+             'border:0;color:#c8a96e;text-decoration:underline;cursor:pointer;font:inherit;' +
+             'padding:0">usar</button>.';
+    }
+
+    if (pct > meta * 2) {
+      txt += '<br><b style="color:#ff9b8c">Ojo:</b> a este precio el premio se ' +
+             'come buena parte del margen del pedido.';
+    }
   }
   caja.innerHTML = txt;
+}
+
+/* Pone la sugerencia en el campo. Se dispara el evento a mano porque
+   cambiar .value desde JS no lanza 'input', y la ayuda no se refrescaria. */
+function usarPuntosSugeridos() {
+  const el = document.getElementById('rw-cost');
+  const precio = Number(el.dataset.precio) || 0;
+  const sug = puntosSugeridos(precio);
+  if (!sug) return;
+  el.value = sug;
+  actualizarAyudaPuntos();
 }
 
 function toggleCatalogImgItem(el) {

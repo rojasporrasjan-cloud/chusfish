@@ -49,26 +49,38 @@ const PREMIOS = [
   // Los premios que son producto se llaman IGUAL que en el catalogo real:
   // asi `traer-catalogo.js` les encuentra su foto de verdad. Un premio que
   // no existe en el catalogo tampoco se lo podria entregar a nadie.
-  { id:'p-ceviche',  name:'1 kg de Picadura de Corvina',   cost:600,  stock:-1,
-    cat:'Producto gratis', order:1, img:'assets/ceviche_chus.jpg',
-    desc:'Un kilo de picadura fresca, lista para tu ceviche.' },
-  { id:'p-camaron',  name:'1/2 kg de Camaron Yumbo',       cost:900,  stock:10,
-    cat:'Producto gratis', order:2, featured:true, img:'assets/camarones_gourmet.jpg',
-    desc:'Medio kilo de camaron nacional, sin quimicos. El favorito de la casa.' },
-  // Un descuento NO es un producto: sin foto, la tienda le pone el monograma
-  // dorado. Antes llevaba `fondo_premium.jpg`, que es un fondo decorativo de
-  // la web y no una foto de Chus — delante del dueño eso se nota.
-  { id:'p-desc15',   name:'15% de descuento',              cost:1200, stock:-1,
-    cat:'Descuentos', order:3,
-    desc:'Un 15% menos en el total de tu proximo pedido.' },
-  { id:'p-corvina',  name:'1 kg de Filete de Corvina P.P.',cost:1800, stock:3,
-    cat:'Producto gratis', order:4, img:'assets/filete_corvina.jpg',
-    desc:'El filete mas pedido del catalogo, de regalo.' },
-  { id:'p-pargo',    name:'Pargo entero de 1 kg',          cost:2200, stock:5,
-    cat:'Producto gratis', order:5, img:'assets/pargo_entero.jpg',
+  { id:'p-desc2000', name:'₡2.000 de descuento',           cost:650,  stock:-1,
+    cat:'Descuentos', order:1,
+    desc:'₡2.000 menos en el total de tu proximo pedido.' },
+
+  // El escalon de entrada: alcanzable en unos 6 pedidos. Sin algo barato
+  // abajo, el programa se ve inalcanzable y la gente deja de mirarlo.
+  { id:'p-desc5000', name:'₡5.000 de descuento',           cost:1650, stock:-1,
+    cat:'Descuentos', order:2,
+    desc:'₡5.000 menos en el total de tu proximo pedido.' },
+
+  { id:'p-ceviche-medio', name:'1/2 kg de Picadura de Corvina', cost:2150, stock:-1,
+    cat:'Producto gratis', order:3, img:'assets/ceviche_chus.jpg',
+    desc:'Medio kilo de picadura fresca, lista para tu ceviche.' },
+
+  { id:'p-pargo',    name:'Pargo entero de 1 kg',          cost:2650, stock:5,
+    cat:'Producto gratis', order:4, img:'assets/pargo_entero.jpg',
     desc:'Un pargo entero fresco, listo para el horno o la parrilla.' },
-  { id:'p-agotado',  name:'Langosta entera',               cost:3500, stock:0,
-    cat:'Experiencias', order:6, img:'assets/langosta_hielo.png',
+
+  { id:'p-camaron',  name:'1/2 kg de Camaron Yumbo',       cost:4250, stock:10,
+    cat:'Producto gratis', order:5, featured:true, img:'assets/camarones_gourmet.jpg',
+    desc:'Medio kilo de camaron nacional, sin quimicos. El favorito de la casa.' },
+
+  { id:'p-corvina',  name:'1 kg de Filete de Corvina P.P.',cost:4250, stock:3,
+    cat:'Producto gratis', order:6, img:'assets/filete_corvina.jpg',
+    desc:'El filete mas pedido del catalogo, de regalo.' },
+
+  { id:'p-ceviche',  name:'1 kg de Picadura de Corvina',   cost:4350, stock:-1,
+    cat:'Producto gratis', order:7, img:'assets/ceviche_chus.jpg',
+    desc:'Un kilo de picadura fresca, lista para tu ceviche.' },
+
+  { id:'p-agotado',  name:'Langosta entera',               cost:5600, stock:0,
+    cat:'Experiencias', order:8, img:'assets/langosta_hielo.png',
     desc:'Para probar el estado "agotado" en la tienda.' },
 ];
 
@@ -224,8 +236,8 @@ async function main() {
   /* Un canje pendiente para ver la vista de aprobacion */
   await db.collection('redemptions').add({
     uid:'cliente-maria', userName:'Maria Rodriguez', userPhone:'88881111',
-    userEmail:'maria@test.com', rewardId:'p-ceviche', rewardName:'1 kg de Picadura para Ceviche',
-    cost:600, status:'solicitado', createdAt: ts(),
+    userEmail:'maria@test.com', rewardId:'p-ceviche-medio', rewardName:'1/2 kg de Picadura de Corvina',
+    cost:2150, status:'solicitado', createdAt: ts(),
   });
 
   console.log('\nListo.');
