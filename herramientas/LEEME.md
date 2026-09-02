@@ -30,3 +30,20 @@ regalarse puntos ni espiar otra cuenta, y que el admin sí pueda todo.
 Sale con código 1 si alguna falla, así que sirve tal cual antes de publicar.
 Esto es lo que faltó en agosto, cuando se publicaron reglas sin probar y
 Jesús se quedó un día sin panel.
+
+## probar-alta-admin.js — el alta automática de admin
+
+```
+node herramientas/probar-alta-admin.js
+```
+
+10 comprobaciones sobre la parte más delicada del sistema: que entrar con
+Google **te dé el panel solo si tu correo está en la lista de
+`firestore.rules`**, y que no haya forma de colarse.
+
+Incluye los cuatro intentos de abuso que importan: darse de alta con una
+cuenta de **contraseña** creada con el correo del dueño (Firebase deja crear
+esa cuenta, no comprueba que el correo sea tuyo), crear el documento de otro
+UID, y modificar o borrar el de un admin que ya existe.
+
+Deja el emulador como estaba al terminar.

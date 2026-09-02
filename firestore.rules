@@ -63,12 +63,49 @@ service cloud.firestore {
 
 
     /* ---- Quien es admin ------------------------------------ */
+    /* Quienes pueden ser admin. Esta lista vive ACA, del lado del
+       servidor: el navegador no la puede leer ni cambiar. Agregar a
+       alguien exige volver a publicar las reglas — a proposito.
+
+       Tiene que coincidir con USER_MAP en admin.html. */
+    function correoDeAdmin() {
+      return request.auth.token.email in [
+        'chussfish2022@gmail.com',
+        'rojasporrasjan@gmail.com'
+      ];
+    }
+
     // Se administra SOLO desde la consola de Firebase. Nadie lo escribe
     // desde el navegador, ni el propio admin.
     match /admins/{uid} {
-      allow read:  if isAdmin();
-      allow write: if false;
+      // Leer: el admin ve la lista; cualquiera puede consultar SI MISMO,
+      // que es lo que necesita el panel para saber si te deja pasar.
+      allow read: if isAdmin() || isOwner(uid);
+
+      /* Alta automatica, y solo para uno mismo. Las cuatro condiciones
+         son necesarias:
+
+         · isOwner(uid) ....... solo tu propio documento, nunca el de otro.
+         · sign_in_provider ... TIENE que ser Google. Sin esto, cualquiera
+                                podria crear una cuenta con contraseña
+                                usando el correo de Jesus —Firebase lo
+                                permite, no comprueba que sea tuyo— y
+                                darse de alta de admin.
+         · email_verified ..... segunda barrera de lo mismo.
+         · correoDeAdmin() .... el correo esta en la lista de arriba.
+
+         Y aunque todo se cumpla, solo puede CREARLO. Modificarlo o
+         borrarlo sigue prohibido para todo el mundo: quien ya es admin
+         no se puede quitar a otro. */
+      allow create: if isOwner(uid)
+                    && request.auth.token.firebase.sign_in_provider == 'google.com'
+                    && request.auth.token.email_verified == true
+                    && correoDeAdmin();
+
+      allow update, delete: if false;
     }
+
+    // (el bloque viejo se reemplazo por el de arriba)
 
 
     /* ---- Catalogo y configuracion del sitio ---------------- */

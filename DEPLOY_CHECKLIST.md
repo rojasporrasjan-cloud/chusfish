@@ -16,7 +16,29 @@
 > ```
 >
 > **Para publicarlas de verdad, el orden importa y no se puede invertir:**
-> 1. Crear **un documento por cada admin** en la colección `admins` de Firestore.
+> **Desde sep-2026 el paso manual ya no hace falta para estos dos correos:**
+> las reglas permiten que se den de alta solos al entrar con Google.
+> Ver `correoDeAdmin()` en `firestore.rules`. La lista vive ahí, del lado
+> del servidor; agregar a alguien exige volver a publicar las reglas.
+>
+> | usuario | correo | cómo entra |
+> |---|---|---|
+> | `admin` | chussfish2022@gmail.com (Jesús) | contraseña (su doc ya existe) o Google |
+> | `rojas` | rojasporrasjan@gmail.com (Jan)  | **Google** — se da de alta solo |
+>
+> El alta automática **solo** funciona entrando con Google, con el correo
+> verificado y estando en esa lista. Con contraseña no: cualquiera puede
+> crear una cuenta de contraseña con el correo ajeno (Firebase no comprueba
+> que sea tuyo), así que por ahí sería un agujero.
+>
+> Comprobalo antes de publicar:
+> ```
+> node herramientas/probar-reglas.js        # 22 comprobaciones generales
+> node herramientas/probar-alta-admin.js    # 10 sobre el alta de admin
+> ```
+>
+> Si igual querés crearlo a mano (por ejemplo para un tercero que no está
+> en la lista):
 >    Son **dos**, no uno — `USER_MAP` en `admin.html` habilita dos entradas:
 >
 >    | usuario | correo | ¿tiene su `admins/{UID}`? |

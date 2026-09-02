@@ -5718,6 +5718,29 @@ async function loadNotifications() {
         esAdmin = false;   // sin permiso ni para consultarlo
       }
 
+      /* ── Alta automatica al entrar con Google ──────────────────
+         Si no hay documento, se intenta crear. No decide nada el
+         navegador: las reglas solo lo permiten si entraste con Google,
+         con el correo verificado, y ese correo esta en la lista que
+         vive DENTRO de firestore.rules. Para cualquier otra cuenta esto
+         falla con permission-denied y sigue de largo al mensaje de
+         siempre, que ya no hace daño.
+
+         Asi nadie tiene que volver a crear el documento a mano en la
+         consola: entras con Google y quedas dado de alta. */
+      if (!esAdmin && user.email) {
+        try {
+          await db.collection('admins').doc(user.uid).set({
+            name:      user.displayName || user.email,
+            email:     user.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          esAdmin = true;
+        } catch (e) {
+          esAdmin = false;   // no esta en la lista, o no entro con Google
+        }
+      }
+
       if (!esAdmin) {
         localStorage.removeItem(AUTH_KEY);
         document.getElementById('app').style.display = 'none';
