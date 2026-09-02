@@ -95,7 +95,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="auth.js?v=10"></script>
-<script src="ui.js?v=12"></script>
+<script src="ui.js?v=13"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1171,47 +1171,52 @@
     .destacados-row::-webkit-scrollbar { display:none; }
     .dest-card {
       position:relative; flex:0 0 auto; width:158px; scroll-snap-align:start;
+      aspect-ratio:4/3;
       background:#0e2038; border:1px solid var(--glass-border); border-radius:12px;
       overflow:hidden; display:flex; flex-direction:column;
       transition:transform .35s ease, border-color .35s ease;
     }
     .dest-card:hover { transform:translateY(-4px); border-color:rgba(200,169,110,0.4); box-shadow:0 14px 36px rgba(0,0,0,0.45); }
     .dest-star { position:absolute; top:8px; left:8px; z-index:2; background:linear-gradient(135deg,var(--gold-dk),var(--gold)); color:var(--deep); font-size:0.55rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:0.22rem 0.55rem; border-radius:14px; }
-    .dest-img { width:100%; aspect-ratio:4/3; background:rgba(6,14,28,0.5); display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; }
+    .dest-img { position:absolute; inset:0; background:rgba(6,14,28,0.5);
+      display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; }
     .dest-img img { width:100%; height:100%; object-fit:cover; transition:transform .6s; }
     .dest-card:hover .dest-img img { transform:scale(1.06); }
     .dest-img-placeholder { color:var(--gold-dk); font-size:1.6rem; }
 
     /* Contenido de la tarjeta compacta */
-    .dest-body { padding:0.6rem 0.65rem 0.7rem; display:flex; flex-direction:column; gap:0.3rem; flex:1; }
-    .dest-name {
-      font-family:'Cormorant Garamond',serif; font-size:0.9rem; color:var(--white);
-      line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
-      overflow:hidden;
+    /* El texto va SOBRE la foto. El degradado es lo que lo hace legible
+       venga la foto clara u oscura: sin el, medio catalogo no se leia. */
+    .dest-body {
+      position:absolute; left:0; right:0; bottom:0; z-index:1;
+      padding:1.4rem 0.5rem 0.42rem; pointer-events:none;
+      background:linear-gradient(to top,rgba(4,11,22,0.94) 38%,rgba(4,11,22,0));
     }
-    .dest-price { font-family:'Cormorant Garamond',serif; font-size:0.95rem; color:var(--gold); white-space:nowrap; }
-    .dest-price small { font-size:0.55rem; font-family:'Montserrat',sans-serif; color:var(--muted); }
+    .dest-name {
+      font-family:'Cormorant Garamond',serif; font-size:0.82rem; color:var(--white);
+      line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .dest-price { font-family:'Cormorant Garamond',serif; font-size:0.92rem;
+      color:var(--gold-lt); white-space:nowrap; line-height:1.1; }
+    .dest-price small { font-size:0.52rem; font-family:'Montserrat',sans-serif; color:#9fb3c4; }
     .dest-add {
-      margin-top:auto; display:inline-flex; align-items:center; justify-content:center; gap:0.3rem;
-      font-family:'Montserrat',sans-serif; font-size:0.55rem; letter-spacing:0.1em;
-      text-transform:uppercase; font-weight:700; color:var(--deep);
+      position:absolute; top:6px; right:6px; z-index:2;
+      width:28px; height:28px; border-radius:50%; border:none; cursor:pointer;
+      display:grid; place-items:center; padding:0;
+      font-family:'Montserrat',sans-serif; font-size:0.95rem; font-weight:700;
+      line-height:1; color:var(--deep);
       background:linear-gradient(135deg,var(--gold-dk),var(--gold));
-      padding:0.42rem 0.5rem; border-radius:12px; border:none; cursor:pointer;
+      box-shadow:0 3px 10px rgba(0,0,0,0.4);
       transition:transform .25s, box-shadow .25s;
     }
     .dest-add:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(200,169,110,0.3); }
     .dest-add:active { transform:translateY(0) scale(0.97); }
-    /* La estrella, chiquita en la esquina */
-    .dest-star {
-      position:absolute; top:0; left:0; z-index:2;
-      background:var(--gold); color:var(--deep);
-      font-size:0.48rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:700;
-      padding:0.22rem 0.45rem;
-    }
-    .dest-body { padding:0.8rem 0.9rem 1rem; display:flex; flex-direction:column; gap:0.5rem; flex:1; }
-    .dest-name { font-family:'Cormorant Garamond',serif; font-size:1.05rem; color:var(--white); line-height:1.25; }
-    .dest-price { font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:var(--gold); }
-    .dest-price small { font-size:0.6rem; color:var(--muted); }
+    /* (el bloque duplicado que habia aca ganaba por orden y
+       deshacia la version compacta de mas arriba) */
+
+
+
+
     .dest-actions { display:flex; gap:0.5rem; margin-top:auto; }
     .dest-more { flex:1; padding:0.45rem; border-radius:16px; border:1px solid var(--glass-border); background:transparent; color:var(--muted); font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; cursor:pointer; font-family:'Montserrat',sans-serif; transition:all .2s; }
     .dest-more:hover { color:var(--gold); border-color:var(--gold-dk); }
@@ -3377,15 +3382,16 @@ function pintarSeccionesDeConfig(cfg) {
           : '<small>&#8353;</small>' + p.price.toLocaleString() + ' <small>' + p.unit + '</small>';
         const safeName = p.name.replace(/'/g, "\\'");
         return '<div class="dest-card">' +
-          '<span class="dest-star">Destacado</span>' +
+
           '<div class="dest-img" onclick="openModal(' + p.id + ')">' + imgHtml + '</div>' +
           '<div class="dest-body">' +
             '<div class="dest-name">' + p.name + '</div>' +
             '<div class="dest-price">' + priceHtml + '</div>' +
-            // Sin "Ver mas": tocar la foto ya abre la ficha, y en 158px de
-            // ancho no caben dos botones sin que se parta el texto.
-            '<button class="dest-add" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id===' + p.id + '});if(p){addToCart(p,getMin(p.unit));showToast(\'' + safeName + ' agregado al carrito ✅\')}})()">+ Agregar</button>' +
           '</div>' +
+          // El boton va FUERA de .dest-body: ese bloque esta anclado
+          // abajo y lleva pointer-events:none, asi que adentro ni se
+          // colocaba bien ni se dejaba tocar.
+          '<button class="dest-add" aria-label="Agregar" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id===' + p.id + '});if(p){addToCart(p,getMin(p.unit));showToast(\'' + safeName + ' agregado al carrito ✅\')}})()">+</button>' +
         '</div>';
       }).join('');
       // La marca deja que applyFilter sepa que esta seccion existe de
