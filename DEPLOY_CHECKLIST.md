@@ -16,14 +16,40 @@
 > ```
 >
 > **Para publicarlas de verdad, el orden importa y no se puede invertir:**
-> 1. Crear `admins/{UID de chussfish2022@gmail.com}` en la consola de Firestore.
+> 1. Crear **un documento por cada admin** en la colección `admins` de Firestore.
+>    Son **dos**, no uno — `USER_MAP` en `admin.html` habilita dos entradas:
+>
+>    | usuario | correo | ¿tiene su `admins/{UID}`? |
+>    |---|---|---|
+>    | `admin` | chussfish2022@gmail.com (Jesús) | ☐ |
+>    | `rojas` | rojasporrasjan@gmail.com (Jan)  | ☐ |
+>
+>    Si solo se crea el de Jesús, **el otro se queda sin panel** el día que
+>    se publiquen las reglas. Es el mismo error de agosto, con otra cuenta.
+>
+>    El **ID del documento es el UID**, no el correo. Sale en
+>    Firebase Console → Authentication → Users, columna "User UID".
+>    El contenido da igual (la regla solo hace `exists()`); poner
+>    `name` para saber de quién es.
 >    (Las propias reglas tienen `allow write: if false` en `admins`, así que
 >    **nadie** puede crearlo desde el sitio: solo a mano desde la consola.)
-> 2. Comprobar que Jesús entra al panel y ve sus pedidos.
-> 3. Recién entonces `firebase deploy --only firestore:rules`.
+> 2. Con las reglas VIEJAS todavía puestas, comprobar que los dos entran al
+>    panel. Crear los documentos no cambia nada todavía: es la foto de
+>    "antes" para saber que el problema, si aparece, lo trajeron las reglas.
+> 3. Recién entonces publicar. **Mejor desde la consola** que por CLI:
+>    Firestore Database → Reglas → pegar `firestore.rules` → Publicar.
+>    La consola guarda el historial y se vuelve atrás con un clic.
+>
+> 4. Apenas publicado, probar en este orden (2 minutos):
+>    - Panel: entrar con las dos cuentas, cambiar el precio de un producto,
+>      marcar un pedido como entregado y ver que acredita puntos.
+>    - Tienda: abrir el catálogo sin sesión (los productos tienen que
+>      cargar), entrar como cliente y ver sus puntos.
+>    - Si algo falla, volver atrás YA. No investigar con la tienda caída.
 >
 > Si algo sale mal, las reglas anteriores están en git:
 > ```
+> # ya están guardadas en borradores/firestore.rules.VOLVER-ATRAS.txt
 > git show main:firestore.rules > firestore.rules
 > firebase deploy --only firestore:rules --project chus-fish
 > ```

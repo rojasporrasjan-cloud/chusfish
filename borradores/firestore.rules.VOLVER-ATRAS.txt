@@ -1,0 +1,45 @@
+rules_version = '2';
+
+// ════════════════════════════════════════════════════════════════
+//  Chus's Fish — Reglas de seguridad de Firestore
+//  Objetivo: que NADIE pueda leer los datos de los clientes (pedidos)
+//  desde el navegador. Solo el administrador autenticado.
+//
+//  Desplegar con:  firebase deploy --only firestore:rules
+//  o pegar en: Firebase Console → Firestore Database → Reglas → Publicar
+// ════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Catálogo y configuración del sitio (docs: catalog, config) ──
+    // Lectura PÚBLICA (la web necesita mostrar productos, banner, zonas,
+    // destacados, etc.). Escritura SOLO para el admin autenticado.
+    match /chusfish/{doc} {
+      allow read:  if true;
+      allow write: if request.auth != null;
+    }
+
+    // ── Pedidos ──
+    // El cliente (anónimo) puede CREAR un pedido desde el formulario,
+    // pero NO puede leer, editar ni borrar ninguno.
+    // Leer/editar/borrar: SOLO el admin autenticado.
+    match /orders/{orderId} {
+      allow create: if request.resource.data.status == 'pendiente'
+                    && request.resource.data.items is list;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // ── Avisos "notificarme cuando esté disponible" ──
+    // El cliente puede crear el aviso; solo el admin lo gestiona.
+    match /notifications/{notifId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // ── Todo lo demás: denegado por defecto ──
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
