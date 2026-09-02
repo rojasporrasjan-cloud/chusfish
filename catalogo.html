@@ -95,7 +95,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="auth.js?v=10"></script>
-<script src="ui.js?v=14"></script>
+<script src="ui.js?v=15"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2147,8 +2147,18 @@ function publicarDatosSEO(){
 }
 
 /* ════════════════════════════════════════ */
-const CAT_ORDER = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
+/* Las de siempre, como respaldo: si la configuracion todavia no trae
+   categorias —o no se pudo leer— el catalogo sigue funcionando igual. */
+const CAT_DEFECTO = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
+let CAT_ORDER = CAT_DEFECTO.slice();
 
+/* Nombres de las categorias que vengan de la configuracion. Las de
+   siempre tienen su rotulo con <em> mas abajo en CAT_LABELS; una
+   categoria nueva usa su nombre tal cual. */
+let CAT_EXTRA = {};
+
+/* Rotulo con cursiva para el encabezado de cada grupo. Solo existe para
+   las diez de siempre; una categoria nueva cae en el nombre plano. */
 const CAT_LABELS = {
   'camarones-imp':    'Camarones <em>Importados</em>',
   'camarones-nac':    'Camarones <em>Nacionales</em>',
@@ -2161,6 +2171,38 @@ const CAT_LABELS = {
   'gourmet':          'Productos <em>Gourmet</em>',
   'marinados':        'Marinados <em>y Empanizadores</em>',
 };
+
+/* Rehace las listas con lo que diga la configuracion. Se llama antes de
+   pintar nada, asi que el catalogo nunca dibuja el orden viejo y luego
+   salta al nuevo. */
+function aplicarCategorias(lista) {
+  if (!Array.isArray(lista) || !lista.length) return false;
+
+  const nuevoOrden = lista.map(function (c) { return c && c.id; }).filter(Boolean);
+  const igual = nuevoOrden.length === CAT_ORDER.length &&
+                nuevoOrden.every(function (id, i) { return CAT_ORDER[i] === id; }) &&
+                lista.every(function (c) { return CAT_EXTRA[c.id] === (c.nombre || c.id); });
+  if (igual) return false;
+
+  CAT_ORDER = [];
+  CAT_EXTRA = {};
+  lista.forEach(function (c) {
+    if (!c || !c.id) return;
+    CAT_ORDER.push(c.id);
+    CAT_EXTRA[c.id] = c.nombre || c.id;
+  });
+  CATWALL = [CATWALL[0]].concat(CAT_ORDER.map(function (id) {
+    return { id: id, n: nombreCat(id) };
+  }));
+  return true;
+}
+
+/* El nombre plano de una categoria, venga de donde venga. */
+function nombreCat(id) {
+  if (CAT_EXTRA[id]) return CAT_EXTRA[id];
+  const l = CAT_LABELS[id];
+  return l ? l.replace(/<[^>]*>/g, '') : id;
+}
 
 const CAT_ICONS = {
   'camarones-imp':   `<path d="M10 36 Q14 28 22 24 Q28 20 36 22 Q42 24 44 30 Q40 38 32 40 Q24 42 18 38 Q12 34 10 36Z" stroke="#c8a96e" stroke-width="1.2" fill="none"/><path d="M36 22 Q40 16 44 12" stroke="#c8a96e" stroke-width="1" fill="none" opacity="0.5"/><path d="M42 30 Q46 28 48 24" stroke="#c8a96e" stroke-width="1" fill="none" opacity="0.5"/>`,
@@ -2232,7 +2274,7 @@ function buildGroup(cat) {
   return `
   <div class="cat-group" id="group-${cat}">
     <div class="cat-group-header">
-      <h2 class="cat-group-title">${CAT_LABELS[cat]}</h2>
+      <h2 class="cat-group-title">${CAT_LABELS[cat] || nombreCat(cat)}</h2>
       <div class="cat-group-line"></div>
       <span class="cat-group-count">${items.length} productos</span>
     </div>
@@ -2383,7 +2425,7 @@ const ICO_TOP  = '<svg viewBox="0 0 24 24"><path d="M12 3l2.4 6.3H21l-5.3 3.9 2 
    primeros lugares de la fila y empujaban el producto de verdad fuera de
    pantalla. Quien entra al catalogo quiere ver pescado, no dos tarjetas con
    un icono. Los dos siguen disponibles desde la hoja de "Buscar". */
-const CATWALL = [
+let CATWALL = [
   { id:'all',              n:'Todo',          ico:ICO_TODO },
   { id:'camarones-imp',    n:'Camarones Importados' },
   { id:'camarones-nac',    n:'Camarones Nacionales' },
@@ -3352,6 +3394,16 @@ function showBanner(msg) {
 function pintarSeccionesDeConfig(cfg) {
   try {
     if (!cfg) return;
+
+    if (aplicarCategorias(cfg.categorias)) {
+      if (wrap && wrap.querySelector('.cat-group')) {
+        wrap.querySelectorAll('.cat-group').forEach(function (g) { g.remove(); });
+        wrap.insertAdjacentHTML('afterbegin', CAT_ORDER.map(buildGroup).join(''));
+        updateCounts();
+        applyFilter();
+      }
+      renderCatwall();
+    }
 
     if (cfg.closingEnabled && cfg.closingMessage) {
       showBanner(cfg.closingMessage, cfg.bannerColor);

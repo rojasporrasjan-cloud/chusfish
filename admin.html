@@ -275,7 +275,29 @@
       transition: border-color 0.3s, transform 0.3s;
     }
     .cat-card:hover { border-color: var(--gold-dk); transform: translateY(-3px); }
-    .cat-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--white); margin-bottom: 0.5rem; }
+    .cat-card { position: relative; }
+
+    /* El nombre es un campo, no un titulo: se edita en el sitio. Se le
+       quita el marco para que siga leyendose como titulo hasta que lo
+       tocan; si pareciera un formulario, la pantalla se veria pesada. */
+    .cat-card-nombre {
+      width: 100%; background: transparent; border: 1px solid transparent;
+      border-radius: 8px; padding: 0.25rem 0.4rem; margin: 0 -0.4rem 0.4rem;
+      font-family: 'Cormorant Garamond', serif; font-size: 1.2rem;
+      color: var(--white); transition: border-color .2s, background .2s;
+    }
+    .cat-card-nombre:hover  { border-color: var(--gb); }
+    .cat-card-nombre:focus  { outline: none; border-color: var(--gold-dk); background: rgba(6,14,28,0.6); }
+
+    .cat-card-acts { display: flex; gap: 0.3rem; margin-top: 0.8rem; }
+    .cat-card-acts button {
+      background: transparent; border: 1px solid var(--gb); border-radius: 8px;
+      color: var(--muted); cursor: pointer; font-size: 0.85rem; line-height: 1;
+      padding: 0.3rem 0.5rem; transition: all .2s; font-family: inherit;
+    }
+    .cat-card-acts button:hover:not(:disabled) { color: var(--gold); border-color: var(--gold-dk); }
+    .cat-card-acts button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .cat-card-acts .cat-del:hover:not(:disabled) { color: var(--red); border-color: rgba(231,76,60,0.5); }
     .cat-card-count { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); }
     .cat-card-sub { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; }
 
@@ -1634,7 +1656,23 @@
 
       <!-- ── CATEGORÍAS ─────────────────────── -->
       <div id="view-categorias" class="view" style="display:none">
+        <div style="background:var(--glass);border:1px solid var(--gb);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.4rem">
+          <div class="panel-title" style="margin-bottom:0.5rem">Nueva categoría</div>
+          <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.9rem;line-height:1.6">
+            Aparece en el catálogo apenas le asignés el primer producto: una
+            categoría vacía no se muestra en la tienda.
+          </p>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center">
+            <input class="form-input" id="cat-nueva" placeholder="Ej: Pulpo y Calamar" style="flex:1;min-width:220px">
+            <button class="config-save-btn" id="cat-agregar">Agregar</button>
+          </div>
+          <p id="cat-aviso" style="font-size:0.72rem;color:var(--amber);margin-top:0.7rem;display:none"></p>
+        </div>
         <div class="cat-grid" id="cat-grid"></div>
+        <div style="margin-top:1.4rem;display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap">
+          <button class="config-save-btn" id="cat-guardar">Guardar categorías</button>
+          <span id="cat-estado" style="font-size:0.72rem;color:var(--muted)"></span>
+        </div>
       </div>
 
       <!-- ── HISTORIAL ────────────────────────── -->
@@ -2802,7 +2840,15 @@ async function uploadToCloudinary(file) {
   return data.secure_url.replace('/upload/', '/upload/f_auto,q_auto,w_900/');
 }
 
-const CAT_NAMES = {
+/* ═══ CATEGORIAS ══════════════════════════════════════════════════
+   Estaban escritas a mano en CUATRO archivos (aca, catalogo.html en
+   cuatro listas distintas, y ui.js). Agregar una obligaba a tocar el
+   codigo, o sea que Jesus no podia.
+
+   Ahora viven en chusfish/config -> categorias, y estas de aca abajo
+   quedan solo como respaldo: si la configuracion todavia no las tiene
+   —o falla la lectura— el panel sigue funcionando con las de siempre. */
+const CAT_DEFECTO = {
   'camarones-imp':   'Camarones Importados',
   'camarones-nac':   'Camarones Nacionales',
   'filetes-premium': 'Filete Premium',
@@ -2814,7 +2860,40 @@ const CAT_NAMES = {
   'gourmet':         'Gourmet',
   'marinados':       'Marinados y Empanizadores',
 };
-const CAT_ORDER = Object.keys(CAT_NAMES);
+
+let CAT_NAMES = Object.assign({}, CAT_DEFECTO);
+let CAT_ORDER = Object.keys(CAT_NAMES);
+
+/* Deja el panel entero mirando la lista nueva: los dos <select> de
+   categoria estaban escritos en el HTML, asi que hay que repintarlos. */
+function aplicarCategorias(lista) {
+  if (Array.isArray(lista) && lista.length) {
+    CAT_NAMES = {};
+    lista.forEach(function (c) {
+      if (c && c.id) CAT_NAMES[c.id] = c.nombre || c.id;
+    });
+  } else {
+    CAT_NAMES = Object.assign({}, CAT_DEFECTO);
+  }
+  CAT_ORDER = Object.keys(CAT_NAMES);
+  pintarSelectsDeCategoria();
+}
+
+function pintarSelectsDeCategoria() {
+  const opciones = CAT_ORDER.map(function (c) {
+    return '<option value="' + esc(c) + '">' + esc(CAT_NAMES[c]) + '</option>';
+  }).join('');
+
+  const f = document.getElementById('f-cat');          // ficha de producto
+  if (f) { const v = f.value; f.innerHTML = opciones; if (CAT_NAMES[v]) f.value = v; }
+
+  const t = document.getElementById('tbl-cat-filter'); // filtro de la tabla
+  if (t) {
+    const v = t.value;
+    t.innerHTML = '<option value="all">Todas las categorías</option>' + opciones;
+    t.value = (v === 'all' || CAT_NAMES[v]) ? v : 'all';
+  }
+}
 
 /* ════════════════════════════════════════════
    PRODUCTOS POR DEFECTO
@@ -3193,16 +3272,129 @@ function renderTable() {
 /* ════════════════════════════════════════════
    CATEGORIES
 ════════════════════════════════════════════ */
+/* ═══ CATEGORIAS: alta, nombre, orden y baja ══════════════════════
+   El orden de esta lista es el orden en que salen en el catalogo, asi
+   que las flechas no son un adorno.
+
+   Borrar solo se deja si la categoria esta VACIA. Con productos dentro,
+   esos productos quedarian apuntando a una categoria que ya no existe:
+   desaparecen del catalogo sin que nadie entienda por que, y volver
+   atras obliga a editarlos uno por uno. */
+let catsEdit = [];
+
 function renderCategories() {
-  document.getElementById('cat-grid').innerHTML = CAT_ORDER.map(cat => {
-    const count   = products.filter(p => p.cat === cat).length;
-    const withImg = products.filter(p => p.cat === cat && p.img).length;
-    return `<div class="cat-card">
-      <div class="cat-card-title">${CAT_NAMES[cat]}</div>
-      <div class="cat-card-count">${count}</div>
-      <div class="cat-card-sub">${withImg} con imagen · ${count - withImg} sin imagen</div>
-    </div>`;
+  if (!catsEdit.length) {
+    catsEdit = CAT_ORDER.map(function (id) { return { id: id, nombre: CAT_NAMES[id] }; });
+  }
+
+  document.getElementById('cat-grid').innerHTML = catsEdit.map(function (c, i) {
+    const count   = products.filter(function (p) { return p.cat === c.id; }).length;
+    const withImg = products.filter(function (p) { return p.cat === c.id && p.img; }).length;
+    const puedeBorrar = count === 0;
+
+    return '<div class="cat-card">' +
+      '<input class="cat-card-nombre" value="' + esc(c.nombre) + '" ' +
+        'oninput="renombrarCategoria(' + i + ', this.value)" ' +
+        'aria-label="Nombre de la categoría">' +
+      '<div class="cat-card-count">' + count + '</div>' +
+      '<div class="cat-card-sub">' + withImg + ' con imagen · ' + (count - withImg) + ' sin imagen</div>' +
+      '<div class="cat-card-acts">' +
+        '<button type="button" onclick="moverCategoria(' + i + ',-1)" title="Subir"' +
+          (i === 0 ? ' disabled' : '') + '>&#8593;</button>' +
+        '<button type="button" onclick="moverCategoria(' + i + ',1)" title="Bajar"' +
+          (i === catsEdit.length - 1 ? ' disabled' : '') + '>&#8595;</button>' +
+        '<button type="button" class="cat-del" onclick="borrarCategoria(' + i + ')" ' +
+          (puedeBorrar ? '' : 'disabled ') +
+          'title="' + (puedeBorrar ? 'Eliminar' : 'Tiene ' + count + ' productos: movelos antes') + '">&times;</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
+}
+
+function renombrarCategoria(i, v) {
+  if (catsEdit[i]) catsEdit[i].nombre = v;
+  marcarCambioCategorias();
+}
+
+function moverCategoria(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= catsEdit.length) return;
+  const t = catsEdit[i]; catsEdit[i] = catsEdit[j]; catsEdit[j] = t;
+  renderCategories();
+  marcarCambioCategorias();
+}
+
+function borrarCategoria(i) {
+  const c = catsEdit[i];
+  if (!c) return;
+  if (products.some(function (p) { return p.cat === c.id; })) {
+    avisoCategorias('"' + c.nombre + '" tiene productos. Movelos a otra categoría antes de eliminarla.');
+    return;
+  }
+  catsEdit.splice(i, 1);
+  renderCategories();
+  marcarCambioCategorias();
+}
+
+/* El id sale del nombre y despues NO se vuelve a tocar, aunque le cambien
+   el nombre: es lo que tienen guardado los productos. Si el id cambiara al
+   renombrar, todos los productos de esa categoria quedarian huerfanos. */
+function idDesdeNombre(nombre) {
+  const base = String(nombre || '').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '').slice(0, 24) || 'categoria';
+  let id = base, k = 2;
+  while (catsEdit.some(function (c) { return c.id === id; })) { id = base + '-' + k; k++; }
+  return id;
+}
+
+function agregarCategoria() {
+  const inp = document.getElementById('cat-nueva');
+  const nombre = (inp.value || '').trim();
+  if (!nombre) { avisoCategorias('Escribí un nombre.'); return; }
+  if (catsEdit.some(function (c) { return c.nombre.toLowerCase() === nombre.toLowerCase(); })) {
+    avisoCategorias('Ya existe una categoría con ese nombre.'); return;
+  }
+  catsEdit.push({ id: idDesdeNombre(nombre), nombre: nombre });
+  inp.value = '';
+  avisoCategorias('');
+  renderCategories();
+  marcarCambioCategorias();
+}
+
+function avisoCategorias(msg) {
+  const el = document.getElementById('cat-aviso');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function marcarCambioCategorias() {
+  const el = document.getElementById('cat-estado');
+  if (el) { el.textContent = 'Hay cambios sin guardar.'; el.style.color = 'var(--amber)'; }
+}
+
+async function guardarCategorias() {
+  const limpias = catsEdit
+    .map(function (c) { return { id: c.id, nombre: String(c.nombre || '').trim() }; })
+    .filter(function (c) { return c.id && c.nombre; });
+
+  if (!limpias.length) { avisoCategorias('Tiene que quedar al menos una categoría.'); return; }
+
+  const el = document.getElementById('cat-estado');
+  try {
+    await CFG_REF.set({ categorias: limpias }, { merge: true });
+    appConfig.categorias = limpias;
+    aplicarCategorias(limpias);
+    avisoCategorias('');
+    if (el) { el.textContent = 'Guardado.'; el.style.color = 'var(--green)'; }
+    toast('Categorías guardadas');
+    renderCategories();
+    renderProducts();
+  } catch (e) {
+    if (el) { el.textContent = 'No se pudo guardar: ' + (e.code || e.message); el.style.color = 'var(--red)'; }
+  }
 }
 
 /* ════════════════════════════════════════════
@@ -4627,6 +4819,7 @@ async function loadConfig() {
     const snap = await CFG_REF.get();
     if (snap.exists) appConfig = Object.assign({ closingEnabled: false, closingMessage: '', zones: [], recipes: [] }, snap.data());
   } catch(e) {}
+  aplicarCategorias(appConfig.categorias);
   recipes = appConfig.recipes || [];
   promotions = appConfig.promotions || [];
   renderConfig();
@@ -4738,6 +4931,12 @@ function alternarFeat(el) {
 }
 
 document.getElementById('feat-abrir').addEventListener('click', abrirSelectorDestacados);
+
+document.getElementById('cat-agregar').addEventListener('click', agregarCategoria);
+document.getElementById('cat-nueva').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') { e.preventDefault(); agregarCategoria(); }
+});
+document.getElementById('cat-guardar').addEventListener('click', guardarCategorias);
 
 document.getElementById('cfg-save-featured').addEventListener('click', async () => {
   appConfig.featuredIds = featSeleccion.slice();

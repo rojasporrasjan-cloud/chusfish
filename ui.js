@@ -10,7 +10,7 @@
 
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al tocar este archivo hay que subir el ?v= en TODOS los HTML.
-      Versión actual: v14
+      Versión actual: v15
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -38,6 +38,8 @@
   var ICO_FAVS = '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5c0 5-7 9.5-7 9.5z"/></svg>';
   var ICO_TOP  = '<svg viewBox="0 0 24 24"><path d="M12 3l2.4 6.3H21l-5.3 3.9 2 6.4-5.7-4.1-5.7 4.1 2-6.4L3 9.3h6.6z"/></svg>';
 
+  /* Las de siempre, como respaldo. La lista de verdad la trae
+     config.categorias y la aplica aplicarCategoriasUI(). */
   var CATS = [
     { id:'favs',            name:'Favoritos',     ico:ICO_FAVS },
     { id:'top',             name:'Más vendidos',  ico:ICO_TOP  },
@@ -52,6 +54,35 @@
     { id:'gourmet',         name:'Gourmet' },
     { id:'marinados',       name:'Marinados y Empanizadores' }
   ];
+
+  /* Rehace CATS con las categorias de la configuracion. Favoritos y Mas
+     vendidos se quedan: no son categorias de producto sino listas que se
+     calculan, y no estan en la configuracion. */
+  function aplicarCategoriasUI(lista){
+    if (!Array.isArray(lista) || !lista.length) return;
+    var fijas = CATS.filter(function(c){ return c.id === 'favs' || c.id === 'top'; });
+    CATS = fijas.concat(lista
+      .filter(function(c){ return c && c.id; })
+      .map(function(c){ return { id:c.id, name:c.nombre || c.id }; }));
+  }
+
+  /* La configuracion ya viene cacheada por la pagina, asi que esto no
+     agrega ninguna peticion: se lee lo que haya y si no, quedan las de
+     respaldo. */
+  function cargarCategorias(){
+    try {
+      var raw = localStorage.getItem('chusfish_config');
+      if (raw) {
+        var c = JSON.parse(raw);
+        aplicarCategoriasUI((c && c.datos ? c.datos : c).categorias);
+      }
+    } catch (e) {}
+
+    if (!window.CF || !CF.db) return;
+    CF.db.collection('chusfish').doc('config').get().then(function(d){
+      if (d.exists) aplicarCategoriasUI(d.data().categorias);
+    }).catch(function(){});
+  }
 
   var TABS = [
     { id:'inicio',   label:'Inicio',    href:'index.html',
@@ -591,8 +622,10 @@
     refrescarCarrito: refrescarCarrito,
     abrirCapa: abrirCapa,
     cerrarCapa: cerrarCapa,
-    CATS: CATS
+    get CATS(){ return CATS; }
   };
+
+  cargarCategorias();
 
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', montar);
