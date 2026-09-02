@@ -10,7 +10,7 @@
 
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al tocar este archivo hay que subir el ?v= en TODOS los HTML.
-      Versión actual: v13
+      Versión actual: v14
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -408,6 +408,7 @@
 
   /* ═══ Búsqueda ═══ */
   function abrirBusqueda(prefill){
+    abrirCapa(cerrarBusquedaDirecto);
     elSheet.classList.add('on');
     document.body.classList.add('cfui-locked');
     if (prefill) elInput.value = prefill;
@@ -417,7 +418,17 @@
        pantalla apenas se abria "Buscar", justo cuando lo que la persona
        quiere es VER las categorias. Sale cuando toca la barrita. */
   }
+  /* Dos puertas de salida, a proposito:
+     · cerrarBusqueda() la llama la interfaz y pasa por el historial,
+       para que la entrada que se metio al abrir no quede colgada;
+     · cerrarBusquedaDirecto() hace el trabajo, y la llama el popstate.
+     Si las dos cerraran a mano, se cerraria dos veces. */
   function cerrarBusqueda(){
+    if (cerrarCapa()) return;      // el popstate se encarga
+    cerrarBusquedaDirecto();
+  }
+
+  function cerrarBusquedaDirecto(){
     elSheet.classList.remove('on');
     document.body.classList.remove('cfui-locked');
     elInput.blur();
@@ -536,11 +547,50 @@
     location.href = 'catalogo.html' + (p.length ? '?' + p.join('&') : '');
   }
 
+  /* ═══ EL GESTO DE "ATRAS" CIERRA LO QUE ESTE ABIERTO ═════════
+     En el celular mucha gente vuelve atras deslizando desde el borde
+     izquierdo. Con una ficha de producto abierta, ese gesto no cerraba
+     la ficha: sacaba de la pagina entera y mandaba a la anterior. Se
+     perdia el catalogo, el filtro y la posicion, y la persona no
+     entendia que habia pasado.
+
+     La solucion es la de siempre en una app: al abrir una capa se mete
+     una entrada en el historial. Asi el gesto —o el boton fisico de
+     atras en Android— se gasta cerrando esa capa y no sale del sitio.
+
+     Cada capa registra COMO se cierra. Se apilan, asi que si hay una
+     sobre otra (ficha encima del carrito) se cierran en orden. */
+  var capas = [];
+
+  function abrirCapa(cerrar){
+    if (typeof cerrar !== 'function') return;
+    capas.push(cerrar);
+    try { history.pushState({ cfCapa: capas.length }, ''); } catch (e) {}
+  }
+
+  /* La llama la propia interfaz (la X, el fondo, Escape). Devuelve true
+     si habia capa: entonces NO hay que cerrar a mano, porque el
+     history.back() dispara popstate y ese la cierra. Con dos caminos de
+     cierre se cerraria dos veces y quedaria una entrada de historial
+     colgada. */
+  function cerrarCapa(){
+    if (!capas.length) return false;
+    history.back();
+    return true;
+  }
+
+  window.addEventListener('popstate', function(){
+    var f = capas.pop();
+    if (f) { try { f(); } catch (e) {} }
+  });
+
   /* ═══ API ═══ */
   window.CFUI = {
     abrirBusqueda: abrirBusqueda,
     cerrarBusqueda: cerrarBusqueda,
     refrescarCarrito: refrescarCarrito,
+    abrirCapa: abrirCapa,
+    cerrarCapa: cerrarCapa,
     CATS: CATS
   };
 

@@ -537,7 +537,7 @@
 <div class="note" id="note"></div>
 
 <script src="auth.js?v=10"></script>
-<script src="ui.js?v=13"></script>
+<script src="ui.js?v=14"></script>
 <script>
 (function(){
   'use strict';
@@ -737,6 +737,7 @@
     abierto=r.id;
     ultimoFoco=document.activeElement;
     pintarFicha(r);
+    if (window.CFUI && CFUI.abrirCapa) CFUI.abrirCapa(cerrarDirecto);
     $('#sheet-ov').classList.add('open');
     $('#sheet').classList.add('open');
     document.body.classList.add('locked');
@@ -744,7 +745,14 @@
     if(history.replaceState) history.replaceState(null,'','#premio-'+r.id);
   }
 
+  /* La llama la interfaz; pasa por el historial. */
   function cerrar(){
+    if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+    cerrarDirecto();
+  }
+
+  /* El trabajo de verdad; la llama el popstate al volver atras. */
+  function cerrarDirecto(){
     abierto=null;
     $('#sheet-ov').classList.remove('open');
     $('#sheet').classList.remove('open');

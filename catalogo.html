@@ -95,7 +95,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="auth.js?v=10"></script>
-<script src="ui.js?v=13"></script>
+<script src="ui.js?v=14"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -529,6 +529,22 @@
     .modal-overlay.open .modal-box {
       animation: modal-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
+    /* El asa. Solo en celular: en escritorio la ficha entra de lado y
+       no se arrastra. Va por encima de la foto, flotando. */
+    .modal-asa { display: none; }
+    @media (max-width: 700px) {
+      .modal-asa {
+        display: flex; justify-content: center; align-items: flex-start;
+        position: absolute; top: 0; left: 0; right: 0; height: 26px;
+        z-index: 6; padding-top: 8px; pointer-events: none;
+      }
+      .modal-asa span {
+        width: 42px; height: 4px; border-radius: 2px;
+        background: rgba(255,255,255,0.55);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      }
+    }
+
     /* ═══ CLOSE BUTTON ─ visible sobre la imagen ═══ */
     .modal-close {
       position: absolute; 
@@ -1630,7 +1646,7 @@
 
 <!-- WA FLOAT -->
 <a href="https://wa.me/50660017370" target="_blank" class="wa-float" aria-label="WhatsApp">
-  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.374l-.36-.214-3.732.979 1.001-3.65-.233-.374A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>
+  <svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
 </a>
 
 <!-- CART FLOAT -->
@@ -1677,7 +1693,7 @@
   </div>
   <div class="cat-drawer-footer">
     <a href="https://wa.me/50660017370" target="_blank" class="cat-drawer-wa">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
       Pedir por WhatsApp
     </a>
   </div>
@@ -1774,7 +1790,7 @@
   </div>
   <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:1.2rem;">
     <a href="https://wa.me/50660017370" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
     </a>
     <a href="https://instagram.com/chussfish" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -1789,6 +1805,8 @@
 <!-- MODAL -->
 <div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box" id="modal-box">
+    <!-- El asa: sin ella nadie adivina que la ficha se puede bajar. -->
+    <div class="modal-asa" aria-hidden="true"><span></span></div>
     <button class="modal-close" id="modal-close" aria-label="Cerrar">✕</button>
     <div class="modal-icon-area" id="modal-icon-area">
       <svg id="modal-icon-svg" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -1823,7 +1841,7 @@
           Compartir
         </button>
         <button class="btn-wa-direct" id="btn-wa-direct" type="button">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
           Pedir por WhatsApp
         </button>
       </div>
@@ -1850,7 +1868,7 @@
     </div>
     <div id="cart-delivery-fee" style="display:none;font-size:0.72rem;color:var(--gold-dk);text-align:right;margin-top:-0.8rem;margin-bottom:0.8rem"></div>
     <button id="cart-wa-btn" class="btn-wa-cart" type="button">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
       Finalizar pedido
     </button>
     <p class="cart-note">* Monto de referencia. El precio final puede variar según el peso real del producto.</p>
@@ -2159,7 +2177,7 @@ const CAT_ICONS = {
 
 const WA_NUM  = '50660017370';
 const WA_BASE = `https://wa.me/${WA_NUM}?text=`;
-const ICON_WA = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>`;
+const ICON_WA = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>`;
 
 /* ═══ FORMAT PRICE ═══ */
 function fmt(price) {
@@ -2615,6 +2633,7 @@ let modalQty = 0.5;
 let currentProduct = null;
 
 const overlay     = document.getElementById('modal-overlay');
+const modalBox    = document.getElementById('modal-box');
 const modalName   = document.getElementById('modal-name');
 const modalBadge  = document.getElementById('modal-badge');
 const modalDesc   = document.getElementById('modal-desc');
@@ -2709,15 +2728,93 @@ function openModal(id) {
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  /* Se mete una entrada de historial: asi el gesto de atras —y el boton
+     fisico de Android— cierran la ficha en vez de sacar de la pagina. */
+  if (window.CFUI && CFUI.abrirCapa) CFUI.abrirCapa(cerrarFichaDirecto);
 }
 
+/* La llama la interfaz (la X, el fondo, Escape, el arrastre). Pasa por
+   el historial para no dejar la entrada colgada. */
 function closeModal() {
+  if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+  cerrarFichaDirecto();
+}
+
+/* El trabajo de verdad. La llama el popstate al volver atras. */
+function cerrarFichaDirecto() {
   overlay.classList.remove('open');
   document.body.style.overflow = '';
+  if (modalBox) { modalBox.style.transform = ''; modalBox.style.transition = ''; }
   currentProduct = null;
 }
 
 document.getElementById('modal-close').addEventListener('click', closeModal);
+
+/* ═══ BAJAR LA FICHA PARA CERRARLA ═══════════════════════════════
+   En celular la ficha entra desde abajo, asi que el gesto natural para
+   sacarla es empujarla hacia abajo. Antes la unica salida era la X, que
+   esta arriba a la derecha: incomoda de alcanzar con el pulgar en un
+   telefono grande.
+
+   Se arrastra desde la zona de arriba —el asa y la foto—, no desde
+   cualquier parte: mas abajo esta el contenido que se desplaza, y las
+   dos cosas peleariran por el mismo dedo.
+
+   Se cierra si la bajaste mas de 110px, o si la soltaste con impulso
+   aunque sea poco recorrido (un golpe rapido tambien cuenta). Si no,
+   vuelve a su sitio. */
+(function () {
+  if (!modalBox) return;
+
+  var y0 = 0, t0 = 0, dy = 0, arrastrando = false;
+
+  function zonaDeAgarre(t) {
+    // Solo la mitad superior de la foto y el asa.
+    var el = t.target;
+    return !!(el.closest && (el.closest('.modal-asa') || el.closest('.modal-icon-area')));
+  }
+
+  modalBox.addEventListener('touchstart', function (e) {
+    if (window.innerWidth > 700) return;        // el gesto es de celular
+    if (e.touches.length !== 1) return;
+    if (!zonaDeAgarre(e.touches[0])) return;
+    arrastrando = true;
+    y0 = e.touches[0].clientY;
+    t0 = Date.now();
+    dy = 0;
+    modalBox.style.transition = 'none';
+  }, { passive: true });
+
+  modalBox.addEventListener('touchmove', function (e) {
+    if (!arrastrando) return;
+    dy = e.touches[0].clientY - y0;
+    if (dy < 0) dy = 0;                          // no se sube, solo se baja
+    if (dy > 4 && e.cancelable) e.preventDefault();
+    modalBox.style.transform = 'translateY(' + dy + 'px)';
+    // El fondo se aclara con el recorrido: se ve que se esta yendo.
+    overlay.style.opacity = String(Math.max(0.25, 1 - dy / 500));
+  }, { passive: false });
+
+  function soltar() {
+    if (!arrastrando) return;
+    arrastrando = false;
+    var vel = dy / Math.max(1, Date.now() - t0);    // px por ms
+    modalBox.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1)';
+    overlay.style.opacity = '';
+
+    if (dy > 110 || vel > 0.6) {
+      modalBox.style.transform = 'translateY(100%)';
+      setTimeout(closeModal, 180);
+    } else {
+      modalBox.style.transform = 'translateY(0)';
+    }
+    dy = 0;
+  }
+
+  modalBox.addEventListener('touchend', soltar, { passive: true });
+  modalBox.addEventListener('touchcancel', soltar, { passive: true });
+})();
 overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeCart(); } });
 
@@ -3015,10 +3112,16 @@ document.getElementById('cart-items').addEventListener('click', e => {
 function openCart() {
   document.getElementById('cart-panel').classList.add('open');
   document.getElementById('cart-backdrop').classList.add('open');
+  if (window.CFUI && CFUI.abrirCapa) CFUI.abrirCapa(cerrarCarritoDirecto);
   document.body.style.overflow = 'hidden';
 }
 
 function closeCart() {
+  if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+  cerrarCarritoDirecto();
+}
+
+function cerrarCarritoDirecto() {
   document.getElementById('cart-panel').classList.remove('open');
   document.getElementById('cart-backdrop').classList.remove('open');
   document.body.style.overflow = '';
@@ -3115,8 +3218,20 @@ const _cfAnim = (function () {
 /* ═══ HAMBURGER ═══ */
 const catDrawer  = document.getElementById('cat-drawer');
 const catOverlay = document.getElementById('cat-overlay');
-function openCatDrawer()  { catDrawer.classList.add('open'); catOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
-function closeCatDrawer() { catDrawer.classList.remove('open'); catOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+function openCatDrawer()  {
+  catDrawer.classList.add('open'); catOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (window.CFUI && CFUI.abrirCapa) CFUI.abrirCapa(cerrarCajonDirecto);
+}
+function closeCatDrawer() {
+  if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+  cerrarCajonDirecto();
+}
+
+function cerrarCajonDirecto() {
+  catDrawer.classList.remove('open'); catOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
 document.getElementById('hamburger').addEventListener('click', openCatDrawer);
 document.getElementById('cat-drawer-close').addEventListener('click', closeCatDrawer);
 catOverlay.addEventListener('click', closeCatDrawer);
@@ -3196,7 +3311,7 @@ if ('serviceWorker' in navigator) {
           </div>
         </div>
         <button type="submit" class="order-form-submit">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
           Enviar pedido por WhatsApp
         </button>
         <p class="order-form-note">* Solo entrega a domicilio. Precios sujetos a confirmación de disponibilidad.</p>
