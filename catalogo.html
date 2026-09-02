@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Camarones, Corvina y Mariscos Frescos | Catálogo Chus's Fish Costa Rica</title>
 
   <!-- Favicon & PWA -->
-  <link rel="icon" href="logo.jpeg" type="image/jpeg">
-  <link rel="apple-touch-icon" href="logo.jpeg">
+  <link rel="icon" href="logo-256.jpg" type="image/jpeg">
+  <link rel="apple-touch-icon" href="logo-256.jpg">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a1628">
 
@@ -37,7 +37,7 @@
   <meta name="twitter:image" content="https://chusfish.com/facebook/portada_facebook.png">
 
   <!-- JSON-LD Structured Data -->
-  <script type="application/ld+json">
+  <script type="application/ld+json" id="ld-catalogo">
   {
     "@context": "https://schema.org",
     "@graph": [
@@ -85,14 +85,17 @@
   </script>
 
   <!-- Rendimiento: recursos críticos above-the-fold -->
-  <link rel="preload" href="logo.jpeg" as="image">
+  <link rel="preload" href="logo-256.jpg" as="image">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="dns-prefetch" href="//firestore.googleapis.com">
   <link rel="dns-prefetch" href="//res.cloudinary.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="auth.js?v=10"></script>
+<script src="ui.js?v=15"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -123,6 +126,8 @@
       transition: opacity 0.8s ease, visibility 0.8s;
     }
     .preloader.fade-out { opacity: 0; visibility: hidden; }
+    /* 0.3s en vez de 0.8: se sale de en medio, no se luce. */
+    .preloader { transition: opacity 0.3s ease, visibility 0.3s ease; }
     .preloader-content {
       text-align: center;
       display: flex; flex-direction: column; align-items: center;
@@ -282,37 +287,30 @@
     }
     .filter-inner {
       max-width: 1180px; margin: 0 auto;
-      display: flex; align-items: center; gap: 1rem; padding: 0.9rem 0;
+      display: flex; align-items: center; justify-content: center; gap: 1rem;
+      padding: 0.9rem 0;
       overflow-x: auto; scrollbar-width: none;
     }
     .filter-inner::-webkit-scrollbar { display: none; }
-    .search-wrap { position: relative; flex-shrink: 0; }
+    /* Al sacar los botones de categoria el buscador quedo solo a la izquierda
+       con 1.100px de vacio al lado. Centrado y mas ancho se lee como una
+       decision y no como un resto. */
+    .search-wrap { position: relative; flex: 0 1 420px; max-width: 420px; }
+    /* La lupa se ancla al alto del INPUT. Antes usaba el 50% del contenedor,
+       asi que si el contenedor crecia, la lupa se iba sola por su lado. */
+    .search-wrap { display: flex; align-items: center; }
     .search-wrap svg { position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--muted); pointer-events: none; }
     #search-input {
       background: rgba(18,40,64,0.8); border: 1px solid var(--glass-border); border-radius: 30px;
-      padding: 0.55rem 1rem 0.55rem 2.4rem; color: var(--text);
-      font-family: 'Montserrat', sans-serif; font-size: 0.72rem; letter-spacing: 0.06em;
-      width: 200px; outline: none; transition: border-color 0.3s;
+      padding: 0.6rem 1.1rem 0.6rem 2.5rem; color: var(--text);
+      font-family: 'Montserrat', sans-serif; font-size: 0.75rem; letter-spacing: 0.06em;
+      width: 100%; outline: none; transition: border-color 0.3s;
     }
     #search-input:focus { border-color: var(--gold-dk); }
     #search-input::placeholder { color: var(--muted); }
-    .filter-sep { width: 1px; height: 24px; background: var(--glass-border); flex-shrink: 0; }
-    .filter-pill {
-      display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 0.4rem 1rem; border-radius: 30px;
-      border: 1px solid var(--glass-border); background: transparent;
-      color: var(--muted); font-size: 0.62rem; letter-spacing: 0.14em;
-      text-transform: uppercase; font-weight: 500; cursor: pointer; white-space: nowrap;
-      transition: all 0.28s; font-family: 'Montserrat', sans-serif;
-    }
-    .filter-pill:hover { border-color: var(--gold-dk); color: var(--gold); }
-    .filter-pill.active { background: linear-gradient(135deg, var(--gold-dk), var(--gold)); border-color: transparent; color: var(--deep); }
-    .pill-count { font-size: 0.58rem; background: rgba(6,14,28,0.25); padding: 0.1rem 0.4rem; border-radius: 10px; }
-    .filter-pill.active .pill-count { background: rgba(6,14,28,0.2); }
-    /* Fade derecho para indicar scroll en la barra */
-    .filter-bar::after { content:''; position:absolute; right:0; top:0; bottom:0; width:80px; background:linear-gradient(to left, rgba(6,14,28,0.97) 0%, transparent 100%); pointer-events:none; z-index:2; }
-
-    .mobile-filter { display: none; }
+    /* Los botones de categoría, el <select> del móvil y el degradado de la
+       derecha se borraron: los reemplazó la fila de tarjetas (.catwall).
+       En esta barra ya solo vive el buscador. */
 
     /* ═══ RESULTS BAR ═══ */
     .results-bar { max-width: 1180px; margin: 0 auto; padding: 1rem 2rem 0; position: relative; z-index: 1; }
@@ -372,9 +370,15 @@
       background: rgba(6,14,28,0.65); border-radius: var(--radius);
     }
     .p-unavail-tag span {
-      font-size: 0.6rem; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700;
-      color: #e74c3c; border: 1px solid rgba(231,76,60,0.5); padding: 0.3rem 0.8rem; border-radius: 20px;
-      background: rgba(231,76,60,0.1);
+      /* display:block — como inline, el padding vertical no empujaba nada y
+         el texto se salia de la pildora por arriba y por abajo. */
+      display: block; max-width: 86%; text-align: center; line-height: 1.5;
+      font-size: 0.56rem; letter-spacing: 0.13em; text-transform: uppercase; font-weight: 700;
+      color: #ff8272; border: 1px solid rgba(231,76,60,0.5);
+      padding: 0.42rem 0.75rem; border-radius: 12px;
+      /* Sin blur: habia una por producto agotado y son 25 desenfoques mas
+         en cada cuadro del desplazamiento. Un fondo mas opaco se lee igual. */
+      background: rgba(96,26,20,0.72);
     }
     .p-card::after {
       content: ''; position: absolute; inset: 0; border-radius: var(--radius);
@@ -416,10 +420,16 @@
     .p-name { font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-weight: 400; color: var(--white); line-height: 1.2; margin-bottom: 0.3rem; }
     .p-footer {
       display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5rem;
       padding: 0.7rem 0.9rem 0.9rem;
       border-top: 1px solid rgba(200,169,110,0.08); margin-top: 0.7rem;
     }
-    .p-price { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; color: var(--gold); }
+    /* nowrap + min-width:0 — sin esto el "/kg" caia a una segunda linea
+       cuando el boton de agregar apretaba el espacio. */
+    .p-price {
+      font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400;
+      color: var(--gold); white-space: nowrap; min-width: 0;
+    }
     .p-price small { font-size: 0.58rem; font-family: 'Montserrat', sans-serif; color: var(--muted); font-weight: 300; }
     .p-detail-btn {
       display: inline-flex; align-items: center; gap: 0.3rem;
@@ -430,6 +440,62 @@
       transition: transform 0.3s, box-shadow 0.3s; font-family: 'Montserrat', sans-serif;
     }
     .p-detail-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,169,110,0.3); }
+
+    /* ── Agregar desde la tarjeta ──
+       La accion principal del catalogo. Antes habia que abrir la ficha para
+       cada producto: con 87 productos y pedidos de 4 o 5 cosas, eso eran
+       decenas de toques de mas. */
+    .p-add-btn {
+      display: inline-flex; align-items: center; gap: 0.35rem; flex-shrink: 0;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.58rem; letter-spacing: 0.11em; text-transform: uppercase;
+      font-weight: 700; color: var(--deep);
+      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
+      padding: 0.5rem 0.85rem; border-radius: 16px; border: none; cursor: pointer;
+      transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+    }
+    .p-add-btn svg {
+      width: 13px; height: 13px; fill: none; stroke: currentColor;
+      stroke-width: 2.6; stroke-linecap: round; flex-shrink: 0;
+    }
+    .p-add-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,169,110,0.3); }
+    .p-add-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+    .p-add-btn:focus-visible { outline: 2px solid var(--gold-lt); outline-offset: 2px; }
+    .p-add-btn:disabled {
+      background: none; border: 1px solid rgba(200,169,110,0.25);
+      color: var(--muted); cursor: not-allowed;
+    }
+    .p-add-btn:disabled svg { display: none; }
+
+    /* En tarjetas angostas (dos por fila en celular) el texto del boton le
+       comia el sitio al precio y quedaba "₡11.500 /" cortado. Ahi el boton
+       se queda solo con el +, que se entiende igual. */
+    @media (max-width: 520px) {
+      .p-add-btn { padding: 0.5rem; border-radius: 50%; }
+      .p-add-btn span { position: absolute; width: 1px; height: 1px;
+        overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+      .p-add-btn svg { width: 16px; height: 16px; }
+      .p-add-btn:disabled { border-radius: 16px; padding: 0.4rem 0.7rem; }
+      .p-add-btn:disabled span { position: static; width: auto; height: auto;
+        overflow: visible; clip: auto; }
+    }
+    /* Confirmacion en el mismo boton: el carrito queda lejos en la pantalla. */
+    .p-add-btn.puesto {
+      background: linear-gradient(135deg, #1f8a5a, #27ae60); color: #fff;
+    }
+    .p-add-btn.puesto svg { stroke-width: 3; }
+
+    /* Compartir, ya en la ficha */
+    .btn-share-modal {
+      display: inline-flex; align-items: center; gap: 0.45rem;
+      background: none; border: 1px solid rgba(200,169,110,0.3);
+      color: var(--muted); font-family: 'Montserrat', sans-serif;
+      font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+      font-weight: 600; padding: 0.7rem 1.1rem; border-radius: 30px;
+      cursor: pointer; transition: 0.25s;
+    }
+    .btn-share-modal svg { width: 14px; height: 14px; }
+    .btn-share-modal:hover { color: var(--gold); border-color: var(--gold-dk); }
 
     /* ═══ MODAL ═══ */
     .modal-overlay {
@@ -463,6 +529,22 @@
     .modal-overlay.open .modal-box {
       animation: modal-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
+    /* El asa. Solo en celular: en escritorio la ficha entra de lado y
+       no se arrastra. Va por encima de la foto, flotando. */
+    .modal-asa { display: none; }
+    @media (max-width: 700px) {
+      .modal-asa {
+        display: flex; justify-content: center; align-items: flex-start;
+        position: absolute; top: 0; left: 0; right: 0; height: 26px;
+        z-index: 6; padding-top: 8px; pointer-events: none;
+      }
+      .modal-asa span {
+        width: 42px; height: 4px; border-radius: 2px;
+        background: rgba(255,255,255,0.55);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      }
+    }
+
     /* ═══ CLOSE BUTTON ─ visible sobre la imagen ═══ */
     .modal-close {
       position: absolute; 
@@ -548,6 +630,12 @@
     }
     .btn-wa-direct svg { width: 14px; height: 14px; }
     .btn-wa-direct:hover { background: rgba(37,211,102,0.08); }
+    /* Producto agotado: el verde de WhatsApp era lo mas brillante de la
+       pantalla, justo la accion que NO queremos empujar. Ahi manda el
+       "Avisame"; WhatsApp queda como consulta secundaria. */
+    .btn-wa-direct.secundario { border-color: rgba(122,149,170,0.35); color: var(--muted); }
+    .btn-wa-direct.secundario:hover { background: rgba(122,149,170,0.08); color: var(--text); }
+    .btn-wa-direct.secundario svg { opacity: 0.7; }
 
     /* ═══ CART FLOAT ═══ */
     .cart-float {
@@ -670,9 +758,14 @@
 
     /* ═══ TOAST ═══ */
     .toast {
-      position: fixed; bottom: 6rem; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: linear-gradient(135deg, var(--gold-dk), var(--gold));
-      color: var(--deep); border-radius: 20px;
+      /* Sube por encima de la barra de pestañas Y de la barra del carrito.
+         Antes caia justo encima de la del carrito y, siendo las dos doradas,
+         no se leia ninguna. */
+      position: fixed; bottom: calc(9.5rem + env(safe-area-inset-bottom));
+      left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(5,12,24,0.94); backdrop-filter: blur(10px);
+      border: 1px solid rgba(200,169,110,0.35);
+      color: var(--gold-lt); border-radius: 20px;
       padding: 0.65rem 1.4rem; font-size: 0.7rem; letter-spacing: 0.08em;
       font-weight: 600; z-index: 600;
       white-space: normal; text-align: center;
@@ -681,6 +774,7 @@
       opacity: 0; transition: opacity 0.3s, transform 0.3s;
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    @media (min-width: 861px) { .toast { bottom: 6rem; } }
 
     /* ═══ WA FLOAT ═══ */
     .wa-float {
@@ -728,28 +822,19 @@
       .cat-title { font-size: clamp(1.9rem, 7vw, 3rem); }
       .cat-subtitle { font-size: 0.7rem; }
 
-      /* filter bar ─ Dropdown en móvil */
+      /* filter bar ─ solo el buscador; las categorías van en .catwall */
       .filter-bar { position: static; padding: 0; height: auto; overflow: visible; }
-      .filter-inner { 
-        padding: 0.7rem 1rem; gap: 0.5rem; 
+      .filter-inner {
+        padding: 0.7rem 1rem 0.4rem; gap: 0.5rem;
         flex-direction: column;
         align-items: stretch;
       }
-      .filter-sep { display: none; }
-      .search-wrap { width: 100%; margin-bottom: 0.2rem; }
+      /* flex:0 0 auto — SIN ESTO el `flex: 0 1 420px` de escritorio se
+         reinterpreta en columna y esos 420px pasan a ser ALTO: quedaba un
+         hueco vacio de media pantalla con la lupa flotando sola en el medio,
+         justo antes de las categorias. */
+      .search-wrap { flex: 0 0 auto; width: 100%; max-width: none; }
       .search-wrap input { width: 100%; font-size: 0.75rem; padding: 0.5rem 1rem; }
-      
-      .filter-pill { display: none; } /* Ocultamos botones */
-      
-      .mobile-filter { 
-        display: block; width: 100%; 
-        background: linear-gradient(135deg, rgba(6,14,28,0.9), rgba(13,33,55,0.9)); 
-        color: var(--white); border: 1px solid var(--gold-dk);
-        padding: 0.6rem 1rem; border-radius: 10px;
-        font-family: 'Montserrat', sans-serif; font-size: 0.75rem;
-        appearance: none; outline: none; cursor: pointer;
-      }
-      .pill-count { font-size: 0.58rem; }
 
       /* results */
       .results-bar { padding: 0.6rem 1.2rem 0; }
@@ -1095,18 +1180,59 @@
 
     /* ═══ PRODUCTOS DESTACADOS ═══ */
     .destacados-section { max-width:1180px; margin:0 auto; padding:0 2rem 1.5rem; }
-    .destacados-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem; }
-    .dest-card { position:relative; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s, border-color .4s; }
+    .destacados-row {
+      display:flex; gap:0.75rem; overflow-x:auto; padding:0.2rem 0 0.9rem;
+      scroll-snap-type:x proximity; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    }
+    .destacados-row::-webkit-scrollbar { display:none; }
+    .dest-card {
+      position:relative; flex:0 0 auto; width:158px; scroll-snap-align:start;
+      aspect-ratio:4/3;
+      background:#0e2038; border:1px solid var(--glass-border); border-radius:12px;
+      overflow:hidden; display:flex; flex-direction:column;
+      transition:transform .35s ease, border-color .35s ease;
+    }
     .dest-card:hover { transform:translateY(-4px); border-color:rgba(200,169,110,0.4); box-shadow:0 14px 36px rgba(0,0,0,0.45); }
     .dest-star { position:absolute; top:8px; left:8px; z-index:2; background:linear-gradient(135deg,var(--gold-dk),var(--gold)); color:var(--deep); font-size:0.55rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:0.22rem 0.55rem; border-radius:14px; }
-    .dest-img { width:100%; aspect-ratio:1/1; background:rgba(6,14,28,0.5); display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; }
+    .dest-img { position:absolute; inset:0; background:rgba(6,14,28,0.5);
+      display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; }
     .dest-img img { width:100%; height:100%; object-fit:cover; transition:transform .6s; }
     .dest-card:hover .dest-img img { transform:scale(1.06); }
-    .dest-img-placeholder { color:var(--gold-dk); font-size:2.2rem; }
-    .dest-body { padding:0.8rem 0.9rem 1rem; display:flex; flex-direction:column; gap:0.5rem; flex:1; }
-    .dest-name { font-family:'Cormorant Garamond',serif; font-size:1.05rem; color:var(--white); line-height:1.25; }
-    .dest-price { font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:var(--gold); }
-    .dest-price small { font-size:0.6rem; color:var(--muted); }
+    .dest-img-placeholder { color:var(--gold-dk); font-size:1.6rem; }
+
+    /* Contenido de la tarjeta compacta */
+    /* El texto va SOBRE la foto. El degradado es lo que lo hace legible
+       venga la foto clara u oscura: sin el, medio catalogo no se leia. */
+    .dest-body {
+      position:absolute; left:0; right:0; bottom:0; z-index:1;
+      padding:1.4rem 0.5rem 0.42rem; pointer-events:none;
+      background:linear-gradient(to top,rgba(4,11,22,0.94) 38%,rgba(4,11,22,0));
+    }
+    .dest-name {
+      font-family:'Cormorant Garamond',serif; font-size:0.82rem; color:var(--white);
+      line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .dest-price { font-family:'Cormorant Garamond',serif; font-size:0.92rem;
+      color:var(--gold-lt); white-space:nowrap; line-height:1.1; }
+    .dest-price small { font-size:0.52rem; font-family:'Montserrat',sans-serif; color:#9fb3c4; }
+    .dest-add {
+      position:absolute; top:6px; right:6px; z-index:2;
+      width:28px; height:28px; border-radius:50%; border:none; cursor:pointer;
+      display:grid; place-items:center; padding:0;
+      font-family:'Montserrat',sans-serif; font-size:0.95rem; font-weight:700;
+      line-height:1; color:var(--deep);
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold));
+      box-shadow:0 3px 10px rgba(0,0,0,0.4);
+      transition:transform .25s, box-shadow .25s;
+    }
+    .dest-add:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(200,169,110,0.3); }
+    .dest-add:active { transform:translateY(0) scale(0.97); }
+    /* (el bloque duplicado que habia aca ganaba por orden y
+       deshacia la version compacta de mas arriba) */
+
+
+
+
     .dest-actions { display:flex; gap:0.5rem; margin-top:auto; }
     .dest-more { flex:1; padding:0.45rem; border-radius:16px; border:1px solid var(--glass-border); background:transparent; color:var(--muted); font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:600; cursor:pointer; font-family:'Montserrat',sans-serif; transition:all .2s; }
     .dest-more:hover { color:var(--gold); border-color:var(--gold-dk); }
@@ -1114,9 +1240,10 @@
     .dest-add:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(200,169,110,0.35); }
     @media(max-width:600px){
       .destacados-section { padding:0 0.8rem 1.2rem; }
-      .destacados-row { display:flex; overflow-x:auto; gap:0.8rem; padding-bottom:0.6rem; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
-      .destacados-row::-webkit-scrollbar { height:0; }
-      .dest-card { flex:0 0 62%; scroll-snap-align:start; }
+      /* Mismo ancho que las tarjetas de categoria, para que las dos tiras
+         se vean como una sola familia. */
+      .dest-card { width:132px; }
+      .dest-name { font-size:0.84rem; }
     }
 
 
@@ -1126,11 +1253,13 @@
     .recetas-sub { font-size:0.72rem; color:var(--muted); margin-bottom:1.4rem; letter-spacing:0.06em; }
     .recetas-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem; }
     .receta-card {
-      background:var(--glass); border:1px solid var(--gb); border-radius:16px; padding:1.5rem;
+      --pad:1.5rem;
+      background:var(--glass); border:1px solid var(--gb); border-radius:16px; padding:var(--pad);
       transition:border-color 0.25s, transform 0.25s; display:flex; flex-direction:column;
     }
     .receta-card:hover { border-color:rgba(200,169,110,0.35); transform:translateY(-2px); }
-    .receta-header-icon { font-size:1.6rem; margin-bottom:0.6rem; }
+    .receta-header-icon { font-family:'Cormorant Garamond',serif; font-size:1.8rem;
+      color:var(--gold); opacity:0.7; letter-spacing:0.06em; margin-bottom:0.6rem; }
     .receta-card-title { font-family:'Cormorant Garamond',serif; font-size:1.25rem; color:var(--white); margin-bottom:0.3rem; }
     .receta-card-desc { font-size:0.74rem; color:var(--muted); margin-bottom:1rem; line-height:1.6; flex:1; }
     .receta-ingredientes-label { font-size:0.58rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-dk); margin-bottom:0.5rem; }
@@ -1333,15 +1462,20 @@
     .promo-add-btn:hover { background:rgba(200,169,110,0.2); border-color:var(--gold); transform:translateY(-1px); }
 
     /* ── Imagen de portada en tarjetas ────── */
+    /* El ancho sale del padding de la tarjeta: si cambia uno, cambia el otro.
+       Antes estaban a mano (1.5 vs 1.4) y se veia una franja de fondo. */
     .receta-card-img, .promo-card-img {
-      width: calc(100% + 2.8rem); margin: -1.4rem -1.4rem 1rem;
+      width: calc(100% + var(--pad) * 2);
+      margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 1rem;
       height: 160px; object-fit: cover;
       border-radius: 16px 16px 0 0; display: block;
     }
+    .promo-card { --pad:1.4rem; }
     .promo-card-img { border-radius: var(--radius) var(--radius) 0 0; }
     /* ── Carrusel de imágenes ── */
     .card-carousel {
-      width: calc(100% + 2.8rem); margin: -1.4rem -1.4rem 1rem;
+      width: calc(100% + var(--pad) * 2);
+      margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 1rem;
       border-radius: 16px 16px 0 0; overflow: hidden; position: relative;
     }
     .promo-card .card-carousel { border-radius: var(--radius) var(--radius) 0 0; }
@@ -1351,6 +1485,131 @@
     .carousel-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.45); border: none; padding: 0; cursor: pointer; transition: background 0.2s, transform 0.2s; pointer-events: all; }
     .carousel-dot.active { background: #fff; transform: scale(1.25); }
 
+
+    /* Cupon de descuento en el formulario de pedido */
+    .coupon-row { display:flex; gap:0.5rem; }
+    .coupon-row input {
+      flex:1; min-width:0; text-transform:uppercase; letter-spacing:0.08em;
+      background:rgba(6,14,28,0.75); border:1px solid rgba(200,169,110,0.22);
+      color:var(--white); font-family:inherit; font-size:0.85rem;
+      padding:0.7rem 0.85rem; border-radius:10px; outline:none; transition:0.2s;
+    }
+    .coupon-row input:focus { border-color:rgba(200,169,110,0.6); }
+    .coupon-row input:disabled { opacity:0.65; }
+    .coupon-row button {
+      flex-shrink:0; padding:0.7rem 1.1rem; border-radius:10px; cursor:pointer;
+      background:transparent; border:1px solid rgba(200,169,110,0.4); color:var(--gold);
+      font-family:inherit; font-size:0.68rem; font-weight:700; letter-spacing:0.1em;
+      text-transform:uppercase; transition:0.2s;
+    }
+    .coupon-row button:hover { background:rgba(200,169,110,0.1); }
+    .coupon-row button:disabled { opacity:0.5; cursor:default; }
+    #of-coupon-msg { font-size:0.73rem; margin-top:0.5rem; line-height:1.55; }
+    #of-coupon-msg.ok  { color:#6fe0a0; }
+    #of-coupon-msg.err { color:#ff9b8c; }
+
+    /* ══ CATEGORIAS COMO TARJETAS CON FOTO ══
+       Reemplazan a los botones de texto y al desplegable gris del sistema.
+       Con 83 productos en 10 categorias, ver la foto ayuda mucho mas que
+       leer una lista. Scroll horizontal, como una fila de historias. */
+    .catwall-wrap { max-width:1180px; margin:0 auto; padding:0 2rem; position:relative; }
+    .catwall {
+      display:flex; gap:0.75rem; overflow-x:auto; padding:0.2rem 0 1.1rem;
+      scroll-snap-type:x proximity; scrollbar-width:none;
+      -webkit-overflow-scrolling:touch;
+    }
+    .catwall::-webkit-scrollbar { display:none; }
+    .catcard {
+      position:relative; flex:0 0 auto; width:158px; aspect-ratio:4/3;
+      border:1px solid rgba(255,255,255,0.07); border-radius:12px; overflow:hidden;
+      cursor:pointer; padding:0; background:#0d2137; scroll-snap-align:start;
+      transition:border-color 0.35s ease, transform 0.35s ease;
+    }
+    .catcard:hover { border-color:rgba(200,169,110,0.45); transform:translateY(-2px); }
+    .catcard.on { border-color:var(--gold); }
+    .catcard.on::after {
+      content:''; position:absolute; inset:0; border:2px solid var(--gold);
+      border-radius:12px; pointer-events:none;
+    }
+    .catcard img {
+      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+      opacity:0.62; transition:opacity 0.4s ease, transform 1s ease;
+    }
+    .catcard:hover img { opacity:0.8; transform:scale(1.05); }
+    .catcard.on img { opacity:0.85; }
+    .catcard-veil {
+      position:absolute; inset:0;
+      background:linear-gradient(to top, rgba(6,14,28,0.94) 12%, rgba(6,14,28,0.15) 70%);
+    }
+    .catcard-b { position:absolute; left:0; right:0; bottom:0; padding:0.7rem 0.75rem; text-align:left; }
+    /* display:block — sin esto los dos <span> caen en la misma línea y se
+       lee "Todo83 productos". */
+    .catcard-n {
+      display:block;
+      font-family:'Montserrat',sans-serif; font-size:0.73rem; font-weight:600;
+      color:#fff; line-height:1.25; text-shadow:0 1px 6px rgba(0,0,0,0.6);
+    }
+    .catcard-c {
+      display:block;
+      font-size:0.6rem; color:var(--gold-lt); margin-top:0.15rem; letter-spacing:0.05em;
+    }
+    .catcard.on .catcard-c { color:var(--gold-lt); }
+    .catcard-mono {
+      position:absolute; inset:0; display:grid; place-items:center;
+      font-family:'Cormorant Garamond',serif; font-size:2rem; color:var(--gold);
+      opacity:0.4;
+    }
+
+    /* ── Estados, no categorías ──
+       "Todo" y "Favoritos" no son una categoría de producto: si les ponemos
+       la foto del primer producto del catálogo, las tres primeras tarjetas
+       salen con la misma foto de camarones y parece un error. Llevan icono
+       de línea sobre fondo propio. */
+    .catcard.estado { background:linear-gradient(150deg,#12283f,#0a1728); }
+    .catcard.estado::before {
+      content:''; position:absolute; inset:0;
+      background:radial-gradient(circle at 30% 25%, rgba(200,169,110,0.16), transparent 62%);
+    }
+    .catcard-ico {
+      position:absolute; inset:0; display:grid; place-items:center; padding-bottom:1.4rem;
+    }
+    .catcard-ico svg {
+      width:28px; height:28px; fill:none; stroke:var(--gold); stroke-width:1.4;
+      stroke-linecap:round; stroke-linejoin:round; opacity:0.85;
+    }
+    @media (max-width: 900px) {
+      .catwall-wrap { padding:0 1.2rem; }
+      .catcard { width:132px; }
+      .catcard-n { font-size:0.68rem; }
+    }
+
+    /* ══ RECETAS EN CELULAR ══
+       No tenian ni una regla responsive: en 375px la seccion se comia
+       64px en padding y la tarjeta otros 48. Se aprieta todo. */
+    @media (max-width: 700px) {
+      .recetas-section { padding: 0 1.1rem 2rem; }
+      .recetas-title { font-size: 1.5rem; }
+      .recetas-sub { font-size: 0.68rem; line-height: 1.55; margin-bottom: 1.1rem; }
+      .recetas-grid { grid-template-columns: 1fr; gap: 0.85rem; }
+      .receta-card { --pad: 1.1rem; border-radius: 14px; }
+      .receta-card-img, .card-carousel { height: 175px; border-radius: 14px 14px 0 0; }
+      .receta-card-title { font-size: 1.15rem; line-height: 1.3; }
+      .receta-card-desc { font-size: 0.73rem; margin-bottom: 0.85rem; }
+      .receta-ing-row { font-size: 0.74rem; padding: 0.45rem 0; gap: 0.8rem; }
+      .receta-ing-name { line-height: 1.4; }
+      .receta-ing-qty { white-space: nowrap; }
+      .receta-add-btn { padding: 0.75rem; font-size: 0.64rem; }
+    }
+
+    /* Iconos de línea en los menús: reemplazan a los emoji, que junto a las
+       fotos de producto abarataban la interfaz. */
+    .cat-drawer-link-icon svg, .drawer-link-icon svg,
+    .nav-wa .ico-nav svg { width:17px; height:17px; fill:none; stroke:currentColor;
+      stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; display:block; }
+    .cat-drawer-link-icon, .drawer-link-icon { display:inline-flex; align-items:center;
+      justify-content:center; width:20px; color:var(--gold); }
+    .nav-wa .ico-nav { display:inline-flex; align-items:center; vertical-align:-3px;
+      margin-right:.3rem; }
   </style>
   <!-- Meta Pixel -->
   <script>
@@ -1370,7 +1629,7 @@
 <!-- PRELOADER -->
 <div id="preloader" class="preloader">
   <div class="preloader-content">
-    <img src="logo.jpeg" alt="Chus's Fish Logo" class="preloader-logo-img" fetchpriority="high">
+    <img src="logo-256.jpg" alt="Chus's Fish Logo" class="preloader-logo-img" fetchpriority="high">
     <div class="preloader-logo">CHUS'S FISH</div>
     <div class="preloader-sub">Pescadería Premium</div>
   </div>
@@ -1387,7 +1646,7 @@
 
 <!-- WA FLOAT -->
 <a href="https://wa.me/50660017370" target="_blank" class="wa-float" aria-label="WhatsApp">
-  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.374l-.36-.214-3.732.979 1.001-3.65-.233-.374A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>
+  <svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
 </a>
 
 <!-- CART FLOAT -->
@@ -1401,14 +1660,14 @@
 <!-- NAV -->
 <nav>
   <a href="index.html" class="nav-logo">
-    <img src="logo.jpeg" alt="Chus's Fish logo" loading="eager" fetchpriority="high">
+    <img src="logo-256.jpg" alt="Chus's Fish logo" loading="eager" fetchpriority="high">
     <div class="nav-logo-text">Chus<span>'s Fish</span></div>
   </a>
   <a href="index.html" class="nav-back">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Inicio
   </a>
-  <a href="pedido.html" class="nav-wa" style="font-size:0.62rem;padding:0.45rem 1rem">📦 Mi pedido</a>
+  <a href="mi-cuenta.html" class="nav-wa" id="cf-account-link" style="font-size:0.62rem;padding:0.45rem 1rem"><span class="ico-nav"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></svg></span><span class="cf-acc-label">Ingresar</span></a>
   <a href="https://wa.me/50660017370" target="_blank" class="nav-wa">Pedir Ahora</a>
   <button class="nav-install-btn" id="cat-pwa-nav-btn" onclick="triggerInstall()" title="Instalar app">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -1425,14 +1684,16 @@
     <button class="cat-drawer-close" id="cat-drawer-close">✕</button>
   </div>
   <div class="cat-drawer-links">
-    <a href="index.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">🏠</span> Inicio</a>
-    <a href="catalogo.html" class="cat-drawer-link active"><span class="cat-drawer-link-icon">🛒</span> Catálogo</a>
-    <a href="pedido.html" class="cat-drawer-link"><span class="cat-drawer-link-icon">📦</span> Mi pedido</a>
-    <button class="cat-drawer-link" style="background:none;border:none;cursor:pointer;text-align:left;width:100%;font-family:'Montserrat',sans-serif;color:var(--text)" onclick="triggerInstall()"><span class="cat-drawer-link-icon">📲</span> Instalar App</button>
+    <a href="index.html" class="cat-drawer-link"><span class="cat-drawer-link-icon"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg></span> Inicio</a>
+    <a href="catalogo.html" class="cat-drawer-link active"><span class="cat-drawer-link-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg></span> Catálogo</a>
+    <a href="mi-cuenta.html" class="cat-drawer-link cf-account-link"><span class="cat-drawer-link-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></svg></span> <span class="cf-acc-label">Mi cuenta</span></a>
+    <a href="premios.html" class="cat-drawer-link"><span class="cat-drawer-link-icon"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="11" rx="1"/><path d="M3 13h18M12 9v11"/><path d="M12 9S9.5 4 7.5 5.5 9 9 12 9zM12 9s2.5-5 4.5-3.5S15 9 12 9z"/></svg></span> La Reserva</a>
+    <a href="pedido.html" class="cat-drawer-link"><span class="cat-drawer-link-icon"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></span> Buscar pedido</a>
+    <button class="cat-drawer-link" style="background:none;border:none;cursor:pointer;text-align:left;width:100%;font-family:'Montserrat',sans-serif;color:var(--text)" onclick="triggerInstall()"><span class="cat-drawer-link-icon"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></span> Instalar App</button>
   </div>
   <div class="cat-drawer-footer">
     <a href="https://wa.me/50660017370" target="_blank" class="cat-drawer-wa">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
       Pedir por WhatsApp
     </a>
   </div>
@@ -1447,7 +1708,7 @@
     <p class="cat-subtitle">68 productos · Nacional e importado · Entrega a domicilio · Cadena de frío garantizada</p>
     <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
       <div id="schedule-chip" class="schedule-chip" style="display:none"></div>
-      <button class="calc-trigger-btn" onclick="openCalc()">🧮 ¿Cuánto necesito?</button>
+      <button class="calc-trigger-btn" onclick="openCalc()">¿Cuánto necesito?</button>
     </div>
   </div>
 </div>
@@ -1459,43 +1720,16 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       <input type="text" id="search-input" placeholder="Buscar producto..." autocomplete="off" />
     </div>
-    <div class="filter-sep"></div>
-    <!-- Dropdown exclusivo para móvil -->
-    <select id="mobile-filter" class="mobile-filter">
-      <option value="all">Ver Todo (68)</option>
-      <option value="camarones-imp">Camarones Importados (5)</option>
-      <option value="camarones-nac">Camarones Nacionales (5)</option>
-      <option value="filetes-premium">Filete Premium (8)</option>
-      <option value="filetes-trad">Filetes Tradicionales (13)</option>
-      <option value="pescado-entero">Pescado Entero (3)</option>
-      <option value="picadura">Picadura Ceviche (6)</option>
-      <option value="mariscos">Mariscos Varios (18)</option>
-      <option value="mariscadas">Mariscadas y Paellas (4)</option>
-      <option value="gourmet">Gourmet (6)</option>
-      <option value="marinados">Marinados y Empanizadores (9)</option>
-      <option value="top">🔥 Más vendidos</option>
-    </select>
-    <button class="filter-pill active" data-cat="all">Todo <span class="pill-count" id="count-all">68</span></button>
-    <button class="filter-pill" data-cat="favs" style="color:var(--gold)">❤️ Favoritos</button>
-    <button class="filter-pill" data-cat="camarones-imp">Camarones Importados <span class="pill-count" id="count-camarones-imp">5</span></button>
-    <button class="filter-pill" data-cat="camarones-nac">Camarones Nacionales <span class="pill-count" id="count-camarones-nac">5</span></button>
-    <button class="filter-pill" data-cat="filetes-premium">Filete Premium <span class="pill-count" id="count-filetes-premium">8</span></button>
-    <button class="filter-pill" data-cat="filetes-trad">Filetes Tradicionales <span class="pill-count" id="count-filetes-trad">13</span></button>
-    <button class="filter-pill" data-cat="pescado-entero">Pescado Entero <span class="pill-count" id="count-pescado-entero">3</span></button>
-    <button class="filter-pill" data-cat="picadura">Picadura Ceviche <span class="pill-count" id="count-picadura">6</span></button>
-    <button class="filter-pill" data-cat="mariscos">Mariscos Varios <span class="pill-count" id="count-mariscos">18</span></button>
-    <button class="filter-pill" data-cat="mariscadas">Mariscadas y Paellas <span class="pill-count" id="count-mariscadas">4</span></button>
-    <button class="filter-pill" data-cat="gourmet">Gourmet <span class="pill-count" id="count-gourmet">6</span></button>
-    <button class="filter-pill" data-cat="marinados">Marinados y Empanizadores <span class="pill-count" id="count-marinados">0</span></button>
-    <div class="filter-sep" style="flex-shrink:0"></div>
-    <button class="filter-pill" data-cat="top">🔥 Más vendidos</button>
   </div>
 </div>
+
+<!-- Categorías con foto: reemplazan a los botones y al desplegable -->
+<div class="catwall-wrap"><div class="catwall" id="catwall"></div></div>
 
 <!-- PRODUCTOS DESTACADOS -->
 <div id="destacados-sep" style="display:none" class="section-sep">
   <div class="section-sep-line"></div>
-  <div class="section-sep-label">🌟 Destacados</div>
+  <div class="section-sep-label">Destacados</div>
   <div class="section-sep-line"></div>
 </div>
 <div class="destacados-section" id="destacados-section" style="display:none">
@@ -1505,7 +1739,7 @@
 <!-- ESPECIAL DE LA SEMANA -->
 <div id="especial-sep" style="display:none" class="section-sep">
   <div class="section-sep-line"></div>
-  <div class="section-sep-label">⭐ Oferta especial</div>
+  <div class="section-sep-label">Oferta especial</div>
   <div class="section-sep-line"></div>
 </div>
 <div class="especial-section" id="especial-section" style="display:none"></div>
@@ -1514,23 +1748,11 @@
 <!-- COMBOS Y PROMOCIONES -->
 <div id="promos-sep" style="display:none" class="section-sep">
   <div class="section-sep-line"></div>
-  <div class="section-sep-label">🎁 Combos y Promociones</div>
+  <div class="section-sep-label">Combos y promociones</div>
   <div class="section-sep-line"></div>
 </div>
 <div class="promos-section" id="promos-section" style="display:none">
   <div class="promos-grid" id="promos-grid"></div>
-</div>
-
-<!-- RECETAS DE LA SEMANA -->
-<div id="recetas-sep" style="display:none" class="section-sep">
-  <div class="section-sep-line"></div>
-  <div class="section-sep-label">📖 Recetas de la semana</div>
-  <div class="section-sep-line"></div>
-</div>
-<div class="recetas-section" id="recetas-section" style="display:none">
-  <div class="recetas-title">Recetas de la semana</div>
-  <div class="recetas-sub">Inspiración fresca · Agregá todos los ingredientes al carrito con un solo click</div>
-  <div class="recetas-grid" id="recetas-grid"></div>
 </div>
 
 <!-- RESULTS BAR -->
@@ -1543,6 +1765,22 @@
   <p class="no-results" id="no-results">Ningún producto coincide con tu búsqueda.</p>
 </div>
 
+<!-- RECETAS DE LA SEMANA
+     Van DESPUES de los productos a proposito: quien entra al catalogo quiere
+     ver producto. Antes estaban arriba y lo primero que aparecia era una
+     receta larga que empujaba la parrilla fuera de la pantalla. -->
+<div id="recetas-sep" style="display:none" class="section-sep">
+  <div class="section-sep-line"></div>
+  <div class="section-sep-label">Recetas de la semana</div>
+  <div class="section-sep-line"></div>
+</div>
+<div class="recetas-section" id="recetas-section" style="display:none">
+  <div class="recetas-title">Recetas de la semana</div>
+  <div class="recetas-sub">Inspiración fresca · Agregá todos los ingredientes al carrito con un solo click</div>
+  <div class="recetas-grid" id="recetas-grid"></div>
+</div>
+
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-logo">Chus<em>'s Fish</em></div>
@@ -1552,7 +1790,7 @@
   </div>
   <div style="display:flex;justify-content:center;gap:1rem;margin-bottom:1.2rem;">
     <a href="https://wa.me/50660017370" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
     </a>
     <a href="https://instagram.com/chussfish" target="_blank" style="width:38px;height:38px;border-radius:50%;border:1px solid rgba(200,169,110,0.18);display:flex;align-items:center;justify-content:center;color:var(--muted);text-decoration:none;transition:color 0.3s,border-color 0.3s;" onmouseover="this.style.color='#c8a96e';this.style.borderColor='#9a7a48'" onmouseout="this.style.color='';this.style.borderColor=''">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -1567,6 +1805,8 @@
 <!-- MODAL -->
 <div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal-box" id="modal-box">
+    <!-- El asa: sin ella nadie adivina que la ficha se puede bajar. -->
+    <div class="modal-asa" aria-hidden="true"><span></span></div>
     <button class="modal-close" id="modal-close" aria-label="Cerrar">✕</button>
     <div class="modal-icon-area" id="modal-icon-area">
       <svg id="modal-icon-svg" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -1588,7 +1828,7 @@
         </div>
       </div>
       <div id="notify-box" class="notify-box">
-        <p class="notify-lbl">🔔 ¿Querés que te avisemos cuando esté disponible?</p>
+        <p class="notify-lbl"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;vertical-align:-2px;margin-right:.35rem"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>¿Querés que te avisemos cuando esté disponible?</p>
         <div class="notify-row">
           <input type="tel" id="notify-phone" class="notify-tel" placeholder="Número WhatsApp (ej. 8888-8888)">
           <button class="notify-go" onclick="submitNotify()">Avisame</button>
@@ -1596,8 +1836,12 @@
       </div>
       <div class="modal-actions">
         <button class="btn-add-cart" id="btn-add-cart">+ Agregar al carrito</button>
+        <button class="btn-share-modal" id="btn-share-modal" type="button" title="Compartir este producto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Compartir
+        </button>
         <button class="btn-wa-direct" id="btn-wa-direct" type="button">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
           Pedir por WhatsApp
         </button>
       </div>
@@ -1624,7 +1868,7 @@
     </div>
     <div id="cart-delivery-fee" style="display:none;font-size:0.72rem;color:var(--gold-dk);text-align:right;margin-top:-0.8rem;margin-bottom:0.8rem"></div>
     <button id="cart-wa-btn" class="btn-wa-cart" type="button">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
       Finalizar pedido
     </button>
     <p class="cart-note">* Monto de referencia. El precio final puede variar según el peso real del producto.</p>
@@ -1636,26 +1880,44 @@
 
 <script>
 /* ═══ FIREBASE ═══ */
-firebase.initializeApp({
-  apiKey:            'AIzaSyCLFJ9xAWUw_M2UgkOUY467MmkbFe4lbIk',
-  authDomain:        'chus-fish.firebaseapp.com',
-  projectId:         'chus-fish',
-  storageBucket:     'chus-fish.firebasestorage.app',
-  messagingSenderId: '788310353696',
-  appId:             '1:788310353696:web:16ca9bd3f934b915cb1945',
-});
+/* La configuracion de Firebase vive en UN solo lugar: auth.js, que se carga
+   en el <head> de esta pagina. Aca habia una copia entera dentro de un
+   `if (!firebase.apps.length)` que nunca llegaba a ejecutarse. */
 const db_cat      = firebase.firestore();
 const DOC_REF_CAT = db_cat.collection('chusfish').doc('catalog');
+
+/* ═══ CATALOGO GUARDADO EN EL APARATO ══════════════════════════
+   Habia un respaldo en localStorage que se LEIA cuando fallaba Firestore,
+   pero nadie lo escribia nunca: siempre estaba vacio. Ahora se guarda de
+   verdad, y ademas se usa para pintar la parrilla al instante.
+
+   El orden es: mostrar lo guardado (0 ms) y de fondo pedir lo de verdad.
+   Si cambio algo, se vuelve a dibujar. Asi tocar "Catalogo" se siente
+   inmediato en vez de esperar a Firestore cada vez. */
+const CACHE_PROD = 'chusfish_products';
+
+function catalogoGuardado() {
+  try {
+    const d = localStorage.getItem(CACHE_PROD);
+    if (!d) return null;
+    const p = JSON.parse(d);
+    return (Array.isArray(p) && p.length) ? p : null;
+  } catch (e) { return null; }
+}
+
+function guardarCatalogo(productos) {
+  try { localStorage.setItem(CACHE_PROD, JSON.stringify(productos)); }
+  catch (e) {}   // sin espacio: no pasa nada, se sigue pidiendo a Firestore
+}
 
 async function loadFromFirestore() {
   try {
     const snap = await DOC_REF_CAT.get();
-    if (snap.exists && snap.data().products?.length) return snap.data().products;
-  } catch(e) {
-    try {
-      const d = localStorage.getItem('chusfish_products');
-      if (d) return JSON.parse(d);
-    } catch(e2) {}
+    const p = snap.exists && snap.data().products;
+    if (p && p.length) { guardarCatalogo(p); return p; }
+  } catch (e) {
+    const g = catalogoGuardado();
+    if (g) return g;
   }
   return null;
 }
@@ -1821,10 +2083,82 @@ const PRODUCTS_DEFAULT = [
 
 /* Se carga desde Firestore en initCatalog() */
 let PRODUCTS = [];
+// ui.js lo lee para buscar y para totalizar el carrito. `let` en el nivel
+// superior NO crea window.PRODUCTS, hay que publicarlo a mano.
+function publicarProductos(){ window.PRODUCTS = PRODUCTS; publicarDatosSEO(); }
+
+/* ═══ DATOS DE PRODUCTO PARA GOOGLE ═══════════════════════════════
+   El bloque JSON-LD del <head> traia una lista escrita a mano: ocho
+   nombres genericos, sin precio, sin existencia, y todos apuntando a
+   la misma URL. Con eso Google no puede armar un resultado con precio
+   —que es justo lo que hace que la gente entre desde el buscador.
+
+   Aca se reescribe esa misma lista con los 87 productos de verdad:
+   precio en colones, si esta disponible, foto, y una URL propia
+   (catalogo.html?id=N) que la pagina ya sabe abrir en ese producto.
+
+   Se REESCRIBE en vez de agregar un bloque nuevo: dos ItemList en la
+   misma pagina se contradicen. Y si el JS fallara, queda la lista
+   original — nunca se queda sin datos. */
+function publicarDatosSEO(){
+  var el = document.getElementById("ld-catalogo");
+  if (!el || !PRODUCTS || !PRODUCTS.length) return;
+
+  var datos;
+  try { datos = JSON.parse(el.textContent); } catch (e) { return; }
+
+  var grafo = datos["@graph"] || [];
+  var lista = null;
+  for (var i = 0; i < grafo.length; i++) {
+    if (grafo[i]["@type"] === "ItemList") { lista = grafo[i]; break; }
+  }
+  if (!lista) return;
+
+  var BASE = "https://chusfish.com/catalogo.html?id=";
+  lista.numberOfItems = PRODUCTS.length;
+  lista.itemListElement = PRODUCTS.map(function (p, i) {
+    var agotado = p.available === false || (p.stock != null && p.stock <= 0);
+    var url = BASE + p.id;
+
+    var prod = { "@type": "Product", name: p.name, url: url };
+    if (p.img)  prod.image = p.img;
+    if (p.desc) prod.description = p.desc;
+
+    /* Sin precio no se declara oferta. Un Offer con price 0 le dice a
+       Google que el producto es gratis, que es peor que no decir nada. */
+    var precio = Number(p.price) || 0;
+    if (precio > 0) {
+      prod.offers = {
+        "@type": "Offer",
+        price: precio,
+        priceCurrency: "CRC",
+        url: url,
+        availability: agotado
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+        seller: { "@id": "https://chusfish.com/#business" }
+      };
+    }
+
+    return { "@type": "ListItem", position: i + 1, item: prod };
+  });
+
+  el.textContent = JSON.stringify(datos);
+}
 
 /* ════════════════════════════════════════ */
-const CAT_ORDER = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
+/* Las de siempre, como respaldo: si la configuracion todavia no trae
+   categorias —o no se pudo leer— el catalogo sigue funcionando igual. */
+const CAT_DEFECTO = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
+let CAT_ORDER = CAT_DEFECTO.slice();
 
+/* Nombres de las categorias que vengan de la configuracion. Las de
+   siempre tienen su rotulo con <em> mas abajo en CAT_LABELS; una
+   categoria nueva usa su nombre tal cual. */
+let CAT_EXTRA = {};
+
+/* Rotulo con cursiva para el encabezado de cada grupo. Solo existe para
+   las diez de siempre; una categoria nueva cae en el nombre plano. */
 const CAT_LABELS = {
   'camarones-imp':    'Camarones <em>Importados</em>',
   'camarones-nac':    'Camarones <em>Nacionales</em>',
@@ -1837,6 +2171,38 @@ const CAT_LABELS = {
   'gourmet':          'Productos <em>Gourmet</em>',
   'marinados':        'Marinados <em>y Empanizadores</em>',
 };
+
+/* Rehace las listas con lo que diga la configuracion. Se llama antes de
+   pintar nada, asi que el catalogo nunca dibuja el orden viejo y luego
+   salta al nuevo. */
+function aplicarCategorias(lista) {
+  if (!Array.isArray(lista) || !lista.length) return false;
+
+  const nuevoOrden = lista.map(function (c) { return c && c.id; }).filter(Boolean);
+  const igual = nuevoOrden.length === CAT_ORDER.length &&
+                nuevoOrden.every(function (id, i) { return CAT_ORDER[i] === id; }) &&
+                lista.every(function (c) { return CAT_EXTRA[c.id] === (c.nombre || c.id); });
+  if (igual) return false;
+
+  CAT_ORDER = [];
+  CAT_EXTRA = {};
+  lista.forEach(function (c) {
+    if (!c || !c.id) return;
+    CAT_ORDER.push(c.id);
+    CAT_EXTRA[c.id] = c.nombre || c.id;
+  });
+  CATWALL = [CATWALL[0]].concat(CAT_ORDER.map(function (id) {
+    return { id: id, n: nombreCat(id) };
+  }));
+  return true;
+}
+
+/* El nombre plano de una categoria, venga de donde venga. */
+function nombreCat(id) {
+  if (CAT_EXTRA[id]) return CAT_EXTRA[id];
+  const l = CAT_LABELS[id];
+  return l ? l.replace(/<[^>]*>/g, '') : id;
+}
 
 const CAT_ICONS = {
   'camarones-imp':   `<path d="M10 36 Q14 28 22 24 Q28 20 36 22 Q42 24 44 30 Q40 38 32 40 Q24 42 18 38 Q12 34 10 36Z" stroke="#c8a96e" stroke-width="1.2" fill="none"/><path d="M36 22 Q40 16 44 12" stroke="#c8a96e" stroke-width="1" fill="none" opacity="0.5"/><path d="M42 30 Q46 28 48 24" stroke="#c8a96e" stroke-width="1" fill="none" opacity="0.5"/>`,
@@ -1853,7 +2219,7 @@ const CAT_ICONS = {
 
 const WA_NUM  = '50660017370';
 const WA_BASE = `https://wa.me/${WA_NUM}?text=`;
-const ICON_WA = `<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>`;
+const ICON_WA = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>`;
 
 /* ═══ FORMAT PRICE ═══ */
 function fmt(price) {
@@ -1868,14 +2234,16 @@ function buildCard(p, index = 0) {
   const imgBlock = imgSrc
     ? `<img src="${imgSrc}" alt="${p.name}" loading="lazy"/>`
     : `<div class="p-img-placeholder">${icon}<span>Imagen</span></div>`;
-  const priceHtml = p.price === null
+  // Precio 0 = todavia sin precio cargado, igual que null. Antes salia "₡0",
+  // que parecia que el producto era gratis.
+  const priceHtml = !p.price
     ? `<span style="font-size:0.8rem;color:var(--muted)">Consultar</span>`
     : `<small>₡</small>${p.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g,'.')} <small style="font-size:0.55rem;color:var(--muted)">${p.unit}</small>`;
 
   const unavailable = p.available === false || (p.stock != null && p.stock <= 0);
   const lowStock = !unavailable && p.stock != null && p.stock > 0 && p.stock <= 3;
   return `
-  <div class="p-card${unavailable ? ' unavailable' : ''}" style="animation-delay: ${index * 0.05}s" data-id="${p.id}" data-cat="${p.cat}" data-name="${p.name.toLowerCase()} ${(p.desc||'').toLowerCase()}">
+  <div class="p-card${unavailable ? ' unavailable' : ''}" style="animation-delay: ${index * 0.05}s" data-id="${p.id}" data-cat="${p.cat}" data-name="${sinTildes(p.name + ' ' + (p.desc||''))}">
     <div class="p-img ${p.cat === 'marinados' || p.cat === 'gourmet' ? 'p-img-halo' : ''}">
       <span class="p-badge">${p.badge}</span>
       ${imgBlock}
@@ -1890,12 +2258,11 @@ function buildCard(p, index = 0) {
     </div>
     <div class="p-footer">
       <div class="p-price">${priceHtml}</div>
-      <div style="display:flex;align-items:center;gap:0.5rem">
-        <button class="p-share-btn" onclick="shareProduct('${p.id}');event.stopPropagation()" title="Compartir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        </button>
-        <button class="p-detail-btn" data-id="${p.id}"${unavailable ? ' disabled style="opacity:0.4;cursor:not-allowed"' : ''}>Ver más</button>
-      </div>
+      <button class="p-add-btn" data-add="${p.id}"${unavailable ? ' disabled' : ''}
+              aria-label="Agregar ${p.name} al carrito">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        <span>${unavailable ? 'Agotado' : 'Agregar'}</span>
+      </button>
     </div>
   </div>`;
 }
@@ -1907,7 +2274,7 @@ function buildGroup(cat) {
   return `
   <div class="cat-group" id="group-${cat}">
     <div class="cat-group-header">
-      <h2 class="cat-group-title">${CAT_LABELS[cat]}</h2>
+      <h2 class="cat-group-title">${CAT_LABELS[cat] || nombreCat(cat)}</h2>
       <div class="cat-group-line"></div>
       <span class="cat-group-count">${items.length} productos</span>
     </div>
@@ -1915,29 +2282,98 @@ function buildGroup(cat) {
   </div>`;
 }
 
-/* ═══ ACTUALIZAR CONTADORES DE PILLS ═══ */
+/* ═══ CONTADORES ═══
+   Los conteos por categoria ahora los pinta renderCatwall() en cada tarjeta;
+   aca solo queda el total del hero y el de resultados visibles. */
 function updateCounts() {
   const total = PRODUCTS.length;
-  const allEl = document.getElementById('count-all');
-  if (allEl) allEl.textContent = total;
   document.getElementById('visible-count').textContent = total;
-  CAT_ORDER.forEach(cat => {
-    const el = document.getElementById('count-' + cat);
-    if (el) el.textContent = PRODUCTS.filter(p => p.cat === cat).length;
-  });
   const sub = document.querySelector('.cat-subtitle');
   if (sub) sub.textContent = `${total} productos · Nacional e importado · Entrega a domicilio · Cadena de frío garantizada`;
 }
 
+/* ═══ PANTALLA DE CARGA ═══════════════════════════════════════
+   Antes esperaba a `window.load` (que no ocurre hasta que baja la ULTIMA
+   imagen) y encima sumaba 2.500 ms fijos "para que la animacion se
+   disfrute", mas 800 de desvanecido. Eran mas de 3 segundos de espera
+   inventada cada vez que alguien tocaba "Catalogo" — y nadie disfruta una
+   animacion en su visita numero veinte.
+
+   Ahora se va apenas hay productos en pantalla, que es lo unico que
+   importa. El tope de 6 s es solo por si Firestore no responde: mejor
+   mostrar la pagina vacia con su mensaje que dejar el logo girando. */
+/* La pagina se revela una sola vez, ya completa.
+   El catalogo termina a los ~450 ms (viene guardado del aparato) pero
+   "Destacados", los combos y la oferta especial salen de otra consulta que
+   tarda ~1 s, y se insertan ARRIBA de la parrilla: metian 1.200 px de golpe
+   y empujaban los productos hacia abajo. Se veia como si el catalogo
+   cargara y despues "se devolviera" al principio.
+   Esperar esos 500 ms de mas y mostrar todo junto se ve mucho mejor que
+   revelar rapido y dar un tiron. */
+var listoParrilla = false, listoSecciones = false;
+function marcarListo(que) {
+  if (que === 'parrilla')  listoParrilla  = true;
+  if (que === 'secciones') listoSecciones = true;
+  if (listoParrilla && listoSecciones) ocultarPreloader();
+}
+
+function ocultarPreloader() {
+  const preloader = document.getElementById('preloader');
+  if (!preloader || preloader.dataset.yaSalio) return;
+  preloader.dataset.yaSalio = '1';
+  preloader.classList.add('fade-out');
+  setTimeout(() => preloader.remove(), 350);
+}
+setTimeout(ocultarPreloader, 6000);   // red de seguridad
+
 /* ═══ RENDER CATALOG ═══ */
 const wrap = document.getElementById('catalog-wrap');
+
+/* "Destacados", los combos y la oferta se arman BUSCANDO en PRODUCTS.
+   Desde que la config tambien viene guardada del aparato, se pinta antes de
+   que el catalogo exista y no encontraba nada: la seccion quedaba vacia.
+   Esta promesa la hace esperar lo justo. */
+let avisarProductosListos;
+const productosListos = new Promise(function (r) { avisarProductosListos = r; });
 
 async function initCatalog() {
   /* spinner mientras carga */
   wrap.insertAdjacentHTML('beforeend',
     '<p id="cat-loading" style="text-align:center;color:var(--muted);padding:5rem 1rem;font-size:0.8rem;letter-spacing:0.1em">Cargando productos⬦</p>');
 
-  PRODUCTS = (await loadFromFirestore()) || PRODUCTS_DEFAULT;
+  /* Si hay catalogo guardado, se dibuja YA y Firestore se consulta despues.
+     Solo se vuelve a dibujar si de verdad cambio algo — comparar el JSON es
+     mas barato que redibujar 87 tarjetas por gusto. */
+  const guardado = catalogoGuardado();
+  if (guardado) {
+    PRODUCTS = guardado;
+
+    /* Ceder el turno una vez, aunque no haga falta esperar a nadie.
+       `initCatalog()` se llama en medio del script, y mas abajo todavia
+       quedan `let activeCat`, `let searchQ`… Antes el `await` a Firestore
+       dejaba que el resto del script terminara primero; leyendo del cache no
+       hay espera, la funcion seguia de corrido y reventaba con
+       "Cannot access 'activeCat' before initialization". */
+    await Promise.resolve();
+    loadFromFirestore().then(frescos => {
+      if (!frescos || !frescos.length) return;
+      if (JSON.stringify(frescos) === JSON.stringify(guardado)) return;
+      PRODUCTS = frescos;
+      publicarProductos();
+      wrap.querySelectorAll('.cat-group').forEach(g => g.remove());
+      wrap.insertAdjacentHTML('afterbegin', CAT_ORDER.map(buildGroup).join(''));
+      updateCounts();
+      renderCatwall();
+      applyFilter();
+      restoreCart();
+    }).catch(() => {});
+  } else {
+    PRODUCTS = (await loadFromFirestore()) || PRODUCTS_DEFAULT;
+  }
+  publicarProductos();
+  avisarProductosListos();
+  setTimeout(renderCatwall, 0);   // ya hay productos: se pueden sacar las fotos
+  if (window.CFUI) CFUI.refrescarCarrito();   // ya hay precios para el total
 
   // Interceptar imagen de la langosta para que muestre el recorte original sobre hielo
   PRODUCTS.forEach(p => {
@@ -1959,15 +2395,13 @@ async function initCatalog() {
   const _urlCat = new URLSearchParams(window.location.search).get('cat');
   if (_urlCat) {
     activeCat = _urlCat;
-    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-    const _pill = document.querySelector(`.filter-pill[data-cat="${_urlCat}"]`);
-    if (_pill) _pill.classList.add('active');
-    const _mf = document.getElementById('mobile-filter');
-    if (_mf) _mf.value = _urlCat;
+    renderCatwall();          // que la fila muestre cual quedo elegida
+    centrarCatActiva();       // y que ademas se vea, sin animacion al entrar
   }
 
   applyFilter();
   restoreCart();
+  marcarListo('parrilla');
 }
 initCatalog();
 
@@ -1975,14 +2409,174 @@ initCatalog();
 let activeCat = 'all';
 let searchQ   = '';
 
+
+/* ═══ CATEGORIAS CON FOTO ═══════════════════════════════════════
+   La foto es la del primer producto de cada categoria que tenga imagen.
+   Si la categoria quedara sin fotos, cae en un monograma (nunca un emoji,
+   que abarata la pieza). */
+/* `ico` marca los tres que NO son categorias de producto sino estados:
+   llevan icono de linea en vez de foto. */
+const ICO_TODO = '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5"/><rect x="13.5" y="3" width="7.5" height="7.5"/><rect x="3" y="13.5" width="7.5" height="7.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5"/></svg>';
+const ICO_FAVS = '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5c0 5-7 9.5-7 9.5z"/></svg>';
+const ICO_TOP  = '<svg viewBox="0 0 24 24"><path d="M12 3l2.4 6.3H21l-5.3 3.9 2 6.4-5.7-4.1-5.7 4.1 2-6.4L3 9.3h6.6z"/></svg>';
+
+/* Solo "Todo" y las categorias de producto.
+   "Favoritos" y "Mas vendidos" se sacaron a proposito: ocupaban los dos
+   primeros lugares de la fila y empujaban el producto de verdad fuera de
+   pantalla. Quien entra al catalogo quiere ver pescado, no dos tarjetas con
+   un icono. Los dos siguen disponibles desde la hoja de "Buscar". */
+let CATWALL = [
+  { id:'all',              n:'Todo',          ico:ICO_TODO },
+  { id:'camarones-imp',    n:'Camarones Importados' },
+  { id:'camarones-nac',    n:'Camarones Nacionales' },
+  { id:'filetes-premium',  n:'Filete Premium' },
+  { id:'filetes-trad',     n:'Filetes Tradicionales' },
+  { id:'pescado-entero',   n:'Pescado Entero' },
+  { id:'picadura',         n:'Picadura Ceviche' },
+  { id:'mariscos',         n:'Mariscos Varios' },
+  { id:'mariscadas',       n:'Mariscadas y Paellas' },
+  { id:'gourmet',          n:'Gourmet' },
+  { id:'marinados',        n:'Marinados y Empanizadores' },
+];
+
+function monogramaCat(txt) {
+  const p = String(txt || '').match(/[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}/g) || [];
+  return p.slice(0, 2).map(w => w.charAt(0).toUpperCase()).join('') || '✦';
+}
+
+/* Minusculas y sin tildes. En Costa Rica la gente escribe "camaron" y
+   "mariscada", no "camarón": sin esto la busqueda no encontraba nada por
+   nombre y solo pescaba coincidencias en la descripcion. */
+function sinTildes(s) {
+  return String(s == null ? '' : s).toLowerCase()
+    .normalize('NFD')
+    // Rango U+0300..U+036F: las tildes que NFD deja sueltas. Entre los
+    // corchetes hay caracteres combinantes reales, que el editor dibuja
+    // vacios. Esta bien asi, no los borres.
+    .replace(/[̀-ͯ]/g, '');
+}
+
+// El mismo escape que usa auth.js, con respaldo por si CF todavia no cargo.
+function esc(s) {
+  if (window.CF && CF.esc) return CF.esc(s);
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function productosDe(catId) {
+  if (catId === 'all')  return PRODUCTS;
+  if (catId === 'favs') return PRODUCTS.filter(p => CF.esFav(p.id));
+  if (catId === 'top')  return PRODUCTS.filter(p => p.badge && p.badge.toLowerCase().includes('más vendido'));
+  // El home manda ?cat=camarones, que acá son dos categorías.
+  if (catId === 'camarones') return PRODUCTS.filter(p => p.cat === 'camarones-imp' || p.cat === 'camarones-nac');
+  return PRODUCTS.filter(p => p.cat === catId);
+}
+
+/* Que tarjeta se ve elegida. Viniendo del home con ?cat=camarones se marcan
+   las dos de camarones: es la verdad de lo que esta viendo, y desde ahi puede
+   afinar tocando una sola. */
+function catcardActiva(id) {
+  if (activeCat === 'camarones') return id === 'camarones-imp' || id === 'camarones-nac';
+  return activeCat === id;
+}
+
+function renderCatwall() {
+  const box = document.getElementById('catwall');
+  if (!box || !PRODUCTS.length) return;
+
+  // Reescribir el innerHTML manda el scroll de la fila a cero. Se guarda y
+  // se repone, si no cada re-render (favoritos, filtro, carga) devolvia la
+  // fila al principio y la categoria elegida se iba de pantalla.
+  const scrollPrevio = box.scrollLeft;
+
+  box.innerHTML = CATWALL.map(c => {
+    const lista = productosDe(c.id);
+    // Las categorias vacias no se muestran (salvo Todo, Favoritos y Top,
+    // que son estados y no categorias).
+    if (!lista.length && !c.ico) return '';
+
+    const n = lista.length;
+    const cuenta = c.id === 'favs'
+      ? (n ? n + (n === 1 ? ' guardado' : ' guardados') : 'Ninguno aún')
+      : (n ? n + (n === 1 ? ' producto' : ' productos') : '');
+
+    // Estados con icono; categorias con la foto de SU primer producto.
+    // Nunca el fallback al primer producto del catalogo: hacia que Todo,
+    // Favoritos y Mas vendidos salieran las tres con la misma foto.
+    let visual;
+    if (c.ico) {
+      visual = '<span class="catcard-ico">' + c.ico + '</span>';
+    } else {
+      const foto = (lista.find(p => p.img) || {}).img;
+      visual = foto
+        ? '<img src="' + esc(foto) + '" alt="" loading="lazy" />'
+        : '<span class="catcard-mono">' + esc(monogramaCat(c.n)) + '</span>';
+    }
+
+    return '<button class="catcard' + (c.ico ? ' estado' : '') +
+      (catcardActiva(c.id) ? ' on' : '') + '" data-cat="' + esc(c.id) +
+      '" aria-label="' + esc(c.n) + '">' +
+      visual +
+      '<span class="catcard-veil"></span>' +
+      '<span class="catcard-b"><span class="catcard-n">' + esc(c.n) + '</span>' +
+      (cuenta ? '<span class="catcard-c">' + cuenta + '</span>' : '') +
+      '</span></button>';
+  }).join('');
+
+  box.scrollLeft = scrollPrevio;
+
+  box.querySelectorAll('.catcard').forEach(b => {
+    b.addEventListener('click', () => {
+      activeCat = b.dataset.cat;
+      applyFilter();
+      renderCatwall();
+      centrarCatActiva('smooth');
+
+      // La pagina sube hasta la fila de categorias, NO hasta los resultados:
+      // asi la fila sigue en pantalla y se puede cambiar de categoria sin
+      // tener que volver a subir.
+      const wrap = document.querySelector('.catwall-wrap');
+      if (wrap) window.scrollTo({ top: Math.max(0, wrap.offsetTop - 70), behavior:'smooth' });
+    });
+  });
+}
+
+/* Deja a la vista la categoria elegida. Hace falta sobre todo al llegar
+   desde el home con ?cat=..., porque las de camarones estan al final de la
+   fila: sin esto se marcaban bien pero quedaban fuera de pantalla.
+   Mueve SOLO la fila; `scrollIntoView` arrastraba tambien el scroll
+   vertical de la pagina y peleaba con el de abajo. */
+function centrarCatActiva(modo) {
+  const box = document.getElementById('catwall');
+  if (!box) return;
+  const act = box.querySelector('.catcard.on');
+  if (!act) return;
+  box.scrollTo({
+    left: Math.max(0, act.offsetLeft - (box.clientWidth - act.offsetWidth) / 2),
+    behavior: modo || 'auto'
+  });
+}
+
 function applyFilter() {
   const catalogWrap = document.querySelector('.catalog-wrap');
   const resultsBar  = document.querySelector('.results-bar');
   if (catalogWrap) catalogWrap.style.display = '';
   if (resultsBar)  resultsBar.style.display  = '';
 
+  /* Los destacados son una vitrina del catalogo COMPLETO. Con un filtro
+     puesto quedaban entre la fila de categorias y los productos, asi que al
+     tocar "Camarones" la pantalla se detenia sobre destacados de otras
+     categorias y parecia que el filtro no llevaba a ninguna parte.
+     Con un filtro activo se esconden; vuelven con "Todo". */
+  const hayFiltro = (activeCat && activeCat !== 'all') || !!searchQ;
+  ['destacados-section', 'destacados-sep'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (!el || !el.dataset.tieneContenido) return;
+    el.style.display = hayFiltro ? 'none' : '';
+  });
+
   const cards = document.querySelectorAll('.p-card');
-  const favs = getFavs();
   let visible = 0;
 
   cards.forEach(card => {
@@ -1990,7 +2584,7 @@ function applyFilter() {
     if (activeCat === 'all') {
       catOk = true;
     } else if (activeCat === 'favs') {
-      catOk = favs.includes(card.dataset.id);
+      catOk = CF.esFav(card.dataset.id);
     } else if (activeCat === 'top') {
       const pid = parseInt(card.dataset.id);
       const p = PRODUCTS.find(x => x.id === pid);
@@ -2017,36 +2611,50 @@ function applyFilter() {
   });
 }
 
-document.querySelectorAll('.filter-pill').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    activeCat = btn.dataset.cat;
-    
-    const mf = document.getElementById('mobile-filter');
-    if (mf) mf.value = activeCat;
-    
-    applyFilter();
-  });
-});
-
-const mobileFilterEl = document.getElementById('mobile-filter');
-if (mobileFilterEl) {
-  mobileFilterEl.addEventListener('change', (e) => {
-    activeCat = e.target.value;
-    
-    document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
-    const matchingBtn = document.querySelector(`.filter-pill[data-cat="${activeCat}"]`);
-    if(matchingBtn) matchingBtn.classList.add('active');
-    
-    applyFilter();
-  });
-}
-
 document.getElementById('search-input').addEventListener('input', e => {
-  searchQ = e.target.value.toLowerCase().trim();
+  searchQ = sinTildes(e.target.value.trim());
   applyFilter();
 });
+
+/* ── Puente con la hoja de busqueda de ui.js ──────────────────────
+   Si esta funcion existe, ui.js filtra aca mismo en vez de recargar. */
+window.CF_FILTER = function (cat, q, id) {
+  activeCat = cat || 'all';
+  searchQ   = sinTildes((q || '').trim());
+
+  var input = document.getElementById('search-input');
+  if (input) input.value = q || '';
+
+  applyFilter();
+  renderCatwall();
+  centrarCatActiva('smooth');
+
+  if (id) {
+    // Abrir la ficha del producto elegido en la busqueda.
+    setTimeout(function () { openModal(parseInt(id, 10)); }, 120);
+  } else {
+    var dest = document.querySelector('.results-bar') || document.querySelector('.catalog-wrap');
+    if (dest) dest.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+};
+
+/* Llegada desde otra pagina: catalogo.html?cat=...&q=...&id=... */
+(function () {
+  var u = new URLSearchParams(location.search);
+  if (!u.has('cat') && !u.has('q') && !u.has('id') && !u.has('carrito')) return;
+  var aplicar = function () {
+    if (u.has('carrito')) { openCart(); return; }
+    window.CF_FILTER(u.get('cat') || 'all', u.get('q') || '', u.get('id'));
+  };
+  // Esperar a que el catalogo este renderizado.
+  if (document.querySelector('.p-card')) setTimeout(aplicar, 200);
+  else {
+    var t = setInterval(function () {
+      if (document.querySelector('.p-card')) { clearInterval(t); aplicar(); }
+    }, 150);
+    setTimeout(function () { clearInterval(t); }, 6000);
+  }
+})();
 
 /* ════════════════════════════════════════ */
 function isKg(unit)    { return (unit || '').toLowerCase().includes('kg'); }
@@ -2067,6 +2675,7 @@ let modalQty = 0.5;
 let currentProduct = null;
 
 const overlay     = document.getElementById('modal-overlay');
+const modalBox    = document.getElementById('modal-box');
 const modalName   = document.getElementById('modal-name');
 const modalBadge  = document.getElementById('modal-badge');
 const modalDesc   = document.getElementById('modal-desc');
@@ -2099,6 +2708,8 @@ function openModal(id) {
   if (!p) return;
   currentProduct = p;
   modalQty = getMin(p.unit);
+  const compartir = document.getElementById('btn-share-modal');
+  if (compartir) compartir.onclick = () => shareProduct(String(p.id));
   if (window.fbq) fbq('track','ViewContent',{ content_name: p.name, content_ids:[p.id], content_type:'product', value: p.price||0, currency:'CRC' });
 
   modalName.textContent  = p.name;
@@ -2125,20 +2736,31 @@ function openModal(id) {
 
   const addBtn = document.getElementById('btn-add-cart');
   const notifyBox = document.getElementById('notify-box');
+  const waBtn = document.getElementById('btn-wa-direct');
+  const waTexto = waBtn && waBtn.lastChild;
   if (p.available === false) {
     addBtn.disabled = true;
     addBtn.textContent = 'No disponible esta semana';
     addBtn.style.opacity = '0.4';
     addBtn.style.cursor = 'not-allowed';
+    if (waBtn) {
+      waBtn.classList.add('secundario');
+      // "Pedir" no aplica a algo que no hay: se consulta, no se pide.
+      if (waTexto && waTexto.nodeType === 3) waTexto.textContent = ' Consultar por WhatsApp';
+    }
     if (notifyBox) {
       notifyBox.classList.add('show');
-      notifyBox.innerHTML = `<p class="notify-lbl">🔔 ¿Querés que te avisemos cuando esté disponible?</p>
+      notifyBox.innerHTML = `<p class="notify-lbl"><svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;vertical-align:-2px;margin-right:.35rem"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>¿Querés que te avisemos cuando esté disponible?</p>
         <div class="notify-row">
           <input type="tel" id="notify-phone" class="notify-tel" placeholder="Número WhatsApp (ej. 8888-8888)">
           <button class="notify-go" onclick="submitNotify()">Avisame</button>
         </div>`;
     }
   } else {
+    if (waBtn) {
+      waBtn.classList.remove('secundario');
+      if (waTexto && waTexto.nodeType === 3) waTexto.textContent = ' Pedir por WhatsApp';
+    }
     addBtn.disabled = false;
     addBtn.textContent = 'Agregar al carrito';
     addBtn.style.opacity = '';
@@ -2148,15 +2770,93 @@ function openModal(id) {
 
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  /* Se mete una entrada de historial: asi el gesto de atras —y el boton
+     fisico de Android— cierran la ficha en vez de sacar de la pagina. */
+  if (window.CFUI && CFUI.abrirCapa) CFUI.abrirCapa(cerrarFichaDirecto);
 }
 
+/* La llama la interfaz (la X, el fondo, Escape, el arrastre). Pasa por
+   el historial para no dejar la entrada colgada. */
 function closeModal() {
+  if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+  cerrarFichaDirecto();
+}
+
+/* El trabajo de verdad. La llama el popstate al volver atras. */
+function cerrarFichaDirecto() {
   overlay.classList.remove('open');
   document.body.style.overflow = '';
+  if (modalBox) { modalBox.style.transform = ''; modalBox.style.transition = ''; }
   currentProduct = null;
 }
 
 document.getElementById('modal-close').addEventListener('click', closeModal);
+
+/* ═══ BAJAR LA FICHA PARA CERRARLA ═══════════════════════════════
+   En celular la ficha entra desde abajo, asi que el gesto natural para
+   sacarla es empujarla hacia abajo. Antes la unica salida era la X, que
+   esta arriba a la derecha: incomoda de alcanzar con el pulgar en un
+   telefono grande.
+
+   Se arrastra desde la zona de arriba —el asa y la foto—, no desde
+   cualquier parte: mas abajo esta el contenido que se desplaza, y las
+   dos cosas peleariran por el mismo dedo.
+
+   Se cierra si la bajaste mas de 110px, o si la soltaste con impulso
+   aunque sea poco recorrido (un golpe rapido tambien cuenta). Si no,
+   vuelve a su sitio. */
+(function () {
+  if (!modalBox) return;
+
+  var y0 = 0, t0 = 0, dy = 0, arrastrando = false;
+
+  function zonaDeAgarre(t) {
+    // Solo la mitad superior de la foto y el asa.
+    var el = t.target;
+    return !!(el.closest && (el.closest('.modal-asa') || el.closest('.modal-icon-area')));
+  }
+
+  modalBox.addEventListener('touchstart', function (e) {
+    if (window.innerWidth > 700) return;        // el gesto es de celular
+    if (e.touches.length !== 1) return;
+    if (!zonaDeAgarre(e.touches[0])) return;
+    arrastrando = true;
+    y0 = e.touches[0].clientY;
+    t0 = Date.now();
+    dy = 0;
+    modalBox.style.transition = 'none';
+  }, { passive: true });
+
+  modalBox.addEventListener('touchmove', function (e) {
+    if (!arrastrando) return;
+    dy = e.touches[0].clientY - y0;
+    if (dy < 0) dy = 0;                          // no se sube, solo se baja
+    if (dy > 4 && e.cancelable) e.preventDefault();
+    modalBox.style.transform = 'translateY(' + dy + 'px)';
+    // El fondo se aclara con el recorrido: se ve que se esta yendo.
+    overlay.style.opacity = String(Math.max(0.25, 1 - dy / 500));
+  }, { passive: false });
+
+  function soltar() {
+    if (!arrastrando) return;
+    arrastrando = false;
+    var vel = dy / Math.max(1, Date.now() - t0);    // px por ms
+    modalBox.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1)';
+    overlay.style.opacity = '';
+
+    if (dy > 110 || vel > 0.6) {
+      modalBox.style.transform = 'translateY(100%)';
+      setTimeout(closeModal, 180);
+    } else {
+      modalBox.style.transform = 'translateY(0)';
+    }
+    dy = 0;
+  }
+
+  modalBox.addEventListener('touchend', soltar, { passive: true });
+  modalBox.addEventListener('touchcancel', soltar, { passive: true });
+})();
 overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeModal(); closeCart(); } });
 
@@ -2197,36 +2897,90 @@ btnWaDirect.addEventListener('click', () => {
 
 /* click en card */
 document.addEventListener('click', e => {
-  const btn = e.target.closest('.p-detail-btn');
+  const add  = e.target.closest('.p-add-btn');
+  const btn  = e.target.closest('.p-detail-btn');
   const card = e.target.closest('.p-card');
+
+  // El boton de agregar va primero y NO abre la ficha.
+  if (add) { e.stopPropagation(); agregarDesdeTarjeta(add); return; }
+
   if (btn) {
     e.stopPropagation();
     openModal(parseInt(btn.dataset.id));
-  } else if (card && !btn) {
+  } else if (card) {
     openModal(parseInt(card.dataset.id));
   }
 });
 
+/* Agrega la cantidad minima del producto (0,5 kg o 1 unidad) y confirma en
+   el mismo boton. Quien quiera otra cantidad toca la tarjeta y abre la ficha:
+   la tarjeta entera sigue siendo clicable. */
+let temporizadorAgregado = null;
+function agregarDesdeTarjeta(boton) {
+  const id = parseInt(boton.dataset.add, 10);
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p || boton.disabled) return;
+
+  addToCart(p, getMin(p.unit));
+
+  const etiqueta = boton.querySelector('span');
+  boton.classList.add('puesto');
+  if (etiqueta) etiqueta.textContent = 'Agregado';
+  clearTimeout(temporizadorAgregado);
+  temporizadorAgregado = setTimeout(() => {
+    boton.classList.remove('puesto');
+    if (etiqueta) etiqueta.textContent = 'Agregar';
+  }, 1400);
+
+  const cant = isKg(p.unit) ? getMin(p.unit) + ' kg' : getMin(p.unit) + ' und';
+  showToast(p.name + ' · ' + cant + ' agregado');
+}
+
 /* ════════════════════════════════════════ */
-function getFavs() { try { return JSON.parse(localStorage.getItem('chusfish_favs') || '[]'); } catch(e) { return []; } }
-function saveFavs(favs) { try { localStorage.setItem('chusfish_favs', JSON.stringify(favs)); } catch(e) {} }
-function isFav(id) { return getFavs().includes(id); }
+/* Los favoritos los maneja auth.js: guarda numeros, escribe tambien en la
+   cuenta y arregla las listas viejas que tenian texto. Antes aca se guardaba
+   "12" y se preguntaba por 12, asi que el corazon salia apagado al recargar. */
+function getFavs() { return CF.favs(); }
+function isFav(id)  { return CF.esFav(id); }
 function toggleFav(id, btn) {
-  let favs = getFavs();
-  if (favs.includes(id)) {
-    favs = favs.filter(f => f !== id);
+  const favs = CF.toggleFav(id);
+  if (!CF.esFav(id)) {
     btn.classList.remove('active');
     btn.querySelector('svg').setAttribute('fill','none');
     btn.querySelector('svg').setAttribute('stroke','currentColor');
     if (activeCat === 'favs') { const card = document.querySelector(`.p-card[data-id="${id}"]`); if (card) card.classList.add('hidden'); applyFilter(); }
   } else {
-    favs.push(id);
     btn.classList.add('active');
     btn.querySelector('svg').setAttribute('fill','#e74c3c');
     btn.querySelector('svg').setAttribute('stroke','#e74c3c');
   }
-  saveFavs(favs);
+  if (activeCat === 'favs') renderCatwall();   // el conteo de la tarjeta cambio
 }
+
+/* Repinta los corazones. Hace falta al iniciar sesion: los favoritos de la
+   cuenta llegan despues de que la parrilla ya se dibujo. */
+function refrescarCorazones() {
+  document.querySelectorAll('.p-fav-btn[data-fav]').forEach(btn => {
+    const activo = CF.esFav(btn.dataset.fav);
+    btn.classList.toggle('active', activo);
+    const svg = btn.querySelector('svg');
+    if (svg) {
+      svg.setAttribute('fill',   activo ? '#e74c3c' : 'none');
+      svg.setAttribute('stroke', activo ? '#e74c3c' : 'currentColor');
+    }
+  });
+}
+
+/* Al entrar con la cuenta, los favoritos guardados en ella mandan.
+   Sin esto, el catalogo solo miraba localStorage y en un telefono nuevo
+   no se veia ni un corazon marcado. */
+CF.onUser(function (u) {
+  if (!u || !CF.profile) return;
+  CF.syncFavs();
+  refrescarCorazones();
+  if (activeCat === 'favs') { applyFilter(); }
+  renderCatwall();
+});
 
 function shareProduct(id) {
   const p = PRODUCTS.find(x => x.id === id);
@@ -2241,6 +2995,8 @@ let cart = [];
 
 function saveCart() {
   try { localStorage.setItem('chusfish_cart', JSON.stringify(cart.map(i => ({ id: i.product.id, qty: i.qty })))); } catch(e) {}
+  // La barra de carrito de ui.js lee de localStorage: se avisa al guardar.
+  if (window.CFUI) CFUI.refrescarCarrito();
 }
 
 function restoreCart() {
@@ -2293,11 +3049,15 @@ function updateDeliveryFee(price) {
   currentDeliveryFee = price || 0;
   const el = document.getElementById('cart-delivery-fee');
   if (!el) return;
+  // Antes, con envio 0, esta linea desaparecia. Pero en Chus's Fish el envio
+  // ES gratis: conviene decirlo, no callarlo.
+  el.style.display = '';
   if (currentDeliveryFee > 0) {
-    el.style.display = '';
     el.textContent = `+ Envío zona: ₡${currentDeliveryFee.toLocaleString()}`;
+    el.style.color = '';
   } else {
-    el.style.display = 'none';
+    el.textContent = 'Envío gratis';
+    el.style.color = 'var(--gold-lt)';
   }
 }
 
@@ -2394,10 +3154,16 @@ document.getElementById('cart-items').addEventListener('click', e => {
 function openCart() {
   document.getElementById('cart-panel').classList.add('open');
   document.getElementById('cart-backdrop').classList.add('open');
+  if (window.CFUI && CFUI.abrirCapa) CFUI.abrirCapa(cerrarCarritoDirecto);
   document.body.style.overflow = 'hidden';
 }
 
 function closeCart() {
+  if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+  cerrarCarritoDirecto();
+}
+
+function cerrarCarritoDirecto() {
   document.getElementById('cart-panel').classList.remove('open');
   document.getElementById('cart-backdrop').classList.remove('open');
   document.body.style.overflow = '';
@@ -2417,6 +3183,27 @@ function showToast(msg) {
 
 /* ═══ CANVAS ═══ */
 (function() {
+
+/* ── Regulador del canvas de burbujas ──
+   Mismo dibujo, mucho menos trabajo. Ver comentario en cada uso. */
+const _cfAnim = (function () {
+  const pocoMovimiento = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let desplazando = false, temporizador = null;
+  window.addEventListener('scroll', function () {
+    desplazando = true;
+    clearTimeout(temporizador);
+    temporizador = setTimeout(function () { desplazando = false; }, 140);
+  }, { passive: true });
+  return {
+    apagado: pocoMovimiento,
+    // ¿Toca dibujar este cuadro?
+    dibujar: function () { return !pocoMovimiento && !desplazando && !document.hidden; },
+    // Cuantas burbujas segun el tamaño de pantalla.
+    cuantas: function (base) { return window.innerWidth < 700 ? Math.round(base * 0.45) : base; },
+  };
+})();
+
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas.getContext('2d');
   let W, H, bubbles;
@@ -2433,8 +3220,15 @@ function showToast(msg) {
       alpha:       0.12 + Math.random() * 0.3,
     };
   }
-  function init() { resize(); bubbles = Array.from({length: 75}, mkB); }
-  function tick() {
+  function init() { resize(); bubbles = Array.from({length: _cfAnim.cuantas(75)}, mkB); }
+  let _ultimo = 0;
+  function tick(ahora) {
+    requestAnimationFrame(tick);
+    // 30 fps alcanzan de sobra para burbujas que suben despacio.
+    if (ahora - _ultimo < 33) return;
+    _ultimo = ahora;
+    // Mientras se desplaza, o en segundo plano, no se dibuja nada.
+    if (!_cfAnim.dibujar()) return;
     ctx.clearRect(0, 0, W, H);
     bubbles.forEach(b => {
       b.y      -= b.speed;
@@ -2456,17 +3250,30 @@ function showToast(msg) {
       }
       if (b.y < -20) Object.assign(b, mkB(), {y: H + 20, x: Math.random() * W});
     });
-    requestAnimationFrame(tick);
   }
   window.addEventListener('resize', resize, {passive: true});
-  init(); tick();
+  init();
+  // Con "menos movimiento" activado se dibuja una vez y se queda quieto.
+  if (_cfAnim.apagado) { ctx.clearRect(0, 0, W, H); } else { requestAnimationFrame(tick); }
 })();
 
 /* ═══ HAMBURGER ═══ */
 const catDrawer  = document.getElementById('cat-drawer');
 const catOverlay = document.getElementById('cat-overlay');
-function openCatDrawer()  { catDrawer.classList.add('open'); catOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
-function closeCatDrawer() { catDrawer.classList.remove('open'); catOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+function openCatDrawer()  {
+  catDrawer.classList.add('open'); catOverlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (window.CFUI && CFUI.abrirCapa) CFUI.abrirCapa(cerrarCajonDirecto);
+}
+function closeCatDrawer() {
+  if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+  cerrarCajonDirecto();
+}
+
+function cerrarCajonDirecto() {
+  catDrawer.classList.remove('open'); catOverlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
 document.getElementById('hamburger').addEventListener('click', openCatDrawer);
 document.getElementById('cat-drawer-close').addEventListener('click', closeCatDrawer);
 catOverlay.addEventListener('click', closeCatDrawer);
@@ -2523,6 +3330,15 @@ if ('serviceWorker' in navigator) {
           <textarea id="of-address" placeholder="Provincia, cantón, distrito, señas exactas..." rows="3"></textarea>
         </div>
         <div class="order-field">
+          <label for="of-coupon">¿Tenés un código de descuento?</label>
+          <div class="coupon-row">
+            <input type="text" id="of-coupon" placeholder="Escribilo acá" autocomplete="off"
+              spellcheck="false" />
+            <button type="button" id="of-coupon-btn">Aplicar</button>
+          </div>
+          <div id="of-coupon-msg"></div>
+        </div>
+        <div class="order-field">
           <label>Método de pago</label>
           <div class="zone-chips" id="of-payment-chips">
             <div class="zone-chip selected" data-value="SINPE Móvil">
@@ -2537,7 +3353,7 @@ if ('serviceWorker' in navigator) {
           </div>
         </div>
         <button type="submit" class="order-form-submit">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
           Enviar pedido por WhatsApp
         </button>
         <p class="order-form-note">* Solo entrega a domicilio. Precios sujetos a confirmación de disponibilidad.</p>
@@ -2571,11 +3387,23 @@ function showBanner(msg) {
   });
 }
 
-(async function loadSiteConfig() {
+/* Dibuja el banner, los destacados, los combos, la oferta y las recetas.
+   Se separo de la consulta para poder llamarla DOS veces: una con la
+   config guardada en el aparato (instantanea) y otra con la de Firestore,
+   solo si cambio algo. */
+function pintarSeccionesDeConfig(cfg) {
   try {
-    const cfgSnap = await db_cat.collection('chusfish').doc('config').get();
-    if (!cfgSnap.exists) return;
-    const cfg = cfgSnap.data();
+    if (!cfg) return;
+
+    if (aplicarCategorias(cfg.categorias)) {
+      if (wrap && wrap.querySelector('.cat-group')) {
+        wrap.querySelectorAll('.cat-group').forEach(function (g) { g.remove(); });
+        wrap.insertAdjacentHTML('afterbegin', CAT_ORDER.map(buildGroup).join(''));
+        updateCounts();
+        applyFilter();
+      }
+      renderCatwall();
+    }
 
     if (cfg.closingEnabled && cfg.closingMessage) {
       showBanner(cfg.closingMessage, cfg.bannerColor);
@@ -2625,7 +3453,9 @@ function showBanner(msg) {
         document.getElementById('of-zone-field').style.display = '';
       }
     }
-    if (typeof cfg.shippingFee === 'number' && cfg.shippingFee > 0) {
+    // Se llama SIEMPRE, tambien con 0: con envio gratis queremos mostrar
+    // "Envio gratis", no dejar la linea escondida.
+    if (typeof cfg.shippingFee === 'number') {
       updateDeliveryFee(cfg.shippingFee);
     }
 
@@ -2699,6 +3529,8 @@ function showBanner(msg) {
     /* ═══ PRODUCTOS DESTACADOS ═══ */
     (function renderDestacados() {
       // Usa los destacados configurados en el admin; si no hay, mismo respaldo que la landing.
+      // Sin tope: Jesus elige cuantos quiera desde el panel y se
+      // deslizan en la tira. Antes el panel solo dejaba cuatro.
       const ids = (Array.isArray(cfg.featuredIds) && cfg.featuredIds.length) ? cfg.featuredIds : [11, 7, 59, 13];
       if (!ids.length) return;
       const featured = ids
@@ -2712,26 +3544,30 @@ function showBanner(msg) {
         const imgHtml = imgSrc
           ? '<img src="' + imgSrc + '" alt="' + p.name + '" loading="lazy">'
           : '<div class="dest-img-placeholder">&#128031;</div>';
-        const priceHtml = (p.price == null)
+        const priceHtml = !p.price
           ? '<span style="font-size:0.8rem;color:var(--muted)">Consultar</span>'
           : '<small>&#8353;</small>' + p.price.toLocaleString() + ' <small>' + p.unit + '</small>';
         const safeName = p.name.replace(/'/g, "\\'");
         return '<div class="dest-card">' +
-          '<span class="dest-star">&#11088; Destacado</span>' +
+
           '<div class="dest-img" onclick="openModal(' + p.id + ')">' + imgHtml + '</div>' +
           '<div class="dest-body">' +
             '<div class="dest-name">' + p.name + '</div>' +
             '<div class="dest-price">' + priceHtml + '</div>' +
-            '<div class="dest-actions">' +
-              '<button class="dest-more" onclick="openModal(' + p.id + ')">Ver más</button>' +
-              '<button class="dest-add" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id===' + p.id + '});if(p){addToCart(p,getMin(p.unit));showToast(\'' + safeName + ' agregado al carrito ✅\')}})()">+ Agregar</button>' +
-            '</div>' +
           '</div>' +
+          // El boton va FUERA de .dest-body: ese bloque esta anclado
+          // abajo y lleva pointer-events:none, asi que adentro ni se
+          // colocaba bien ni se dejaba tocar.
+          '<button class="dest-add" aria-label="Agregar" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id===' + p.id + '});if(p){addToCart(p,getMin(p.unit));showToast(\'' + safeName + ' agregado al carrito ✅\')}})()">+</button>' +
         '</div>';
       }).join('');
-      document.getElementById('destacados-section').style.display = '';
+      // La marca deja que applyFilter sepa que esta seccion existe de
+      // verdad; si no, la mostraria vacia al volver a "Todo".
+      const sec = document.getElementById('destacados-section');
+      sec.dataset.tieneContenido = '1';
+      sec.style.display = '';
       const sep = document.getElementById('destacados-sep');
-      if (sep) sep.style.display = '';
+      if (sep) { sep.dataset.tieneContenido = '1'; sep.style.display = ''; }
     })();
 
     /* ═══ COMBOS Y PROMOCIONES ═══ */
@@ -2781,10 +3617,10 @@ function showBanner(msg) {
           const badge = ing.productId ? '<span style="font-size:0.6rem;color:var(--gold-dk);margin-left:4px;opacity:0.8">✓</span>' : '';
           return '<div class="receta-ing-row"><span class="receta-ing-name">' + ing.name + badge + '</span><span class="receta-ing-qty">' + (ing.qty || '') + '</span></div>';
         }).join('');
-        const icons = ['🍤','🐟','🦐','🦑','🐙','🍽️','🐠'];
+        // Sin foto va un monograma en serif, como en el resto del sitio.
         const recImgs = (r.images && r.images.length) ? r.images : (r.img ? [r.img] : []);
         const recHeaderHtml = recImgs.length === 0
-          ? '<div class="receta-header-icon">' + icons[ri % icons.length] + '</div>'
+          ? '<div class="receta-header-icon">' + monogramaCat(r.name) + '</div>'
           : recImgs.length === 1
           ? '<img class="receta-card-img" src="' + recImgs[0] + '" alt="' + r.name + '" loading="lazy">'
           : buildCarousel(recImgs, r.name);
@@ -2804,6 +3640,68 @@ function showBanner(msg) {
     }
 
   } catch(e) {
+    console.error('[secciones]', e);
+  }
+}
+
+/* ═══ LA CONFIG TAMBIEN SE GUARDA EN EL APARATO ═══════════════
+   El catalogo ya venia guardado y aparecia en ~450 ms, pero "Destacados",
+   los combos y la oferta salen de ESTA consulta, que tarda el doble — y se
+   insertan ARRIBA de la parrilla. Habia dos opciones malas: revelar rapido
+   y que todo pegara un brinco de 1.200 px, o esperar a la consulta y que
+   tocar "Catalogo" se sintiera lento.
+   Guardandola pasa lo mismo que con los productos: en la primera visita se
+   espera, y de ahi en adelante todo aparece junto y de una vez. */
+const CACHE_CFG = 'chusfish_config';
+
+/* `pintarSeccionesDeConfig` usa funciones que estan en bloques <script>
+   MAS ABAJO en la pagina (startCountdown, entre otras). Antes eso nunca
+   fallaba porque la espera a Firestore daba tiempo de sobra; leyendo del
+   aparato la funcion corre enseguida y tiraba
+   "startCountdown is not defined", cortando el resto de las secciones.
+   DOMContentLoaded garantiza que todos los bloques ya corrieron. */
+const scriptsListos = document.readyState === 'loading'
+  ? new Promise(function (r) { document.addEventListener('DOMContentLoaded', r, { once: true }); })
+  : Promise.resolve();
+
+function configGuardada() {
+  try {
+    const d = localStorage.getItem(CACHE_CFG);
+    return d ? JSON.parse(d) : null;
+  } catch (e) { return null; }
+}
+
+(async function cargarConfig() {
+  const guardada = configGuardada();
+  if (guardada) {
+    await Promise.all([productosListos, scriptsListos]);
+    pintarSeccionesDeConfig(guardada);
+    marcarListo('secciones');
+  }
+
+  let fresca = null;
+  try {
+    const snap = await db_cat.collection('chusfish').doc('config').get();
+    if (snap.exists) {
+      fresca = snap.data();
+      try { localStorage.setItem(CACHE_CFG, JSON.stringify(fresca)); } catch (e) {}
+    }
+  } catch (e) {
+    console.error('[config]', e);
+  }
+
+  if (!guardada) {
+    // Primera visita: no habia nada que mostrar antes.
+    await Promise.all([productosListos, scriptsListos]);
+    pintarSeccionesDeConfig(fresca);
+    marcarListo('secciones');
+    return;
+  }
+
+  // Ya se pinto con lo guardado: solo se repite si de verdad cambio.
+  if (fresca && JSON.stringify(fresca) !== JSON.stringify(guardada)) {
+    await Promise.all([productosListos, scriptsListos]);
+    pintarSeccionesDeConfig(fresca);
   }
 })();
 
@@ -2873,12 +3771,100 @@ function addRecipeToCart(recipeIdx) {
 }
 
 /* ═══ ORDER FORM (carrito) ═══ */
+
+/* ═══ CUPON DE DESCUENTO ═══════════════════════════════════════
+   El cliente escribe el codigo y ve el descuento al instante. La
+   validacion vive en auth.js (CF.buscarCupon) para que el panel use
+   exactamente la misma regla al confirmar la factura. */
+let cuponAplicado = null;   // { codigo, descuento, cupon }
+
+function subtotalCarrito() {
+  return cart.reduce((s, i) => s + (i.product.price || 0) * i.qty, 0);
+}
+
+function mensajeCupon(txt, tipo) {
+  const el = document.getElementById('of-coupon-msg');
+  if (!el) return;
+  el.className = txt ? (tipo || 'err') : '';
+  el.textContent = txt || '';
+}
+
+function limpiarCupon() {
+  cuponAplicado = null;
+  const inp = document.getElementById('of-coupon');
+  const btn = document.getElementById('of-coupon-btn');
+  if (inp) { inp.disabled = false; inp.value = ''; }
+  if (btn) { btn.disabled = false; btn.textContent = 'Aplicar'; }
+  mensajeCupon('');
+  renderOrderSummary();
+}
+
+async function aplicarCupon() {
+  const inp = document.getElementById('of-coupon');
+  const btn = document.getElementById('of-coupon-btn');
+  if (!inp) return;
+
+  // Segundo toque = quitar el cupon puesto.
+  if (cuponAplicado) { limpiarCupon(); return; }
+
+  const codigo = inp.value.trim();
+  if (!codigo) { mensajeCupon('Escribí un código.'); return; }
+  if (!window.CF) { mensajeCupon('No se pudo verificar el código.'); return; }
+
+  btn.disabled = true; btn.textContent = '...';
+  mensajeCupon('');
+
+  // Cuantas veces lo uso ya este cliente, para respetar el limite por persona.
+  let usos = 0, esPrimera = true;
+  const p = CF.profile;
+  if (p) esPrimera = (Number(p.ordersCount) || 0) === 0;
+  if (CF.user) {
+    try {
+      const u = await CF.db.collection('coupons').doc(CF.normCodigo(codigo))
+        .collection('redemptions').doc(CF.user.uid).get();
+      if (u.exists) usos = Number(u.data().count) || 1;
+    } catch (e) { /* sin permiso de leer: se valida igual del lado del admin */ }
+  }
+
+  const r = await CF.buscarCupon(codigo, {
+    subtotal: subtotalCarrito(),
+    esPrimeraCompra: esPrimera,
+    usosDelCliente: usos,
+  });
+
+  btn.disabled = false;
+  if (!r.ok) {
+    cuponAplicado = null;
+    btn.textContent = 'Aplicar';
+    mensajeCupon(r.motivo, 'err');
+    renderOrderSummary();
+    return;
+  }
+
+  cuponAplicado = { codigo: r.codigo, descuento: r.descuento, cupon: r.cupon };
+  inp.value = r.codigo;
+  inp.disabled = true;
+  btn.textContent = 'Quitar';
+  mensajeCupon('Código aplicado: ' + fmt(r.descuento) + ' de descuento.', 'ok');
+  renderOrderSummary();
+}
+
+document.getElementById('of-coupon-btn').addEventListener('click', aplicarCupon);
+document.getElementById('of-coupon').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') { e.preventDefault(); aplicarCupon(); }
+});
+
 function openCartOrderForm() {
-  const cartItems = cart; // cart is defined in the main script
-  if (!cartItems || cartItems.length === 0) return;
+  if (!cart || cart.length === 0) return;
+  limpiarCupon();            // cada pedido arranca sin cupon puesto
+  renderOrderSummary();
+  prepararYAbrirFormulario();
+}
 
+function renderOrderSummary() {
+  if (!cart || cart.length === 0) return;
+  const cartItems = cart;
   const total = cartItems.reduce((sum, i) => sum + (i.product.price || 0) * i.qty, 0);
-
   const summary = document.getElementById('order-form-summary');
   summary.style.display = 'block';
 
@@ -2897,33 +3883,60 @@ function openCartOrderForm() {
 
   let totalsHtml = '';
   if (total > 0) {
-    const grandTotal = total + currentDeliveryFee;
+    const desc = (typeof cuponAplicado !== 'undefined' && cuponAplicado)
+      ? Math.min(cuponAplicado.descuento, total) : 0;
+    const grandTotal = Math.max(0, total + currentDeliveryFee - desc);
     totalsHtml = '<div class="ofs-totals">';
-    totalsHtml += '<div class="ofs-row"><span>Subtotal productos</span><span>₡ ' + fmt(total) + '</span></div>';
-    if (currentDeliveryFee > 0) {
-      totalsHtml += '<div class="ofs-row"><span>Envío</span><span>₡ ' + fmt(currentDeliveryFee) + '</span></div>';
+    totalsHtml += '<div class="ofs-row"><span>Subtotal productos</span><span>' + fmt(total) + '</span></div>';
+    totalsHtml += currentDeliveryFee > 0
+      ? '<div class="ofs-row"><span>Envío</span><span>' + fmt(currentDeliveryFee) + '</span></div>'
+      : '<div class="ofs-row"><span>Envío</span><span style="color:var(--gold-lt);font-weight:600">Gratis</span></div>';
+    if (desc > 0) {
+      totalsHtml += '<div class="ofs-row"><span>Descuento · ' + cuponAplicado.codigo +
+        '</span><span style="color:#6fe0a0;font-weight:600">− ' + fmt(desc) + '</span></div>';
     }
-    totalsHtml += '<div class="ofs-row-total"><span>Total estimado</span><span>₡ ' + fmt(grandTotal) + '</span></div>';
+    totalsHtml += '<div class="ofs-row-total"><span>Total estimado</span><span>' + fmt(grandTotal) + '</span></div>';
     totalsHtml += '</div>';
     totalsHtml += '<p class="ofs-note">* Monto de referencia. El total final puede variar según el peso y se confirma por WhatsApp.</p>';
   }
 
   summary.innerHTML =
     '<div class="ofs-header">' +
-      '<span class="ofs-icon">🛒</span>' +
+      '<span class="ofs-icon"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg></span>' +
       '<span class="ofs-title">Tu pedido</span>' +
       '<span class="ofs-count">' + itemCount + (itemCount === 1 ? ' producto' : ' productos') + '</span>' +
     '</div>' +
     '<div class="ofs-items">' + itemsHtml + '</div>' +
     totalsHtml;
+}
 
+/* Prepara el formulario y lo abre. Se separa de renderOrderSummary porque
+   ese se vuelve a llamar al aplicar o quitar un cupon, y no debe borrar
+   lo que el cliente ya escribio. */
+function prepararYAbrirFormulario() {
   ['of-name','of-phone','of-address'].forEach(id => {
     const el = document.getElementById(id);
     el.value = '';
     el.classList.remove('of-error');
   });
+
+  // Si tiene sesion, no le hacemos escribir de nuevo lo mismo de siempre.
+  const cfp = (window.CF && CF.profile) || null;
+  if (cfp) {
+    if (cfp.name)    document.getElementById('of-name').value    = cfp.name;
+    if (cfp.phone)   document.getElementById('of-phone').value   = cfp.phone;
+    if (cfp.address) document.getElementById('of-address').value = cfp.address;
+  }
   const zoneChips = document.getElementById('of-zone-chips');
-  if (zoneChips) { zoneChips.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected')); zoneChips.classList.remove('of-error'); }
+  if (zoneChips) {
+    zoneChips.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected'));
+    zoneChips.classList.remove('of-error');
+    if (cfp && cfp.zone) {
+      const mine = Array.from(zoneChips.querySelectorAll('.zone-chip'))
+        .find(c => c.dataset.value === cfp.zone);
+      if (mine) mine.click();   // click, no .selected: recalcula el costo de envio
+    }
+  }
   const dateChips = document.getElementById('of-date-chips');
   if (dateChips) { dateChips.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected')); dateChips.classList.remove('of-error'); }
   // Default payment to SINPE
@@ -2996,7 +4009,13 @@ document.getElementById('order-form').addEventListener('submit', async function(
   finalMsg += '*Nombre:* ' + name + '\n';
   finalMsg += '*Teléfono:* ' + phone + '\n';
   if (zoneVisible && zone) finalMsg += '*Zona de entrega:* ' + zone + '\n';
-  if (currentDeliveryFee > 0) finalMsg += '*Costo de envío:* ₡' + currentDeliveryFee.toLocaleString() + '\n';
+  if (cuponAplicado) {
+    finalMsg += '*Cupón:* ' + cuponAplicado.codigo +
+                ' (−' + fmt(cuponAplicado.descuento) + ')\n';
+  }
+  finalMsg += currentDeliveryFee > 0
+    ? '*Costo de envío:* ₡' + currentDeliveryFee.toLocaleString() + '\n'
+    : '*Envío:* Gratis\n';
   if (dateVisible && fecha) finalMsg += '*Fecha de entrega:* ' + fecha + '\n';
   finalMsg += '*Dirección:* ' + address + '\n';
   finalMsg += '*Pago:* ' + payment + '\n\n';
@@ -3016,10 +4035,25 @@ document.getElementById('order-form').addEventListener('submit', async function(
   const waLink = 'https://wa.me/50660017370?text=' + encodeURIComponent(finalMsg);
 
   // Guardamos el pedido en segundo plano, sin bloquear la apertura de WhatsApp.
+  // El uid es lo que despues permite acreditarle los puntos y que vea el
+  // pedido en su cuenta. Si no tiene sesion va null: se sigue pudiendo pedir
+  // sin cuenta, solo que ese pedido no suma puntos.
+  const cfUid = (window.CF && CF.user) ? CF.user.uid : null;
+
+  // El cupon viaja con el pedido; Jesus lo confirma al facturar.
+  const descuentoCupon = cuponAplicado
+    ? { code: cuponAplicado.codigo,
+        type: (cuponAplicado.cupon && cuponAplicado.cupon.type) || 'amount',
+        value: (cuponAplicado.cupon && cuponAplicado.cupon.value) || 0,
+        amount: cuponAplicado.descuento }
+    : null;
+
   const saveOrder = db_cat.collection('orders').add({
+    uid: cfUid,
     customer: { name, phone, address, zone: zone || null, fecha: fecha || null, payment },
     items: itemsForOrder,
     deliveryFee: currentDeliveryFee || 0,
+    discount: descuentoCupon,
     status: 'pendiente',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   }).then(() => {
@@ -3033,6 +4067,11 @@ document.getElementById('order-form').addEventListener('submit', async function(
   // el navegador no bloquee la ventana emergente. Esa era la causa de los pedidos sin aviso.
   const waWin = window.open(waLink, '_blank');
 
+  // Se guardan los datos en el perfil para que la proxima vez venga prellenado.
+  if (cfUid && window.CF) {
+    CF.saveProfile({ name, phone, address, zone: zone || '' }).catch(() => {});
+  }
+
   cart = [];
   saveCart();
   closeOrderForm();
@@ -3041,25 +4080,13 @@ document.getElementById('order-form').addEventListener('submit', async function(
   if (!waWin) saveOrder.finally(() => { window.location.href = waLink; });
 });
 
-/* ═══ PRELOADER LOGIC ═══ */
-window.addEventListener('load', () => {
-  const preloader = document.getElementById('preloader');
-  if (preloader) {
-    // Delay de 2.5 segundos para garantizar que las imágenes JS tengan tiempo de cargar y que la animación se disfrute.
-    setTimeout(() => {
-      preloader.classList.add('fade-out');
-      setTimeout(() => {
-        preloader.remove(); // Quitar del DOM tras la animación
-      }, 800);
-    }, 2500);
-  }
-});
+/* La pantalla de carga se maneja arriba, junto a initCatalog(). */
 </script>
 
 <style>
   @media print {
     /* Ocultar elementos no deseados */
-    nav, .filter-bar, footer, .cart-float, .wa-float, .cat-hero, .mobile-filter, #toast, .modal-overlay, #preloader, .results-bar { display: none !important; }
+    nav, .filter-bar, footer, .cart-float, .wa-float, .cat-hero, .catwall-wrap, #toast, .modal-overlay, #preloader, .results-bar { display: none !important; }
     
     /* Configuración del fondo oscuro y colores originales */
     body { 
@@ -3121,11 +4148,67 @@ window.addEventListener('load', () => {
     .p-footer { border-top: 1px solid rgba(200,169,110,0.15) !important; padding: 0.5rem 0.9rem !important; margin-top: 0.4rem !important; }
     .cat-group { margin-bottom: 2.5rem !important; }
   }
+
+  /* ── Zonas seguras del iPhone (muesca / gesto inferior) ── */
+  @supports (top: env(safe-area-inset-top)) {
+    nav { padding-top: env(safe-area-inset-top); box-sizing: content-box; }
+    body { padding-top: calc(var(--nav-h) + env(safe-area-inset-top)); }
+  }
+
+  /* ══ FLUIDEZ EN CELULAR ═══════════════════════════════════════
+     `backdrop-filter` (el vidrio esmerilado) obliga al navegador a volver a
+     desenfocar lo que hay detras en CADA cuadro. Con una barra fija pase,
+     pero `.p-card`, `.p-fav-btn` y `.p-badge` lo llevaban los tres — y hay
+     87 de cada uno desplazandose a la vez. Son mas de 250 desenfoques por
+     cuadro en un telefono.
+
+     Medido con la CPU 4x mas lenta, desplazando el catalogo:
+        con vidrio esmerilado ... ~25 fps
+        sin el ................. ~41 fps
+        sin el ni el canvas .... ~49 fps
+
+     Se quita SOLO en las tarjetas repetidas y SOLO en celular. El fondo pasa
+     a ser solido con la misma tonalidad, asi que se ve practicamente igual;
+     en escritorio queda el efecto intacto. */
+  @media (max-width: 860px) {
+    .p-card {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: #0e2038;
+    }
+    .p-fav-btn {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: rgba(6,14,28,0.88);
+    }
+    .p-badge {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: rgba(6,14,28,0.92);
+    }
+  }
+
+  @media (max-width: 860px) {
+    /* Las dos barras que estan SIEMPRE en pantalla mientras se desplaza.
+       El fondo pasa a solido con el mismo tono: se ve igual. */
+    nav { backdrop-filter: none; -webkit-backdrop-filter: none; background: #060e1c; }
+    .filter-bar { backdrop-filter: none; -webkit-backdrop-filter: none; background: #060e1c; }
+
+    /* Los paneles a pantalla completa. Aunque esten cerrados, un elemento
+       fijo con vidrio esmerilado obliga al navegador a mantenerle su propia
+       capa todo el tiempo. Cuando se abren tapan la pagina entera, asi que
+       el desenfoque no se nota. */
+    .cat-nav-drawer, .modal-overlay, .order-form-overlay, .toast,
+    .modal-close, .modal-badge {
+      backdrop-filter: none; -webkit-backdrop-filter: none;
+    }
+    .modal-overlay, .order-form-overlay { background: rgba(3,8,16,0.88); }
+  }
 </style>
 
 <!-- Header especial para impresión -->
 <div id="print-header" style="display: none;">
-  <img src="logo.jpeg" alt="Chus's Fish Logo" loading="lazy">
+  <img src="logo-256.jpg" alt="Chus's Fish Logo" loading="lazy">
   <h2>Chus<em>'s Fish</em></h2>
 </div>
 
@@ -3133,15 +4216,15 @@ window.addEventListener('load', () => {
 <div id="calc-overlay" class="calc-overlay" onclick="if(event.target===this)closeCalc()">
   <div class="calc-box">
     <button class="calc-x" onclick="closeCalc()">✕</button>
-    <h3 class="calc-title">🧮 ¿Cuánto necesito?</h3>
+    <h3 class="calc-title">¿Cuánto necesito?</h3>
     <label class="calc-lbl">¿Cuántas personas van a comer?</label>
     <input type="number" id="calc-guests" class="calc-num" value="4" min="1" max="100">
     <label class="calc-lbl">¿Cómo lo van a preparar?</label>
     <div class="calc-types">
-      <button class="calc-type active" data-type="ceviche">🍋 Ceviche</button>
-      <button class="calc-type" data-type="frito">🍳 Frito / Apanado</button>
-      <button class="calc-type" data-type="parrilla">🔥 Parrilla / Grill</button>
-      <button class="calc-type" data-type="sopa">🍲 Sopa / Arroz</button>
+      <button class="calc-type active" data-type="ceviche"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:.3rem"><circle cx="12" cy="12" r="8"/><path d="M12 4v16M4 12h16"/></svg>Ceviche</button>
+      <button class="calc-type" data-type="frito"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:.3rem"><path d="M4 14h16a8 8 0 0 1-16 0z"/><path d="M9 10V6M12 10V5M15 10V6"/></svg>Frito / Apanado</button>
+      <button class="calc-type" data-type="parrilla"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:.3rem"><path d="M4 10h16M4 14h16"/><path d="M7 6l1.5 2M12 5l1.5 3M17 6l1.5 2"/><path d="M7 18l-1 3M17 18l1 3"/></svg>Parrilla / Grill</button>
+      <button class="calc-type" data-type="sopa"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:.3rem"><path d="M4 11h16a8 8 0 0 1-8 8 8 8 0 0 1-8-8z"/><path d="M9 7c0-1 1-1 1-2M13 7c0-1 1-1 1-2"/></svg>Sopa / Arroz</button>
     </div>
     <div id="calc-result" class="calc-result"></div>
   </div>
@@ -3149,7 +4232,7 @@ window.addEventListener('load', () => {
 
 <!-- PWA INSTALL BANNER -->
 <div id="pwa-banner" class="pwa-banner">
-  <span>📲 Instalá la app de Chus's Fish</span>
+  <span><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;vertical-align:-3px;margin-right:.35rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Instalá la app de Chus's Fish</span>
   <button class="pwa-ok" id="pwa-install-btn" onclick="triggerInstall()">Instalar</button>
   <button class="pwa-no" id="pwa-no-btn">✕</button>
 </div>
@@ -3157,7 +4240,7 @@ window.addEventListener('load', () => {
 <!-- iOS INSTALL MODAL -->
 <div class="ios-modal-overlay" id="ios-modal-overlay">
   <div class="ios-modal">
-    <h3>📲 Instalar Chus's Fish</h3>
+    <h3><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;vertical-align:-3px;margin-right:.35rem"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Instalar Chus's Fish</h3>
     <div class="ios-step">
       <div class="ios-step-num">1</div>
       <p style="margin:0">Tocá el botón <strong>Compartir</strong> <span style="font-size:1.1rem">⎋</span> en la barra de Safari</p>
@@ -3267,14 +4350,17 @@ document.getElementById('calc-guests').addEventListener('input', renderCalcResul
 async function submitNotify() {
   const p = currentProduct;
   if (!p) return;
-  const phone = (document.getElementById('notify-phone')?.value || '').trim();
-  if (!phone) { showToast('Ingresá tu número de WhatsApp'); return; }
+  // Solo digitos, como en el resto del sitio: antes se guardaba cualquier
+  // texto ("asdf") y Jesus no podia escribirle a nadie.
+  const phone = (document.getElementById('notify-phone')?.value || '').replace(/[^0-9]/g, '');
+  if (phone.length < 8) { showToast('Escribí tu número de WhatsApp (8 dígitos)'); return; }
   try {
     await db_cat.collection('notifications').add({
       productId:   p.id || p.name,
-      productName: p.name,
+      productName: String(p.name || '').slice(0, 120),
       phone,
-      createdAt:   new Date(),
+      // La fecha la pone el servidor: asi nadie puede inventarla.
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
     });
     const nb = document.getElementById('notify-box');
     if (nb) nb.innerHTML = '<p style="color:#4ade80;font-size:0.78rem;text-align:center;padding:0.3rem 0">✅ ¡Listo! Te avisamos cuando vuelva a estar disponible.</p>';
@@ -3299,7 +4385,7 @@ window.addEventListener('beforeinstallprompt', e => {
 
 async function triggerInstall() {
   /* Ya instalada */
-  if (isInstalled) { showToast('¡La app ya está instalada! 📲'); return; }
+  if (isInstalled) { showToast('¡La app ya está instalada!'); return; }
   /* Android/Chrome con prompt disponible */
   if (deferredInstall) {
     document.getElementById('pwa-banner')?.classList.remove('show');
@@ -3340,6 +4426,71 @@ window.addEventListener('appinstalled', () => {
 
 
 
+
+<script>
+/* ══ AVISO DE VERSION NUEVA ═══════════════════════════════════════
+   El service worker ya no recarga las pestañas a la fuerza: antes, al
+   publicar una version, alguien que estaba llenando el formulario de pedido
+   perdia lo escrito sin explicacion.
+   Ahora avisa, y la pagina decide segun lo que este haciendo la persona. */
+(function () {
+  if (!('serviceWorker' in navigator)) return;
+
+  function estaEscribiendo() {
+    // El foco puesto en un campo ya cuenta.
+    var activo = document.activeElement;
+    if (activo && /^(INPUT|TEXTAREA|SELECT)$/.test(activo.tagName)) return true;
+
+    /* Se compara con `defaultValue`, no con vacio: la pagina tiene campos que
+       nacen con contenido (la cantidad en 0.5 kg, por ejemplo). Mirando solo
+       si tenian texto, SIEMPRE daba "esta escribiendo" y el aviso salia
+       aunque no hubiera nadie tocando nada. Lo que importa es si la persona
+       CAMBIO algo. */
+    var campos = document.querySelectorAll('input, textarea');
+    for (var i = 0; i < campos.length; i++) {
+      var c = campos[i];
+      if (c.type === 'hidden') continue;
+      if ((c.value || '') !== (c.defaultValue || '')) return true;
+    }
+    return false;
+  }
+
+  function avisar() {
+    if (document.getElementById('cf-nueva-version')) return;
+    var d = document.createElement('div');
+    d.id = 'cf-nueva-version';
+    d.setAttribute('role', 'status');
+    d.style.cssText =
+      'position:fixed;left:50%;transform:translateX(-50%);' +
+      'bottom:calc(9.5rem + env(safe-area-inset-bottom));z-index:9999;' +
+      'display:flex;align-items:center;gap:.8rem;max-width:calc(100vw - 2rem);' +
+      'padding:.7rem .9rem .7rem 1.1rem;border-radius:22px;' +
+      'background:rgba(5,12,24,.96);border:1px solid rgba(200,169,110,.4);' +
+      'box-shadow:0 10px 30px rgba(0,0,0,.5);backdrop-filter:blur(10px);' +
+      'font-family:Montserrat,system-ui,sans-serif;font-size:.72rem;color:#e8c98a';
+    d.innerHTML =
+      '<span>Hay una version nueva del sitio.</span>' +
+      '<button type="button" style="flex-shrink:0;background:linear-gradient(135deg,#c8a96e,#9a7a48);' +
+      'border:0;border-radius:14px;padding:.4rem .8rem;cursor:pointer;color:#060e1c;' +
+      'font-family:inherit;font-size:.62rem;font-weight:700;letter-spacing:.1em;' +
+      'text-transform:uppercase">Actualizar</button>' +
+      '<button type="button" aria-label="Ahora no" style="flex-shrink:0;background:none;border:0;' +
+      'cursor:pointer;color:#7a95aa;font-size:1.1rem;line-height:1;padding:0 .2rem">&times;</button>';
+    var botones = d.querySelectorAll('button');
+    botones[0].onclick = function () { location.reload(); };
+    botones[1].onclick = function () { d.remove(); };
+    document.body.appendChild(d);
+  }
+
+  navigator.serviceWorker.addEventListener('message', function (e) {
+    if (!e.data || e.data.tipo !== 'sw-actualizado') return;
+    // Sin nada escrito, se recarga sola y nadie se entera.
+    if (!estaEscribiendo()) { location.reload(); return; }
+    avisar();
+  });
+})();
+</script>
+<script src="analytics.js?v=1" defer></script>
 </body>
 </html>
 

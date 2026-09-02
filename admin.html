@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Admin — Chus's Fish</title>
   <link rel="icon" href="logo.jpeg" type="image/png">
   <link rel="apple-touch-icon" href="logo.jpeg">
@@ -26,7 +26,36 @@
       --radius: 12px; --sidebar: 260px;
       --red: #e74c3c; --green: #27ae60; --blue: #2980b9; --amber: #f39c12;
     }
+    /* El doble toque ya no amplia la pagina. Solo apaga ese gesto:
+       el zoom con dos dedos sigue funcionando. */
+    html { touch-action: manipulation; }
     html, body { height: 100%; }
+
+    /* Boton de Google, en su variante oscura oficial. */
+    .login-gbtn{
+      width:100%;display:flex;align-items:center;justify-content:center;gap:.65rem;
+      padding:.8rem 1rem;margin-bottom:.2rem;border-radius:10px;cursor:pointer;
+      background:#131314;border:1px solid #8e918f;color:#e3e3e3;
+      font-family:inherit;font-size:.78rem;font-weight:500;
+      transition:background .2s ease,border-color .2s ease;
+    }
+    .login-gbtn:hover{background:#1e1f20;border-color:#a8abaa}
+    .login-gbtn:disabled{opacity:.6;cursor:default}
+    .login-gmark{display:grid;place-items:center;width:19px;height:19px;
+      flex-shrink:0;border-radius:50%;background:#fff}
+    .login-or{display:flex;align-items:center;gap:.7rem;margin:1.1rem 0;
+      color:#5b7a90;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase}
+    .login-or::before,.login-or::after{content:"";flex:1;height:1px;
+      background:rgba(200,169,110,0.16)}
+
+    /* El UID que hay que pegar en la consola cuando la cuenta no es admin. */
+    .login-uid{display:block;margin-top:.8rem;padding:.7rem .8rem;border-radius:9px;
+      background:rgba(6,14,28,0.75);border:1px solid rgba(200,169,110,0.18);
+      font-size:.68rem;color:#7a95aa;line-height:1.7;text-align:left}
+    .login-uid code{display:block;margin-top:.35rem;padding:.4rem .5rem;
+      border-radius:6px;background:rgba(0,0,0,0.35);color:#c8a96e;
+      font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.7rem;
+      word-break:break-all;-webkit-user-select:all;user-select:all}
     body { font-family: 'Montserrat', sans-serif; background: var(--ocean); color: var(--text); overflow-x: hidden; display: flex; }
     ::selection { background: var(--gold-dk); color: #fff; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -246,7 +275,29 @@
       transition: border-color 0.3s, transform 0.3s;
     }
     .cat-card:hover { border-color: var(--gold-dk); transform: translateY(-3px); }
-    .cat-card-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--white); margin-bottom: 0.5rem; }
+    .cat-card { position: relative; }
+
+    /* El nombre es un campo, no un titulo: se edita en el sitio. Se le
+       quita el marco para que siga leyendose como titulo hasta que lo
+       tocan; si pareciera un formulario, la pantalla se veria pesada. */
+    .cat-card-nombre {
+      width: 100%; background: transparent; border: 1px solid transparent;
+      border-radius: 8px; padding: 0.25rem 0.4rem; margin: 0 -0.4rem 0.4rem;
+      font-family: 'Cormorant Garamond', serif; font-size: 1.2rem;
+      color: var(--white); transition: border-color .2s, background .2s;
+    }
+    .cat-card-nombre:hover  { border-color: var(--gb); }
+    .cat-card-nombre:focus  { outline: none; border-color: var(--gold-dk); background: rgba(6,14,28,0.6); }
+
+    .cat-card-acts { display: flex; gap: 0.3rem; margin-top: 0.8rem; }
+    .cat-card-acts button {
+      background: transparent; border: 1px solid var(--gb); border-radius: 8px;
+      color: var(--muted); cursor: pointer; font-size: 0.85rem; line-height: 1;
+      padding: 0.3rem 0.5rem; transition: all .2s; font-family: inherit;
+    }
+    .cat-card-acts button:hover:not(:disabled) { color: var(--gold); border-color: var(--gold-dk); }
+    .cat-card-acts button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .cat-card-acts .cat-del:hover:not(:disabled) { color: var(--red); border-color: rgba(231,76,60,0.5); }
     .cat-card-count { font-family: 'Cormorant Garamond', serif; font-size: 2rem; color: var(--gold); }
     .cat-card-sub { font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; }
 
@@ -642,10 +693,15 @@
     .order-date  { font-size:0.65rem; color:var(--muted); }
     .order-delivery { font-size:0.7rem; color:var(--gold-lt); }
     .order-actions { display:flex; gap:0.4rem; flex-wrap:wrap; }
+    /* Sirve para <button> y para <a>. En un <a> el navegador mete su azul y
+       su subrayado por defecto: sin estas dos lineas los botones de WhatsApp
+       de Clientes, Canjes y la ficha salian azules y subrayados. */
     .order-act-btn {
+      display:inline-block; text-decoration:none; color:inherit;
       padding:0.4rem 0.8rem; border-radius:20px; border:1px solid var(--gb);
       font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; font-weight:600;
       cursor:pointer; transition:all 0.2s; background:transparent;
+      font-family:inherit; line-height:1.4;
     }
     .order-act-confirm { color:var(--blue);  border-color:rgba(41,128,185,0.3); }
     .order-act-confirm:hover { background:rgba(41,128,185,0.15); }
@@ -692,6 +748,21 @@
     .finance-card-label { font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin-bottom:0.3rem; }
     .finance-card-val { font-family:'Cormorant Garamond',serif; font-size:1.6rem; color:var(--gold); line-height:1; }
     .finance-card-sub { font-size:0.68rem; color:var(--muted); margin-top:0.2rem; }
+
+    /* Resumen de pedidos compacto en celular.
+       Cada tarjeta ocupaba el ancho entero: antes de ver el primer pedido
+       habia que bajar ~1.200px (cuatro tarjetas, la lista de compras, el
+       buscador y seis filtros). Para la pantalla que se abre veinte veces
+       al dia era demasiado pulgar.
+       OJO: este bloque va DESPUES de las reglas base a proposito — dentro
+       del @media de mas arriba perdia contra el minmax(180px,1fr) de aca. */
+    @media (max-width: 768px) {
+      .finance-grid { grid-template-columns: repeat(2,1fr) !important; gap: 0.55rem; margin-bottom: 1rem; }
+      .finance-card { padding: 0.75rem 0.8rem; }
+      .finance-card-label { font-size: 0.54rem; letter-spacing: 0.11em; margin-bottom: 0.15rem; }
+      .finance-card-value { font-size: 1.15rem; }
+      .finance-card-sub { font-size: 0.6rem; line-height: 1.35; margin-top: 0.15rem; }
+    }
 
     /* ─── RECETAS CSS ──────────────────────── */
     .recipe-admin-card { background:var(--glass); border:1px solid var(--gb); border-radius:var(--radius); padding:1rem 1.2rem; margin-bottom:0.8rem; }
@@ -955,6 +1026,19 @@
       display:flex; align-items:center; justify-content:center;
     }
     .catalog-img-item img { width:100%; height:calc(100% - 18px); object-fit:cover; display:block; }
+    /* Etiqueta ampliada: solo cuando se elige un PRODUCTO (no una foto).
+       Se necesita ver el precio para decidir los puntos. */
+    .catalog-img-item.con-precio .catalog-img-item-name {
+      white-space:normal; height:auto; line-height:1.35;
+      padding:0.3rem 0.3rem 0.35rem; font-size:0.53rem;
+      position:absolute; left:0; right:0; bottom:0;
+      background:linear-gradient(to top, rgba(6,14,28,0.96) 60%, rgba(6,14,28,0.55));
+    }
+    .catalog-img-item.con-precio .cip-precio {
+      display:block; color:#e8c98a; font-weight:700; margin-top:0.12rem; font-size:0.58rem;
+    }
+    .catalog-img-item.con-precio img { height:100%; object-fit:cover; }
+
     .catalog-img-item-name {
       font-size:0.52rem; color:var(--muted); text-align:center;
       padding:0.15rem 0.25rem; background:rgba(0,0,0,0.5);
@@ -1205,6 +1289,39 @@
       .invoice-editor { border-right: none; border-bottom: 1px solid var(--gb); max-height: none; }
       .invoice-preview-wrap { max-height: 60vh; padding: 1rem 0.5rem; }
     }
+
+    /* Ficha del cliente */
+    .cli-ficha-ov{position:fixed;inset:0;z-index:1200;background:rgba(3,8,16,.82);
+      backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+      display:none;align-items:flex-start;justify-content:center;padding:2rem 1rem;overflow-y:auto}
+    .cli-ficha-ov.open{display:flex}
+    .cli-ficha{width:100%;max-width:760px;background:linear-gradient(160deg,#0d2137,#060e1c);
+      border:1px solid rgba(200,169,110,.22);border-radius:14px;padding:1.8rem 1.7rem;
+      position:relative;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+    .cli-ficha-x{position:absolute;top:.9rem;right:1rem;background:none;border:0;
+      color:#7a95aa;font-size:1.4rem;cursor:pointer;line-height:1;padding:.2rem}
+    .cli-ficha-x:hover{color:#e8c98a}
+    .cf-nombre{font-family:'Cormorant Garamond',serif;font-size:1.7rem;color:#f0f4f8;line-height:1.2}
+    .cf-sub{font-size:.75rem;color:#7a95aa;margin-top:.25rem}
+    .cf-resumen{display:grid;gap:0;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));
+      border-top:1px solid rgba(255,255,255,.06);border-left:1px solid rgba(255,255,255,.06);
+      margin:1.3rem 0}
+    .cf-dato{padding:.8rem .8rem;border-right:1px solid rgba(255,255,255,.06);
+      border-bottom:1px solid rgba(255,255,255,.06)}
+    .cf-dato-n{font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:#f0f4f8;line-height:1.1}
+    .cf-dato-l{font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:#4d6478;margin-top:.3rem}
+    .cf-fila{display:flex;justify-content:space-between;gap:1rem;padding:.5rem 0;
+      border-bottom:1px solid rgba(255,255,255,.05);font-size:.76rem;color:#7a95aa}
+    .cf-fila b{color:#d4dde8;font-weight:500;text-align:right}
+    .cf-h{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:#c8a96e;
+      margin:1.5rem 0 .7rem}
+    .cf-item{display:flex;justify-content:space-between;gap:1rem;align-items:center;
+      padding:.6rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+    .cf-item-t{font-size:.78rem;color:#d4dde8}
+    .cf-item-s{font-size:.65rem;color:#4d6478;margin-top:.15rem}
+    .cf-item-n{font-size:.85rem;color:#e8c98a;white-space:nowrap}
+    .cf-vacio{font-size:.74rem;color:#4d6478;padding:.8rem 0}
+    .cf-scroll{max-height:220px;overflow-y:auto}
   </style>
 </head>
 <body>
@@ -1214,6 +1331,24 @@
   <div class="login-box">
     <div class="login-logo">Chus<em>'s Fish</em></div>
     <div class="login-sub">Panel de Administración</div>
+
+    <!-- Entrar con Google.
+         Una cuenta de Google no tiene contraseña en Firebase, asi que con
+         el formulario de abajo no hay forma de entrar con ella. El permiso
+         no lo da el boton: lo da tener documento en /admins, que es lo
+         mismo que exige firestore.rules. -->
+    <button class="login-gbtn" id="login-google" type="button">
+      <span class="login-gmark">
+        <svg width="13" height="13" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.2 5.3-4.6 7l7.6 5.9c4.4-4.1 6.7-10.1 6.7-17.4z"/>
+          <path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"/>
+          <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.3 0-11.7-3.7-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/>
+        </svg>
+      </span>
+      <span id="login-glabel">Continuar con Google</span>
+    </button>
+    <div class="login-or">o con usuario y contraseña</div>
     <label class="login-label">Usuario</label>
     <input type="text" class="login-input" id="login-user" placeholder="admin" autocomplete="off" />
     <label class="login-label">Contraseña</label>
@@ -1263,6 +1398,24 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
         Avisame
         <span class="sb-badge" id="sb-notify-badge" style="display:none">0</span>
+      </button>
+      <div class="sb-section">Fidelidad</div>
+      <button class="sb-item" data-view="clientes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+        Clientes
+      </button>
+      <button class="sb-item" data-view="premios">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z"/></svg>
+        Premios
+      </button>
+      <button class="sb-item" data-view="cupones">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9V7a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z"/><path d="M13 5v2M13 11v2M13 17v2"/></svg>
+        Cupones
+      </button>
+      <button class="sb-item" data-view="canjes">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6 4.4 2.3 7.2-6.3-4.6-6.3 4.6L7.9 13.8 2 9.4h7.6z"/></svg>
+        Canjes
+        <span class="sb-badge" id="sb-redeem-badge" style="display:none">0</span>
       </button>
       <div class="sb-section">Ajustes</div>
       <button class="sb-item" data-view="configuracion">
@@ -1418,6 +1571,9 @@
         </div>
 
         <div class="stats-grid" id="stats-grid"></div>
+        <!-- Fidelidad: sin esto el programa de puntos era invisible desde el
+             Dashboard y habia que entrar a tres secciones para saber como iba -->
+        <div class="stats-grid" id="stats-fidelidad" style="display:none"></div>
         <div class="dash-grid">
           <div class="dash-panel">
             <div class="panel-title">Productos por categoría</div>
@@ -1500,7 +1656,23 @@
 
       <!-- ── CATEGORÍAS ─────────────────────── -->
       <div id="view-categorias" class="view" style="display:none">
+        <div style="background:var(--glass);border:1px solid var(--gb);border-radius:var(--radius);padding:1.2rem 1.4rem;margin-bottom:1.4rem">
+          <div class="panel-title" style="margin-bottom:0.5rem">Nueva categoría</div>
+          <p style="font-size:0.72rem;color:var(--muted);margin-bottom:0.9rem;line-height:1.6">
+            Aparece en el catálogo apenas le asignés el primer producto: una
+            categoría vacía no se muestra en la tienda.
+          </p>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center">
+            <input class="form-input" id="cat-nueva" placeholder="Ej: Pulpo y Calamar" style="flex:1;min-width:220px">
+            <button class="config-save-btn" id="cat-agregar">Agregar</button>
+          </div>
+          <p id="cat-aviso" style="font-size:0.72rem;color:var(--amber);margin-top:0.7rem;display:none"></p>
+        </div>
         <div class="cat-grid" id="cat-grid"></div>
+        <div style="margin-top:1.4rem;display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap">
+          <button class="config-save-btn" id="cat-guardar">Guardar categorías</button>
+          <span id="cat-estado" style="font-size:0.72rem;color:var(--muted)"></span>
+        </div>
       </div>
 
       <!-- ── HISTORIAL ────────────────────────── -->
@@ -1592,6 +1764,11 @@
               <div id="cfg-banner-color-preview" style="margin-top:0.5rem;padding:0.4rem 0.8rem;border-radius:6px;font-size:0.72rem;font-weight:700;color:#060e1c;display:none;text-align:center">
                 Vista previa del color
               </div>
+              <p style="font-size:0.68rem;color:var(--muted);margin-top:0.5rem;line-height:1.6">
+                El <strong style="color:#c8a96e">dorado</strong> es el color de la marca y es el que
+                combina con el resto del sitio. Los otros llaman mas la atencion, pero se ven
+                como una pieza pegada de otro lado — conviene usarlos solo mientras dure el aviso.
+              </p>
             </div>
             <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
               <div style="flex:1">
@@ -1853,27 +2030,16 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               Productos destacados en inicio
             </div>
-            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.6">
-              Elegí hasta 4 productos que aparecerán en la sección "Productos del mar" de la página principal. Si no elegís ninguno se usan los productos por defecto.
+            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+              Los que quieras, sin límite. Salen en una tira que se desliza,
+              arriba del catálogo. Tocá para elegirlos y arrastralos si querés
+              cambiar el orden.
             </p>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;margin-bottom:1rem" id="featured-selects-wrap">
-              <div class="config-field">
-                <label class="config-label">Destacado 1</label>
-                <select id="feat-sel-0" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-              <div class="config-field">
-                <label class="config-label">Destacado 2</label>
-                <select id="feat-sel-1" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-              <div class="config-field">
-                <label class="config-label">Destacado 3</label>
-                <select id="feat-sel-2" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-              <div class="config-field">
-                <label class="config-label">Destacado 4</label>
-                <select id="feat-sel-3" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-            </div>
+            <div id="feat-elegidos" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.9rem"></div>
+            <button type="button" class="config-save-btn" id="feat-abrir"
+              style="background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e;margin-bottom:0.9rem">
+              Elegir del catálogo
+            </button>
             <button class="config-save-btn" id="cfg-save-featured">Guardar destacados</button>
           </div>
 
@@ -1923,6 +2089,256 @@
           </div>
 
         </div>
+      </div>
+
+      <!-- ══ CLIENTES ══ -->
+      <div id="view-clientes" class="view" style="display:none">
+        <div class="config-panel" style="margin-bottom:1rem">
+          <div class="config-panel-title">Buscar cliente</div>
+          <input type="text" class="config-input" id="cli-search" placeholder="Nombre, correo o telefono...">
+
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap;align-items:center;margin-top:0.75rem">
+            <select class="config-input" id="cli-orden" style="width:auto;min-width:190px">
+              <option value="puntos">Mas puntos primero</option>
+              <option value="gasto">Mas compraron primero</option>
+              <option value="pedidos">Mas pedidos primero</option>
+              <option value="reciente">Ultimo pedido mas reciente</option>
+              <option value="dormidos">Hace mas que no piden</option>
+              <option value="nombre">Por nombre (A-Z)</option>
+            </select>
+            <select class="config-input" id="cli-grupo" style="width:auto;min-width:170px">
+              <option value="todos">Todos los clientes</option>
+              <option value="compraron">Ya compraron</option>
+              <option value="sin-comprar">Sin comprar todavia</option>
+              <option value="con-puntos">Con puntos disponibles</option>
+              <option value="dormidos-90">Sin pedir hace 3 meses</option>
+            </select>
+            <button class="order-act-btn" id="cli-export" style="margin-left:auto">Exportar a Excel</button>
+          </div>
+
+          <div style="margin-top:0.7rem;font-size:0.72rem;color:#7a95aa" id="cli-count">&nbsp;</div>
+        </div>
+        <div id="cli-list"></div>
+      </div>
+
+      <!-- ══ PREMIOS ══ -->
+      <div id="view-premios" class="view" style="display:none">
+        <div class="config-panel" style="margin-bottom:1rem">
+          <div class="config-panel-title">Como se ganan los puntos</div>
+          <div class="config-field">
+            <div class="toggle-row">
+              <span class="toggle-label">Programa de puntos activo</span>
+              <label class="toggle"><input type="checkbox" id="pts-enabled"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Puntos por cada &#8353;100 facturados</label>
+            <input type="number" class="config-input" id="pts-rate" min="0" step="0.1" value="1">
+            <div style="font-size:0.72rem;color:#7a95aa;margin-top:0.4rem" id="pts-example">&nbsp;</div>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Bono de bienvenida (puntos al primer pedido entregado)</label>
+            <input type="number" class="config-input" id="pts-welcome" min="0" step="1" value="0">
+            <div style="font-size:0.72rem;color:#7a95aa;margin-top:0.4rem">
+              Se da una sola vez, junto con los puntos de su primera compra. 0 = desactivado.
+            </div>
+          </div>
+          <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.8rem">
+            Los puntos se acreditan solos cuando marcas el pedido como <b>entregado</b>,
+            y se calculan sobre el <b>total facturado</b> (el del peso real), no sobre el
+            estimado del carrito. Si despues corregis la factura, los puntos se ajustan solos.
+            Los pedidos hechos sin cuenta no suman puntos.
+          </div>
+          <button class="config-save-btn" id="pts-save">Guardar reglas</button>
+        </div>
+
+        <div class="config-panel" style="margin-bottom:1rem">
+          <div class="config-panel-title">Niveles de fidelidad</div>
+          <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.9rem">
+            El nivel se gana con los puntos <b>acumulados de por vida</b>, y no se pierde
+            al canjear. El multiplicador es el premio por subir: con 1.25 el cliente gana
+            25% más de puntos en cada compra.
+          </div>
+          <div id="tier-list"></div>
+          <button class="config-save-btn" id="tier-add" style="background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e;margin-right:0.5rem">+ Agregar nivel</button>
+          <button class="config-save-btn" id="tier-save">Guardar niveles</button>
+        </div>
+        <div class="config-panel" style="margin-bottom:1rem">
+          <div class="config-panel-title" id="rw-form-title">Nuevo premio</div>
+          <div class="config-field">
+            <label class="config-label">Nombre del premio</label>
+            <input type="text" class="config-input" id="rw-name" placeholder="Ej: 1 kg de Camaron Yumbo gratis">
+          </div>
+          <div class="config-field">
+            <label class="config-label">Descripcion corta</label>
+            <input type="text" class="config-input" id="rw-desc" placeholder="Ej: Se entrega con tu proximo pedido">
+          </div>
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:120px">
+              <label class="config-label">Costo en puntos</label>
+              <input type="number" class="config-input" id="rw-cost" min="1" step="1" placeholder="500">
+              <div id="rw-cost-ayuda" style="font-size:0.68rem;color:#7a95aa;margin-top:0.4rem;line-height:1.6"></div>
+            </div>
+            <div style="flex:1;min-width:120px">
+              <label class="config-label">Existencias (-1 = ilimitado)</label>
+              <input type="number" class="config-input" id="rw-stock" step="1" value="-1">
+            </div>
+            <div style="flex:1;min-width:100px">
+              <label class="config-label">Emoji</label>
+              <input type="text" class="config-input" id="rw-emoji" maxlength="4" placeholder="🦐">
+            </div>
+          </div>
+          <div class="config-field">
+            <label class="config-label">Imagen del premio</label>
+            <div style="font-size:0.72rem;color:#7a95aa;margin-bottom:0.5rem;line-height:1.6">
+              Los premios con foto se ven muchisimo mejor en la tienda. Si el premio es
+              un producto que ya esta en el catalogo, usa su misma foto.
+            </div>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem">
+              <button type="button" class="config-save-btn" id="rw-from-product"
+                style="background:linear-gradient(135deg,#9a7a48,#c8a96e);color:#060e1c">
+                Traer producto del catalogo
+              </button>
+              <button type="button" class="config-save-btn" id="rw-pick-cat"
+                style="background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e">
+                Solo la foto
+              </button>
+              <button type="button" class="config-save-btn" id="rw-clear-img"
+                style="background:transparent;border:1px solid rgba(224,92,74,0.4);color:#e05c4a;display:none">
+                Quitar foto
+              </button>
+            </div>
+            <input type="file" class="config-input" id="rw-img-file" accept="image/*">
+            <input type="hidden" id="rw-img">
+            <div id="rw-img-prev" style="margin-top:0.5rem"></div>
+          </div>
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Categoria</label>
+              <input type="text" class="config-input" id="rw-cat" list="rw-cat-list" placeholder="Ej: Producto gratis">
+              <datalist id="rw-cat-list">
+                <option value="Producto gratis"></option>
+                <option value="Descuentos"></option>
+                <option value="Envio"></option>
+                <option value="Experiencias"></option>
+              </datalist>
+            </div>
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Orden (menor = primero)</label>
+              <input type="number" class="config-input" id="rw-order" step="1" placeholder="1">
+            </div>
+          </div>
+          <div class="config-field">
+            <div class="toggle-row">
+              <span class="toggle-label">Visible en la tienda de premios</span>
+              <label class="toggle"><input type="checkbox" id="rw-active" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row" style="margin-top:0.6rem">
+              <span class="toggle-label">Destacar arriba de la tienda</span>
+              <label class="toggle"><input type="checkbox" id="rw-featured"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+            <button class="config-save-btn" id="rw-save">Guardar premio</button>
+            <button class="config-save-btn" id="rw-cancel" style="display:none;background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e">Cancelar</button>
+          </div>
+        </div>
+        <div id="rw-list"></div>
+      </div>
+
+      <!-- ══ CUPONES ══ -->
+      <div id="view-cupones" class="view" style="display:none">
+        <div class="config-panel" style="margin-bottom:1rem">
+          <div class="config-panel-title" id="cup-form-title">Nuevo cupon</div>
+          <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.9rem">
+            El cliente escribe el codigo en el carrito y ve el descuento al instante.
+            El monto queda anotado en el pedido y aparece ya cargado en la factura,
+            donde vos lo confirmas antes de cobrar.
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Codigo</label>
+              <input type="text" class="config-input" id="cup-code" placeholder="BIENVENIDO10"
+                style="text-transform:uppercase;letter-spacing:0.08em">
+              <div style="font-size:0.68rem;color:#7a95aa;margin-top:0.3rem">Sin espacios. Se guarda en mayusculas.</div>
+            </div>
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Tipo de descuento</label>
+              <select class="config-input" id="cup-type">
+                <option value="percent">Porcentaje (%)</option>
+                <option value="amount">Monto fijo (&#8353;)</option>
+              </select>
+            </div>
+            <div style="flex:1;min-width:120px">
+              <label class="config-label" id="cup-value-label">Porcentaje</label>
+              <input type="number" class="config-input" id="cup-value" min="1" step="1" placeholder="10">
+            </div>
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Compra minima (0 = sin minimo)</label>
+              <input type="number" class="config-input" id="cup-min" min="0" step="500" value="0">
+            </div>
+            <div style="flex:1;min-width:150px" id="cup-max-wrap">
+              <label class="config-label">Tope de descuento (0 = sin tope)</label>
+              <input type="number" class="config-input" id="cup-max" min="0" step="500" value="0">
+            </div>
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:140px">
+              <label class="config-label">Usos totales (-1 = ilimitado)</label>
+              <input type="number" class="config-input" id="cup-limit" step="1" value="-1">
+            </div>
+            <div style="flex:1;min-width:140px">
+              <label class="config-label">Usos por cliente (0 = sin limite)</label>
+              <input type="number" class="config-input" id="cup-peruser" min="0" step="1" value="1">
+            </div>
+          </div>
+
+          <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Vigente desde (opcional)</label>
+              <input type="date" class="config-input" id="cup-from">
+            </div>
+            <div style="flex:1;min-width:150px">
+              <label class="config-label">Vigente hasta (opcional)</label>
+              <input type="date" class="config-input" id="cup-until">
+            </div>
+          </div>
+
+          <div class="config-field">
+            <div class="toggle-row">
+              <span class="toggle-label">Solo para la primera compra del cliente</span>
+              <label class="toggle"><input type="checkbox" id="cup-first"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row" style="margin-top:0.6rem">
+              <span class="toggle-label">Activo</span>
+              <label class="toggle"><input type="checkbox" id="cup-active" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+
+          <div id="cup-preview" style="font-size:0.75rem;color:#c8a96e;margin-bottom:0.9rem;line-height:1.6"></div>
+
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+            <button class="config-save-btn" id="cup-save">Guardar cupon</button>
+            <button class="config-save-btn" id="cup-cancel" style="display:none;background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e">Cancelar</button>
+          </div>
+        </div>
+        <div id="cup-list"></div>
+      </div>
+
+      <!-- ══ CANJES ══ -->
+      <div id="view-canjes" class="view" style="display:none">
+        <div class="orders-filters" style="margin-bottom:1rem">
+          <button class="orders-filter-btn rd-filter active" data-filter="solicitado">Pendientes</button>
+          <button class="orders-filter-btn rd-filter" data-filter="aprobado">Aprobados</button>
+          <button class="orders-filter-btn rd-filter" data-filter="entregado">Entregados</button>
+          <button class="orders-filter-btn rd-filter" data-filter="todos">Todos</button>
+        </div>
+        <div id="rd-list"></div>
       </div>
 
       <!-- ── GENERADOR DE POSTS (Super Admin Only) ── -->
@@ -2026,7 +2442,7 @@
                   <div class="post-canvas-footer">
                     <div class="post-canvas-price" id="post-canvas-price-val">₡8.500</div>
                     <div class="post-canvas-contact">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style="color:#2ecc71;vertical-align:-4px;margin-right:8px;"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.007-1.374l-.36-.214-3.732.979 1.001-3.65-.233-.374A9.787 9.787 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182S21.818 6.58 21.818 12 17.42 21.818 12 21.818z"/></svg>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
                       Pedidos: 6001-7370
                     </div>
                   </div>
@@ -2388,6 +2804,23 @@ firebase.initializeApp({
   appId:             '1:788310353696:web:16ca9bd3f934b915cb1945',
 });
 const db      = firebase.firestore();
+
+/* ── EMULADOR EN LOCAL ──────────────────────────────────────────
+   Igual que en auth.js: en localhost se trabaja contra los emuladores
+   (datos de prueba). En produccion esto no corre nunca.
+   Levantar con: npm run emu + npm run dev  */
+if (/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname)) {
+  try {
+    // Mismo origen que la pagina: dev-server.js hace de proxy a los emuladores.
+    db.useEmulator(location.hostname, Number(location.port) || 80);
+    firebase.auth().useEmulator(location.origin, { disableWarnings: true });
+    console.info('%c[ADMIN] MODO LOCAL — emuladores Firebase',
+                 'background:#c8a96e;color:#060e1c;padding:2px 6px;border-radius:3px');
+  } catch (e) {
+    console.warn('[ADMIN] No se pudo conectar al emulador. Corriste `npm run emu`?', e);
+  }
+}
+
 const DOC_REF = db.collection('chusfish').doc('catalog');
 
 /* ── CLOUDINARY ────────────────────────────────────────── */
@@ -2407,7 +2840,15 @@ async function uploadToCloudinary(file) {
   return data.secure_url.replace('/upload/', '/upload/f_auto,q_auto,w_900/');
 }
 
-const CAT_NAMES = {
+/* ═══ CATEGORIAS ══════════════════════════════════════════════════
+   Estaban escritas a mano en CUATRO archivos (aca, catalogo.html en
+   cuatro listas distintas, y ui.js). Agregar una obligaba a tocar el
+   codigo, o sea que Jesus no podia.
+
+   Ahora viven en chusfish/config -> categorias, y estas de aca abajo
+   quedan solo como respaldo: si la configuracion todavia no las tiene
+   —o falla la lectura— el panel sigue funcionando con las de siempre. */
+const CAT_DEFECTO = {
   'camarones-imp':   'Camarones Importados',
   'camarones-nac':   'Camarones Nacionales',
   'filetes-premium': 'Filete Premium',
@@ -2419,7 +2860,40 @@ const CAT_NAMES = {
   'gourmet':         'Gourmet',
   'marinados':       'Marinados y Empanizadores',
 };
-const CAT_ORDER = Object.keys(CAT_NAMES);
+
+let CAT_NAMES = Object.assign({}, CAT_DEFECTO);
+let CAT_ORDER = Object.keys(CAT_NAMES);
+
+/* Deja el panel entero mirando la lista nueva: los dos <select> de
+   categoria estaban escritos en el HTML, asi que hay que repintarlos. */
+function aplicarCategorias(lista) {
+  if (Array.isArray(lista) && lista.length) {
+    CAT_NAMES = {};
+    lista.forEach(function (c) {
+      if (c && c.id) CAT_NAMES[c.id] = c.nombre || c.id;
+    });
+  } else {
+    CAT_NAMES = Object.assign({}, CAT_DEFECTO);
+  }
+  CAT_ORDER = Object.keys(CAT_NAMES);
+  pintarSelectsDeCategoria();
+}
+
+function pintarSelectsDeCategoria() {
+  const opciones = CAT_ORDER.map(function (c) {
+    return '<option value="' + esc(c) + '">' + esc(CAT_NAMES[c]) + '</option>';
+  }).join('');
+
+  const f = document.getElementById('f-cat');          // ficha de producto
+  if (f) { const v = f.value; f.innerHTML = opciones; if (CAT_NAMES[v]) f.value = v; }
+
+  const t = document.getElementById('tbl-cat-filter'); // filtro de la tabla
+  if (t) {
+    const v = t.value;
+    t.innerHTML = '<option value="all">Todas las categorías</option>' + opciones;
+    t.value = (v === 'all' || CAT_NAMES[v]) ? v : 'all';
+  }
+}
 
 /* ════════════════════════════════════════════
    PRODUCTOS POR DEFECTO
@@ -2671,8 +3145,17 @@ function showView(name) {
   if (el) el.style.display = '';
   const btn = document.querySelector(`.sb-item[data-view="${name}"]`);
   if (btn) btn.classList.add('active');
-  const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', productos: 'Productos', categorias: 'Categorías', configuracion: 'Configuración', historial: 'Historial de ventas', notificaciones: 'Solicitudes Avisame', 'post-generator': 'Generador de Posts' };
+  const titles = { dashboard: 'Dashboard', pedidos: 'Pedidos', productos: 'Productos', categorias: 'Categorías', configuracion: 'Configuración', historial: 'Historial de ventas', notificaciones: 'Solicitudes Avisame', 'post-generator': 'Generador de Posts', clientes: 'Clientes y puntos', premios: 'Premios canjeables', canjes: 'Canjes de premios', cupones: 'Cupones de descuento' };
   document.getElementById('tb-title').textContent = titles[name] || name;
+
+  /* "Nuevo Producto" arriba a la derecha solo tiene sentido donde se
+     administran productos. En Clientes, Cupones o Canjes confundia: parecia
+     que el boton iba a crear un cliente o un cupon, y abria el catalogo. */
+  const addBtn = document.getElementById('tb-add-btn');
+  if (addBtn) {
+    const CON_ALTA = ['dashboard', 'productos'];
+    addBtn.style.display = CON_ALTA.includes(name) ? '' : 'none';
+  }
   if (name === 'dashboard')       renderDashboard();
   if (name === 'pedidos')         renderOrders();
   if (name === 'productos')       renderTable();
@@ -2681,6 +3164,10 @@ function showView(name) {
   if (name === 'historial')       renderHistorial();
   if (name === 'notificaciones')  loadNotifications();
   if (name === 'post-generator')  renderPostGenerator();
+  if (name === 'clientes')        renderClientes();
+  if (name === 'premios')         renderPremios();
+  if (name === 'canjes')          renderCanjes();
+  if (name === 'cupones')         renderCupones();
 }
 
 function renderAll() {
@@ -2712,6 +3199,8 @@ function renderDashboard() {
     <div class="stat-card"><div class="stat-label">Sin imagen</div><div class="stat-value amber">${noImg}</div><div class="stat-sub">sin foto asignada</div></div>
     <div class="stat-card"><div class="stat-label">Categorías</div><div class="stat-value green">${categories}</div><div class="stat-sub">activas</div></div>
   `;
+
+  renderFidelidadKPIs();
 
   const maxCount = Math.max(...CAT_ORDER.map(c => products.filter(p => p.cat === c).length), 1);
   document.getElementById('cat-bars').innerHTML = CAT_ORDER.map(cat => {
@@ -2783,16 +3272,129 @@ function renderTable() {
 /* ════════════════════════════════════════════
    CATEGORIES
 ════════════════════════════════════════════ */
+/* ═══ CATEGORIAS: alta, nombre, orden y baja ══════════════════════
+   El orden de esta lista es el orden en que salen en el catalogo, asi
+   que las flechas no son un adorno.
+
+   Borrar solo se deja si la categoria esta VACIA. Con productos dentro,
+   esos productos quedarian apuntando a una categoria que ya no existe:
+   desaparecen del catalogo sin que nadie entienda por que, y volver
+   atras obliga a editarlos uno por uno. */
+let catsEdit = [];
+
 function renderCategories() {
-  document.getElementById('cat-grid').innerHTML = CAT_ORDER.map(cat => {
-    const count   = products.filter(p => p.cat === cat).length;
-    const withImg = products.filter(p => p.cat === cat && p.img).length;
-    return `<div class="cat-card">
-      <div class="cat-card-title">${CAT_NAMES[cat]}</div>
-      <div class="cat-card-count">${count}</div>
-      <div class="cat-card-sub">${withImg} con imagen · ${count - withImg} sin imagen</div>
-    </div>`;
+  if (!catsEdit.length) {
+    catsEdit = CAT_ORDER.map(function (id) { return { id: id, nombre: CAT_NAMES[id] }; });
+  }
+
+  document.getElementById('cat-grid').innerHTML = catsEdit.map(function (c, i) {
+    const count   = products.filter(function (p) { return p.cat === c.id; }).length;
+    const withImg = products.filter(function (p) { return p.cat === c.id && p.img; }).length;
+    const puedeBorrar = count === 0;
+
+    return '<div class="cat-card">' +
+      '<input class="cat-card-nombre" value="' + esc(c.nombre) + '" ' +
+        'oninput="renombrarCategoria(' + i + ', this.value)" ' +
+        'aria-label="Nombre de la categoría">' +
+      '<div class="cat-card-count">' + count + '</div>' +
+      '<div class="cat-card-sub">' + withImg + ' con imagen · ' + (count - withImg) + ' sin imagen</div>' +
+      '<div class="cat-card-acts">' +
+        '<button type="button" onclick="moverCategoria(' + i + ',-1)" title="Subir"' +
+          (i === 0 ? ' disabled' : '') + '>&#8593;</button>' +
+        '<button type="button" onclick="moverCategoria(' + i + ',1)" title="Bajar"' +
+          (i === catsEdit.length - 1 ? ' disabled' : '') + '>&#8595;</button>' +
+        '<button type="button" class="cat-del" onclick="borrarCategoria(' + i + ')" ' +
+          (puedeBorrar ? '' : 'disabled ') +
+          'title="' + (puedeBorrar ? 'Eliminar' : 'Tiene ' + count + ' productos: movelos antes') + '">&times;</button>' +
+      '</div>' +
+    '</div>';
   }).join('');
+}
+
+function renombrarCategoria(i, v) {
+  if (catsEdit[i]) catsEdit[i].nombre = v;
+  marcarCambioCategorias();
+}
+
+function moverCategoria(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= catsEdit.length) return;
+  const t = catsEdit[i]; catsEdit[i] = catsEdit[j]; catsEdit[j] = t;
+  renderCategories();
+  marcarCambioCategorias();
+}
+
+function borrarCategoria(i) {
+  const c = catsEdit[i];
+  if (!c) return;
+  if (products.some(function (p) { return p.cat === c.id; })) {
+    avisoCategorias('"' + c.nombre + '" tiene productos. Movelos a otra categoría antes de eliminarla.');
+    return;
+  }
+  catsEdit.splice(i, 1);
+  renderCategories();
+  marcarCambioCategorias();
+}
+
+/* El id sale del nombre y despues NO se vuelve a tocar, aunque le cambien
+   el nombre: es lo que tienen guardado los productos. Si el id cambiara al
+   renombrar, todos los productos de esa categoria quedarian huerfanos. */
+function idDesdeNombre(nombre) {
+  const base = String(nombre || '').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '').slice(0, 24) || 'categoria';
+  let id = base, k = 2;
+  while (catsEdit.some(function (c) { return c.id === id; })) { id = base + '-' + k; k++; }
+  return id;
+}
+
+function agregarCategoria() {
+  const inp = document.getElementById('cat-nueva');
+  const nombre = (inp.value || '').trim();
+  if (!nombre) { avisoCategorias('Escribí un nombre.'); return; }
+  if (catsEdit.some(function (c) { return c.nombre.toLowerCase() === nombre.toLowerCase(); })) {
+    avisoCategorias('Ya existe una categoría con ese nombre.'); return;
+  }
+  catsEdit.push({ id: idDesdeNombre(nombre), nombre: nombre });
+  inp.value = '';
+  avisoCategorias('');
+  renderCategories();
+  marcarCambioCategorias();
+}
+
+function avisoCategorias(msg) {
+  const el = document.getElementById('cat-aviso');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function marcarCambioCategorias() {
+  const el = document.getElementById('cat-estado');
+  if (el) { el.textContent = 'Hay cambios sin guardar.'; el.style.color = 'var(--amber)'; }
+}
+
+async function guardarCategorias() {
+  const limpias = catsEdit
+    .map(function (c) { return { id: c.id, nombre: String(c.nombre || '').trim() }; })
+    .filter(function (c) { return c.id && c.nombre; });
+
+  if (!limpias.length) { avisoCategorias('Tiene que quedar al menos una categoría.'); return; }
+
+  const el = document.getElementById('cat-estado');
+  try {
+    await CFG_REF.set({ categorias: limpias }, { merge: true });
+    appConfig.categorias = limpias;
+    aplicarCategorias(limpias);
+    avisoCategorias('');
+    if (el) { el.textContent = 'Guardado.'; el.style.color = 'var(--green)'; }
+    toast('Categorías guardadas');
+    renderCategories();
+    renderProducts();
+  } catch (e) {
+    if (el) { el.textContent = 'No se pudo guardar: ' + (e.code || e.message); el.style.color = 'var(--red)'; }
+  }
 }
 
 /* ════════════════════════════════════════════
@@ -3003,6 +3605,44 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     document.getElementById('login-pass').value = '';
   }
 });
+/* ── Entrar con Google ──────────────────────────────────────────
+   No abre nada por si solo: al terminar, onAuthStateChanged consulta
+   /admins y cierra la sesion si la cuenta no esta. El boton solo
+   resuelve el como se inicia sesion, no el quien puede. */
+document.getElementById('login-google').addEventListener('click', async () => {
+  const btn = document.getElementById('login-google');
+  const lbl = document.getElementById('login-glabel');
+  const err = document.getElementById('login-err');
+  err.textContent = '';
+  btn.disabled = true;
+  lbl.textContent = 'Abriendo Google…';
+
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await firebase.auth().signInWithPopup(provider);
+    // De aca en adelante manda onAuthStateChanged.
+  } catch (e) {
+    const c = e && e.code;
+    if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') {
+      // En varios navegadores moviles el popup no existe o lo bloquean.
+      try {
+        const pr = new firebase.auth.GoogleAuthProvider();
+        pr.setCustomParameters({ prompt: 'select_account' });
+        await firebase.auth().signInWithRedirect(pr);
+        return;
+      } catch (e2) { err.textContent = 'No se pudo abrir Google: ' + (e2.code || e2.message); }
+    } else if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') {
+      err.textContent = '';          // cerro la ventana a proposito
+    } else {
+      err.textContent = 'No se pudo entrar con Google: ' + (c || e.message);
+    }
+  }
+
+  btn.disabled = false;
+  lbl.textContent = 'Continuar con Google';
+});
+
 document.getElementById('login-user').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('login-pass').focus();
 });
@@ -3302,7 +3942,7 @@ function renderFinancialSummary() {
     <div class="finance-card">
       <div class="finance-card-label">Pedidos activos</div>
       <div class="finance-card-val">${active.length}</div>
-      <div class="finance-card-sub">${pending.length} pendientes de confirmar</div>
+      <div class="finance-card-sub">${pending.length} ${pending.length === 1 ? 'pendiente' : 'pendientes'} de confirmar</div>
     </div>
     <div class="finance-card">
       <div class="finance-card-label">Total a cobrar</div>
@@ -3312,7 +3952,7 @@ function renderFinancialSummary() {
     <div class="finance-card">
       <div class="finance-card-label">Por confirmar</div>
       <div class="finance-card-val">₡${pendingRevenue.toLocaleString()}</div>
-      <div class="finance-card-sub">${pending.length} pedidos pendientes</div>
+      <div class="finance-card-sub">${pending.length} ${pending.length === 1 ? 'pendiente' : 'pendientes'}</div>
     </div>
     ${nextDelivery ? `<div class="finance-card">
       <div class="finance-card-label">Próxima entrega</div>
@@ -3368,7 +4008,7 @@ function renderShoppingList() {
       <div class="shopping-list-header" onclick="toggleShoppingList()">
         <div>
           <div class="shopping-list-title">🛒 Lista de compras</div>
-          <div class="shopping-list-sub">${activeOrders.length} pedidos pendientes/confirmados · Total de ingredientes a preparar</div>
+          <div class="shopping-list-sub">${nPedidos(activeOrders.length)} pendientes o confirmados · Total de ingredientes a preparar</div>
         </div>
         <svg class="shopping-list-toggle ${isOpen}" id="shopping-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
@@ -3377,7 +4017,7 @@ function renderShoppingList() {
           ${itemsHtml}
           <div class="shopping-list-actions">
             <a class="shopping-wa-btn" href="${waLink}" target="_blank">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.553 4.1 1.524 5.823L0 24l6.266-1.499A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22c-1.885 0-3.655-.52-5.17-1.424l-.37-.22-3.72.889.917-3.617-.24-.38A9.958 9.958 0 012 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
               Enviarme por WhatsApp
             </a>
           </div>
@@ -3612,7 +4252,7 @@ async function setOrderStatus(id, status) {
     if (status === 'confirmado') assignOrderInvoiceNumber(id);
     // Al cerrar la venta abrimos la factura: es el momento en que se conoce
     // el peso real empacado y hay que ajustar el monto antes de cobrar.
-    if (status === 'entregado') openInvoice(id);
+    if (status === 'entregado') { awardPointsForOrder(id); openInvoice(id); }
   } catch(e) { toast('Error: ' + e.message); }
 }
 
@@ -3758,7 +4398,10 @@ function openInvoice(orderId) {
       include: i.include !== false,
     })),
     deliveryFee: invNum(saved ? saved.deliveryFee : o.deliveryFee, 0),
-    discount:    invNum(saved ? saved.discount : 0, 0),
+    // Si el pedido trae cupon, el descuento ya viene puesto: Jesus solo
+    // lo confirma o lo ajusta, no lo tiene que calcular de nuevo.
+    discount:    invNum(saved ? saved.discount : (o.discount ? o.discount.amount : 0), 0),
+    cupon:       (o.discount && o.discount.code) ? o.discount.code : null,
     payment:     (saved && saved.payment) || o.customer?.payment || o.payment || '',
     note:        (saved && saved.note) || '',
     client: {
@@ -3772,6 +4415,7 @@ function openInvoice(orderId) {
 
   document.getElementById('inv-delivery').value = invoiceState.deliveryFee || '';
   document.getElementById('inv-discount').value = invoiceState.discount || '';
+  renderAvisoCupon();
   document.getElementById('inv-payment').value  = invoiceState.payment;
   document.getElementById('inv-note').value     = invoiceState.note;
 
@@ -4139,6 +4783,13 @@ async function saveInvoiceData() {
     });
     const o = orders.find(x => x.id === invoiceState.orderId);
     if (o) o.invoice = payload;
+    // Recalcular puntos con el monto REAL de la factura. awardPointsForOrder
+    // es idempotente: si ya se habían dado, aplica solo la diferencia.
+    awardPointsForOrder(invoiceState.orderId);
+    // El cupon se cuenta como usado recien acá: al facturar, no al pedir.
+    if (invoiceState.cupon && t.discount > 0) {
+      marcarCuponUsado(invoiceState.cupon, invoiceState.orderId, o && o.uid);
+    }
     renderOrders();
     toast('Factura guardada — el total real quedó registrado');
   } catch (e) {
@@ -4168,6 +4819,7 @@ async function loadConfig() {
     const snap = await CFG_REF.get();
     if (snap.exists) appConfig = Object.assign({ closingEnabled: false, closingMessage: '', zones: [], recipes: [] }, snap.data());
   } catch(e) {}
+  aplicarCategorias(appConfig.categorias);
   recipes = appConfig.recipes || [];
   promotions = appConfig.promotions || [];
   renderConfig();
@@ -4179,30 +4831,115 @@ async function loadConfig() {
     if (sfInput && typeof appConfig.shippingFee === 'number') sfInput.value = appConfig.shippingFee;
 }
 
+/* ═══ PRODUCTOS DESTACADOS ═══════════════════════════════════════
+   Antes eran cuatro <select> fijos: solo se podian elegir 4, habia que
+   buscar cada nombre en una lista de 87 sin ver la foto, y no se podia
+   cambiar el orden. Ahora se eligen del mismo selector con fotos que usan
+   los premios, sin tope, y se reordenan con las flechas. */
+let featSeleccion = [];
+
 function populateFeaturedSelects() {
-  const featuredIds = appConfig.featuredIds || [];
-  for (let i = 0; i < 4; i++) {
-    const sel = document.getElementById('feat-sel-' + i);
-    if (!sel) continue;
-    sel.innerHTML = '<option value="">— Sin selección —</option>';
-    products.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = p.name;
-      if (featuredIds[i] === p.id) opt.selected = true;
-      sel.appendChild(opt);
-    });
-  }
+  featSeleccion = (appConfig.featuredIds || []).slice();
+  renderFeatElegidos();
 }
 
-document.getElementById('cfg-save-featured').addEventListener('click', async () => {
-  const ids = [];
-  for (let i = 0; i < 4; i++) {
-    const sel = document.getElementById('feat-sel-' + i);
-    const val = sel && sel.value !== '' ? parseInt(sel.value) : null;
-    if (val !== null && !isNaN(val)) ids.push(val);
+function renderFeatElegidos() {
+  const caja = document.getElementById('feat-elegidos');
+  if (!caja) return;
+
+  if (!featSeleccion.length) {
+    caja.innerHTML = '<p style="font-size:0.72rem;color:#7a95aa;margin:0">' +
+      'Ninguno elegido todavía. Sin destacados, la sección no aparece en el catálogo.</p>';
+    return;
   }
-  appConfig.featuredIds = ids;
+
+  caja.innerHTML = featSeleccion.map(function (id, i) {
+    const p = (products || []).find(function (x) { return x.id === id; });
+    const nombre = p ? esc(p.name) : ('Producto ' + id + ' (ya no existe)');
+    const foto = p && p.img
+      ? '<img src="' + esc(p.img) + '" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:6px;flex-shrink:0">'
+      : '<span style="width:34px;height:34px;border-radius:6px;background:rgba(200,169,110,0.12);' +
+        'display:grid;place-items:center;color:#c8a96e;flex-shrink:0">—</span>';
+    return '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.5rem;' +
+      'background:rgba(6,14,28,0.6);border:1px solid rgba(200,169,110,0.18);border-radius:9px">' +
+      foto +
+      '<span style="font-size:0.74rem;color:#d4dde8;max-width:150px;overflow:hidden;' +
+        'text-overflow:ellipsis;white-space:nowrap">' + nombre + '</span>' +
+      '<button type="button" onclick="moverFeat(' + i + ',-1)" title="Subir" ' +
+        'style="background:none;border:0;color:' + (i === 0 ? '#3a4a58' : '#7a95aa') +
+        ';cursor:pointer;font-size:0.9rem;padding:0 0.15rem">&#8593;</button>' +
+      '<button type="button" onclick="moverFeat(' + i + ',1)" title="Bajar" ' +
+        'style="background:none;border:0;color:' + (i === featSeleccion.length - 1 ? '#3a4a58' : '#7a95aa') +
+        ';cursor:pointer;font-size:0.9rem;padding:0 0.15rem">&#8595;</button>' +
+      '<button type="button" onclick="quitarFeat(' + i + ')" title="Quitar" ' +
+        'style="background:none;border:0;color:#ff9b8c;cursor:pointer;font-size:1rem;padding:0 0.15rem">&times;</button>' +
+      '</div>';
+  }).join('');
+}
+
+function moverFeat(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= featSeleccion.length) return;
+  const tmp = featSeleccion[i];
+  featSeleccion[i] = featSeleccion[j];
+  featSeleccion[j] = tmp;
+  renderFeatElegidos();
+}
+
+function quitarFeat(i) {
+  featSeleccion.splice(i, 1);
+  renderFeatElegidos();
+}
+
+/* Reusa el selector con fotos de los premios, en modo "varios". */
+function abrirSelectorDestacados() {
+  _catalogImgTarget = 'featured';
+  const cont = document.getElementById('catalog-img-grid');
+  document.querySelector('.catalog-img-modal-header h4').textContent =
+    'Elegí los productos destacados';
+
+  let html = '';
+  CAT_ORDER.forEach(function (cat) {
+    const enCat = (products || []).filter(function (p) { return p.cat === cat; });
+    if (!enCat.length) return;
+    html += '<div class="catalog-img-section">' +
+      '<div class="catalog-img-section-title">' + (CAT_NAMES[cat] || cat) + '</div>' +
+      '<div class="catalog-img-row">' +
+      enCat.map(function (p) {
+        const elegido = featSeleccion.indexOf(p.id) >= 0 ? ' selected' : '';
+        const precio = p.price ? fmt(p.price) + ' ' + esc(p.unit || '') : 'sin precio';
+        return '<div class="catalog-img-item con-precio' + elegido + '" data-pid="' + p.id + '" ' +
+          'onclick="alternarFeat(this)" title="' + esc(p.name) + '">' +
+          (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">'
+                 : '<div style="height:100%;display:grid;place-items:center;color:#7a95aa">—</div>') +
+          '<div class="catalog-img-item-name">' + esc(p.name) +
+            '<span class="cip-precio">' + precio + '</span></div>' +
+          '</div>';
+      }).join('') +
+      '</div></div>';
+  });
+
+  cont.innerHTML = html || '<p style="color:#7a95aa;padding:1rem">No hay productos.</p>';
+  document.getElementById('catalog-img-overlay').classList.add('open');
+}
+
+function alternarFeat(el) {
+  const id = parseInt(el.getAttribute('data-pid'), 10);
+  const i = featSeleccion.indexOf(id);
+  if (i >= 0) { featSeleccion.splice(i, 1); el.classList.remove('selected'); }
+  else { featSeleccion.push(id); el.classList.add('selected'); }
+}
+
+document.getElementById('feat-abrir').addEventListener('click', abrirSelectorDestacados);
+
+document.getElementById('cat-agregar').addEventListener('click', agregarCategoria);
+document.getElementById('cat-nueva').addEventListener('keydown', function (e) {
+  if (e.key === 'Enter') { e.preventDefault(); agregarCategoria(); }
+});
+document.getElementById('cat-guardar').addEventListener('click', guardarCategorias);
+
+document.getElementById('cfg-save-featured').addEventListener('click', async () => {
+  appConfig.featuredIds = featSeleccion.slice();
   try {
     await CFG_REF.set(cfgSavePayload(), { merge: true });
     toast('Productos destacados guardados');
@@ -5137,7 +5874,7 @@ async function loadNotifications() {
             <td style="color:var(--text)">${n.phone}</td>
             <td>
               <a href="${waHref}" target="_blank" style="display:inline-flex;align-items:center;gap:0.3rem;padding:0.3rem 0.7rem;background:#1da851;border-radius:6px;color:#fff;font-size:0.67rem;text-decoration:none;font-weight:600">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347zM12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0z"/></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
                 Avisar
               </a>
             </td>
@@ -5166,8 +5903,67 @@ async function loadNotifications() {
   loginBtn.textContent = 'Ingresar';
 
   // Suscribirse al estado de autenticación de Firebase
-  firebase.auth().onAuthStateChanged((user) => {
+  firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
+      // OJO: "hay sesion" ya NO significa "es Jesus". Desde que existen
+      // cuentas de clientes, cualquiera que entre al sitio y abra esta URL
+      // llega aca con sesion iniciada. El permiso real es tener doc en
+      // /admins, exactamente el mismo criterio que usa firestore.rules.
+      let esAdmin = false;
+      try {
+        const adminDoc = await db.collection('admins').doc(user.uid).get();
+        esAdmin = adminDoc.exists;
+      } catch (e) {
+        esAdmin = false;   // sin permiso ni para consultarlo
+      }
+
+      /* ── Alta automatica al entrar con Google ──────────────────
+         Si no hay documento, se intenta crear. No decide nada el
+         navegador: las reglas solo lo permiten si entraste con Google,
+         con el correo verificado, y ese correo esta en la lista que
+         vive DENTRO de firestore.rules. Para cualquier otra cuenta esto
+         falla con permission-denied y sigue de largo al mensaje de
+         siempre, que ya no hace daño.
+
+         Asi nadie tiene que volver a crear el documento a mano en la
+         consola: entras con Google y quedas dado de alta. */
+      if (!esAdmin && user.email) {
+        try {
+          await db.collection('admins').doc(user.uid).set({
+            name:      user.displayName || user.email,
+            email:     user.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          esAdmin = true;
+        } catch (e) {
+          esAdmin = false;   // no esta en la lista, o no entro con Google
+        }
+      }
+
+      if (!esAdmin) {
+        localStorage.removeItem(AUTH_KEY);
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+        const err = document.getElementById('login-err');
+        if (err) {
+          /* Se muestra el UID: es el dato exacto que hay que pegar como ID
+             de documento en la coleccion admins de Firestore. Sin esto hay
+             que ir a buscarlo a Authentication y copiarlo a mano. */
+          err.innerHTML =
+            'Esta cuenta no tiene acceso al panel.' +
+            '<span class=\'login-uid\'>' +
+              'Si el acceso te corresponde, hay que crear el documento ' +
+              '<b>admins/{este UID}</b> en Firestore:' +
+              '<code>' + esc(user.uid) + '</code>' +
+            '</span>';
+          err.style.display = 'block';
+        }
+        // Se cierra la sesion del cliente para no dejarlo a medias en una
+        // pantalla que no le corresponde.
+        try { await firebase.auth().signOut(); } catch (e) {}
+        return;
+      }
+
       localStorage.setItem(AUTH_KEY, '1');
       isSuperAdmin = (user && (user.email === 'rojasporrasjan@gmail.com' || user.uid === 'Z1vGWA7Qcgaf8eIlPgSRstjCUBv2'));
       updateRoleUI();
@@ -5176,6 +5972,14 @@ async function loadNotifications() {
       showView(currentView || 'dashboard');
       loadConfig();
       startOrdersListener();
+      // Arrancan al entrar, no al abrir la vista: si no, el badge de canjes
+      // pendientes marca 0 hasta que a Jesus se le ocurra hacer clic ahi,
+      // que es justo lo contrario de para lo que sirve un badge.
+      // Los premios tambien: el Dashboard los necesita para decir para
+      // cuantos canjes alcanzan los puntos que hay dando vueltas.
+      watchRedeems();
+      watchUsers();
+      watchRewards();
     } else {
       localStorage.removeItem(AUTH_KEY);
       isSuperAdmin = false;
@@ -5649,8 +6453,26 @@ function copyPostCaption() {
   </div>
 </div>
 
+
+<div class="cli-ficha-ov" id="cli-ficha-ov">
+  <div class="cli-ficha">
+    <button class="cli-ficha-x" id="cli-ficha-x" aria-label="Cerrar">&times;</button>
+    <div class="cf-nombre" id="cli-ficha-nombre">—</div>
+    <div class="cf-sub" id="cli-ficha-sub"></div>
+    <div class="cf-resumen" id="cli-ficha-resumen"></div>
+    <div id="cli-ficha-datos"></div>
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1.2rem" id="cli-ficha-acciones"></div>
+    <div class="cf-h">Sus pedidos</div>
+    <div class="cf-scroll" id="cli-ficha-pedidos"></div>
+    <div class="cf-h">Movimientos de puntos</div>
+    <div class="cf-scroll" id="cli-ficha-ledger"></div>
+    <div class="cf-h">Premios que pidio</div>
+    <div class="cf-scroll" id="cli-ficha-canjes"></div>
+  </div>
+</div>
+
 <script>
-let _catalogImgTarget = null; // 'recipe' o 'promo'
+let _catalogImgTarget = null; // 'recipe', 'promo' o 'reward'
 
 function isCatalogImg(url) {
   return (products || []).some(function(p) { return p.img === url; });
@@ -5663,7 +6485,10 @@ function openCatalogImgPicker(target) {
   if (!withImg.length) {
     container.innerHTML = '<p style="color:var(--muted);font-size:0.78rem;padding:1rem">No hay productos con imagen en el catálogo aún.</p>';
   } else {
-    const currentImgs = _catalogImgTarget === 'recipe' ? currentRecipeImages : currentPromoImages;
+    const currentImgs =
+      _catalogImgTarget === 'recipe' ? currentRecipeImages :
+      _catalogImgTarget === 'reward' ? [document.getElementById('rw-img').value].filter(Boolean) :
+      currentPromoImages;
     let html = '';
     CAT_ORDER.forEach(function(cat) {
       const catProds = withImg.filter(function(p) { return p.cat === cat; });
@@ -5711,17 +6536,189 @@ function closeCatalogImgPicker() {
   _catalogImgTarget = null;
 }
 
+/* ═══ TRAER UN PRODUCTO DEL CATALOGO A LA RESERVA ═══════════════
+   Antes habia que escribir el nombre a mano, la descripcion a mano, y
+   apretar "usar foto del catalogo" aparte. Tres pasos para algo que en
+   realidad es uno: "quiero regalar ESTE producto".
+   Ahora se elige el producto y se rellena todo; solo queda decidir los
+   puntos, con la cuenta hecha al lado para no tener que sacarla aparte. */
+let _productoElegido = null;
+
+function abrirSelectorProducto() {
+  _catalogImgTarget = 'reward-full';
+  _productoElegido = null;
+  const cont = document.getElementById('catalog-img-grid');
+  const conFoto = (products || []);
+
+  document.querySelector('.catalog-img-modal-header h4').textContent =
+    'Elegí el producto que querés regalar';
+
+  let html = '';
+  CAT_ORDER.forEach(function (cat) {
+    const enCat = conFoto.filter(function (p) { return p.cat === cat; });
+    if (!enCat.length) return;
+    html += '<div class="catalog-img-section">' +
+      '<div class="catalog-img-section-title">' + (CAT_NAMES[cat] || cat) + '</div>' +
+      '<div class="catalog-img-row">' +
+      enCat.map(function (p) {
+        const precio = p.price ? fmt(p.price) + ' ' + esc(p.unit || '') : 'sin precio';
+        return '<div class="catalog-img-item con-precio" data-pid="' + p.id + '" ' +
+          'onclick="elegirProductoPremio(this)" title="' + esc(p.name) + '">' +
+          (p.img
+            ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">'
+            : '<div style="height:100%;display:grid;place-items:center;color:#7a95aa;font-size:1.4rem">—</div>') +
+          '<div class="catalog-img-item-name">' + esc(p.name) +
+            '<span class="cip-precio">' + precio + '</span></div>' +
+          '</div>';
+      }).join('') +
+      '</div></div>';
+  });
+
+  cont.innerHTML = html || '<p style="color:#7a95aa;padding:1rem">No hay productos en el catálogo.</p>';
+  // La clase es 'open', no 'show': con 'show' el modal quedaba invisible.
+  document.getElementById('catalog-img-overlay').classList.add('open');
+}
+
+function elegirProductoPremio(el) {
+  document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected')
+    .forEach(function (x) { x.classList.remove('selected'); });
+  el.classList.add('selected');
+  _productoElegido = (products || []).find(function (p) {
+    return String(p.id) === el.getAttribute('data-pid');
+  }) || null;
+}
+
+function aplicarProductoPremio() {
+  if (!_productoElegido) { toast('Elegí un producto primero'); return; }
+  const p = _productoElegido;
+
+  // La cantidad la decide Jesus; se propone la minima de venta.
+  const unidad = (p.unit || '').toLowerCase().includes('kg') ? '1 kg de ' : '1 ';
+  document.getElementById('rw-name').value = unidad + p.name;
+  document.getElementById('rw-desc').value = p.desc
+    ? String(p.desc).slice(0, 140)
+    : 'Se entrega junto con tu próximo pedido.';
+  document.getElementById('rw-img').value = p.img || '';
+  document.getElementById('rw-cat').value = 'Producto gratis';
+  document.getElementById('rw-cost').dataset.precio = p.price || 0;
+
+  renderRewardImgPreview();
+  actualizarAyudaPuntos();
+  closeCatalogImgPicker();
+  document.getElementById('rw-cost').focus();
+  toast('Producto traído: ahora poné los puntos');
+}
+
+/* Traduce los puntos a algo que se pueda decidir:
+   cuanto tuvo que comprar el cliente, y que porcentaje se le devuelve. */
+/* Cuanto del gasto del cliente se le devuelve en premios.
+   3% es lo sano para este negocio: con margen de mariscos del 20-25%,
+   se lleva una parte chica y el programa igual motiva —un premio de
+   ₡2.000 sale a los 3 pedidos. Por encima del 5% empieza a doler.
+   Es UN numero: cambialo aca y toda la ayuda se recalcula. */
+const META_DEVOLUCION = 0.03;
+
+/* Los puntos que deberia costar un premio que vale `precio`. */
+function puntosSugeridos(precio) {
+  const tasa = ptsRate();
+  if (!precio || tasa <= 0) return 0;
+  const compra = precio / META_DEVOLUCION;      // cuanto tiene que comprar
+  return Math.round(compra * tasa / 100 / 50) * 50;   // redondeado a 50
+}
+
+function actualizarAyudaPuntos() {
+  const caja = document.getElementById('rw-cost-ayuda');
+  if (!caja) return;
+  const costo  = Number(document.getElementById('rw-cost').value) || 0;
+  const precio = Number(document.getElementById('rw-cost').dataset.precio) || 0;
+  const tasa   = ptsRate();
+
+  if (!costo) {
+    caja.innerHTML = precio
+      ? 'Este producto vale <b style="color:#c8a96e">' + fmt(precio) + '</b>. ' +
+        'Lo justo serían <b style="color:#6fe0a0">' +
+        puntosSugeridos(precio).toLocaleString('es-CR') + ' puntos</b> ' +
+        '<button type="button" onclick="usarPuntosSugeridos()" style="background:none;' +
+        'border:0;color:#c8a96e;text-decoration:underline;cursor:pointer;font:inherit;' +
+        'padding:0">usar</button>.'
+      : 'Poné cuántos puntos va a costar.';
+    return;
+  }
+
+  // Con la tasa actual, ¿cuanto hay que comprar para juntar esos puntos?
+  const compraNecesaria = tasa > 0 ? Math.round(costo / tasa * 100) : 0;
+  let txt = 'Con ' + costo.toLocaleString('es-CR') + ' puntos, el cliente tuvo que comprar ' +
+            '<b style="color:#c8a96e">' + fmt(compraNecesaria) + '</b> para ganárselo.';
+
+  if (precio && compraNecesaria > 0) {
+    const pct   = (precio / compraNecesaria) * 100;
+    const meta  = META_DEVOLUCION * 100;
+    const sug   = puntosSugeridos(precio);
+
+    /* Los cortes salen de la meta, no de numeros sueltos: hasta una vez y
+       media va bien, hasta el doble es aceptable, y de ahi para arriba
+       estas regalando margen. */
+    const color = pct > meta * 2   ? '#ff9b8c'
+                : pct > meta * 1.5 ? '#e8c98a'
+                :                    '#6fe0a0';
+
+    txt += '<br>Le estás devolviendo un <b style="color:' + color + '">' +
+           pct.toFixed(1) + '%</b> de lo que gastó (la meta es ' + meta.toFixed(0) + '%).';
+
+    if (sug && Math.abs(sug - costo) > sug * 0.1) {
+      txt += '<br>Para quedar en la meta serían <b style="color:#6fe0a0">' +
+             sug.toLocaleString('es-CR') + ' puntos</b> ' +
+             '<button type="button" onclick="usarPuntosSugeridos()" style="background:none;' +
+             'border:0;color:#c8a96e;text-decoration:underline;cursor:pointer;font:inherit;' +
+             'padding:0">usar</button>.';
+    }
+
+    if (pct > meta * 2) {
+      txt += '<br><b style="color:#ff9b8c">Ojo:</b> a este precio el premio se ' +
+             'come buena parte del margen del pedido.';
+    }
+  }
+  caja.innerHTML = txt;
+}
+
+/* Pone la sugerencia en el campo. Se dispara el evento a mano porque
+   cambiar .value desde JS no lanza 'input', y la ayuda no se refrescaria. */
+function usarPuntosSugeridos() {
+  const el = document.getElementById('rw-cost');
+  const precio = Number(el.dataset.precio) || 0;
+  const sug = puntosSugeridos(precio);
+  if (!sug) return;
+  el.value = sug;
+  actualizarAyudaPuntos();
+}
+
 function toggleCatalogImgItem(el) {
+  // Un premio lleva una sola foto; recetas y combos llevan varias.
+  if (_catalogImgTarget === 'reward') {
+    const yaEstaba = el.classList.contains('selected');
+    document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected')
+      .forEach(function (x) { x.classList.remove('selected'); });
+    if (!yaEstaba) el.classList.add('selected');
+    return;
+  }
   el.classList.toggle('selected');
 }
 
 function applyCatalogImgSelection() {
   if (!_catalogImgTarget) return;
+  if (_catalogImgTarget === 'reward-full') { aplicarProductoPremio(); return; }
+  if (_catalogImgTarget === 'featured') { renderFeatElegidos(); closeCatalogImgPicker(); return; }
   const selectedImgs = [];
   document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected').forEach(function(el) {
     const imgUrl = el.getAttribute('data-img');
     if (imgUrl) selectedImgs.push(imgUrl);
   });
+  if (_catalogImgTarget === 'reward') {
+    document.getElementById('rw-img').value = selectedImgs[0] || '';
+    renderRewardImgPreview();
+    closeCatalogImgPicker();
+    return;
+  }
   if (_catalogImgTarget === 'recipe') {
     currentRecipeImages = currentRecipeImages.filter(function(url) {
       return !isCatalogImg(url);
@@ -5740,6 +6737,1538 @@ function applyCatalogImgSelection() {
 document.getElementById('catalog-img-overlay').addEventListener('click', function(e) {
   if (e.target === this) closeCatalogImgPicker();
 });
+
+/* ════════════════════════════════════════════════════════════════
+   FIDELIDAD — puntos, premios y canjes
+   ────────────────────────────────────────────────────────────────
+   Regla de oro: el cliente NUNCA escribe sus propios puntos
+   (firestore.rules se lo prohibe). Todo movimiento pasa por aca,
+   que corre con la sesion del admin, y SIEMPRE deja asiento en
+   users/{uid}/ledger para poder auditar despues.
+════════════════════════════════════════════════════════════════ */
+
+const USERS_REF   = db.collection('users');
+const REWARDS_REF = db.collection('rewards');
+const REDEEM_REF  = db.collection('redemptions');
+
+/* Los niveles se definen en chusfish/config.tiers y se editan desde el
+   panel (ver renderTierEditor mas abajo). cfTiers()/cfTierOf() los leen. */
+function ptsRate()    { const r = parseFloat(appConfig.pointsPer100); return isNaN(r) ? 1 : r; }
+function ptsEnabled() { return appConfig.pointsEnabled !== false; }
+
+/* Puntos que corresponden a un monto facturado, ya con el bonus de nivel. */
+function pointsForAmount(amount, tier) {
+  const base = (Number(amount) || 0) / 100 * ptsRate();
+  return Math.floor(base * (tier ? tier.mult : 1));
+}
+
+/* Total del pedido para efectos de puntos: si hay factura, manda la factura
+   (es el peso real cobrado); si no, el estimado del carrito. */
+function orderAmountForPoints(o) {
+  if (o.invoice && typeof o.invoice.total === 'number') return o.invoice.total;
+  if (!o.items || !o.items.length) return 0;
+  const items = o.items.reduce((s,i) => s + (parseFloat(i.price)||0) * (parseFloat(i.qty)||1), 0);
+  return items + (parseFloat(o.deliveryFee) || 0);
+}
+
+/* ── Acreditar puntos por un pedido ─────────────────────────────
+   Idempotente: se puede llamar mil veces. Guarda en el pedido cuantos
+   puntos ya dio (pointsEarned) y sobre que monto (pointsBase), asi que
+   si corregis la factura solo aplica la DIFERENCIA. */
+async function awardPointsForOrder(orderId) {
+  if (!ptsEnabled()) return;
+  try {
+    await db.runTransaction(async (tx) => {
+      const oRef  = ORDERS_REF.doc(orderId);
+      const oSnap = await tx.get(oRef);
+      if (!oSnap.exists) return;
+      const o = oSnap.data();
+
+      if (!o.uid) return;                    // pedido de invitado, sin cuenta
+      if (o.status !== 'entregado') return;  // solo se premia lo entregado
+
+      const uRef  = USERS_REF.doc(o.uid);
+      const uSnap = await tx.get(uRef);
+      if (!uSnap.exists) return;
+      const u = uSnap.data();
+
+      const amount    = orderAmountForPoints(o);
+      const tier      = cfTierOf(u.lifetimePoints || 0);
+      const should    = pointsForAmount(amount, tier);
+      const already   = Number(o.pointsEarned) || 0;
+      const delta     = should - already;
+      const prevBase  = typeof o.pointsBase === 'number' ? o.pointsBase : null;
+      const firstTime = prevBase === null;
+
+      if (delta === 0 && !firstTime) return;
+
+      // Bono de bienvenida: una sola vez, en el primer pedido entregado.
+      let bonus = 0;
+      if (firstTime && !u.welcomeGiven) {
+        bonus = Math.max(0, Math.round(Number(appConfig.welcomeBonus) || 0));
+      }
+
+      const newLifetime = Math.max(0, (Number(u.lifetimePoints)||0) + delta + bonus);
+      const patch = {
+        points:         Math.max(0, (Number(u.points)||0) + delta + bonus),
+        lifetimePoints: newLifetime,
+        tier:           cfTierOf(newLifetime).id,
+        ordersCount:    (Number(u.ordersCount)||0) + (firstTime ? 1 : 0),
+        totalSpent:     Math.max(0, (Number(u.totalSpent)||0) + (amount - (prevBase||0))),
+        updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      if (bonus > 0) patch.welcomeGiven = true;
+      tx.update(uRef, patch);
+
+      if (bonus > 0) {
+        tx.set(uRef.collection('ledger').doc(), {
+          type:      'adjust',
+          points:    bonus,
+          reason:    'Bono de bienvenida',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+
+      if (delta !== 0) {
+        tx.set(uRef.collection('ledger').doc(), {
+          type:      'earn',
+          points:    delta,
+          orderId:   orderId,
+          reason:    already === 0
+                       ? 'Compra entregada · ' + fmt(Math.round(amount))
+                       : 'Ajuste por correccion de factura',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+
+      tx.update(oRef, { pointsEarned: should, pointsBase: amount });
+    });
+  } catch (e) {
+    console.error('[puntos]', e);
+    toast('No se pudieron acreditar los puntos: ' + e.message);
+  }
+}
+
+/* ── Ajuste manual de puntos (regalo, correccion, disculpa) ───── */
+async function adjustPoints(uid, points, reason) {
+  points = Math.round(Number(points) || 0);
+  if (!points) return;
+  await db.runTransaction(async (tx) => {
+    const uRef  = USERS_REF.doc(uid);
+    const uSnap = await tx.get(uRef);
+    if (!uSnap.exists) throw new Error('Cliente no encontrado');
+    const u = uSnap.data();
+    const bal = Number(u.points) || 0;
+    if (bal + points < 0) throw new Error('El cliente solo tiene ' + bal + ' puntos');
+
+    // Restar puntos NO baja el historico: el nivel ganado no se quita.
+    const newLifetime = points > 0
+      ? (Number(u.lifetimePoints)||0) + points
+      : (Number(u.lifetimePoints)||0);
+
+    tx.update(uRef, {
+      points:         bal + points,
+      lifetimePoints: newLifetime,
+      tier:           cfTierOf(newLifetime).id,
+      updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    tx.set(uRef.collection('ledger').doc(), {
+      type:      'adjust',
+      points:    points,
+      reason:    reason || 'Ajuste manual',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  });
+}
+
+/* ════════ VISTA: CLIENTES ════════ */
+let cfUsers = [], unsubUsers = null, cliFilter = '';
+
+function watchUsers() {
+  if (unsubUsers) return;
+  unsubUsers = USERS_REF.onSnapshot((snap) => {
+    cfUsers = [];
+    snap.forEach(d => cfUsers.push({ id: d.id, ...d.data() }));
+    cfUsers.sort((a,b) => (Number(b.points)||0) - (Number(a.points)||0));
+    if (currentView === 'clientes')  renderClientes();
+    if (currentView === 'canjes')    renderCanjes();
+    if (currentView === 'dashboard') renderFidelidadKPIs();
+  }, (e) => console.error('[clientes]', e));
+}
+
+/* ─── Fidelidad de un vistazo, en el Dashboard ───────────────────
+   Lo que un dueño necesita saber sin entrar a ninguna seccion:
+   cuanta gente tiene cuenta, cuantos puntos hay SIN canjear (que es
+   producto que ya debe) y si hay canjes esperandolo. */
+function renderFidelidadKPIs() {
+  const box = document.getElementById('stats-fidelidad');
+  if (!box) return;
+
+  // Todavia no llegaron los datos: mejor no mostrar ceros que asustan.
+  if (!cfUsers.length) { box.style.display = 'none'; return; }
+
+  const clientes   = cfUsers.length;
+  const conPuntos  = cfUsers.filter(u => (Number(u.points) || 0) > 0).length;
+  const pendientes = cfUsers.reduce((s, u) => s + (Number(u.points) || 0), 0);
+  const porAprobar = cfRedeems.filter(r => (r.status || 'solicitado') === 'solicitado').length;
+
+  // Cuanto "vale" ese saldo: en canjes del premio mas barato disponible.
+  const baratos = cfRewards
+    .filter(r => r.active !== false && Number(r.stock) !== 0 && Number(r.cost) > 0)
+    .map(r => Number(r.cost));
+  const masBarato = baratos.length ? Math.min(...baratos) : 0;
+  const alcanzaPara = masBarato ? Math.floor(pendientes / masBarato) : null;
+
+  box.style.display = '';
+  box.innerHTML = `
+    <div class="stat-card" style="cursor:pointer" onclick="showView('clientes')">
+      <div class="stat-label">Clientes con cuenta</div>
+      <div class="stat-value gold">${clientes}</div>
+      <div class="stat-sub">${conPuntos} con puntos</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showView('premios')">
+      <div class="stat-label">Puntos sin canjear</div>
+      <div class="stat-value amber">${pendientes.toLocaleString('es-CR')}</div>
+      <div class="stat-sub">${alcanzaPara !== null
+        ? 'alcanzan para ' + alcanzaPara + (alcanzaPara === 1 ? ' canje' : ' canjes')
+        : 'sin premios cargados'}</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showView('canjes')">
+      <div class="stat-label">Canjes por aprobar</div>
+      <div class="stat-value ${porAprobar ? 'red' : 'green'}">${porAprobar}</div>
+      <div class="stat-sub">${porAprobar ? 'esperando respuesta' : 'todo al dia'}</div></div>
+  `;
+}
+
+/* ═══ ORDEN Y GRUPOS DE CLIENTES ═══════════════════════════════
+   Con 4 clientes daba igual; con 200 no se encuentra a nadie. "Hace mas
+   que no piden" es la lista para mandar un cupon de vuelta. */
+let cliOrden = 'puntos', cliGrupo = 'todos';
+
+function ultimoPedido(u) {
+  const d = u.lastOrderAt || u.updatedAt;
+  return d && d.toDate ? d.toDate().getTime() : 0;
+}
+function diasSinPedir(u) {
+  const t = ultimoPedido(u);
+  return t ? Math.floor((Date.now() - t) / 86400000) : null;
+}
+
+function filtrarClientes(lista) {
+  switch (cliGrupo) {
+    case 'compraron':    return lista.filter(u => (Number(u.ordersCount)||0) > 0);
+    case 'sin-comprar':  return lista.filter(u => !(Number(u.ordersCount)||0));
+    case 'con-puntos':   return lista.filter(u => (Number(u.points)||0) > 0);
+    case 'dormidos-90':  return lista.filter(u => {
+      const d = diasSinPedir(u);
+      return (Number(u.ordersCount)||0) > 0 && d !== null && d >= 90;
+    });
+    default: return lista;
+  }
+}
+
+function ordenarClientes(lista) {
+  const num = (v) => Number(v) || 0;
+  switch (cliOrden) {
+    case 'gasto':    return lista.sort((a,b) => num(b.totalSpent) - num(a.totalSpent));
+    case 'pedidos':  return lista.sort((a,b) => num(b.ordersCount) - num(a.ordersCount));
+    case 'reciente': return lista.sort((a,b) => ultimoPedido(b) - ultimoPedido(a));
+    // Los que nunca pidieron van al final: no estan "dormidos", nunca despertaron.
+    case 'dormidos': return lista.sort((a,b) => {
+      const da = diasSinPedir(a), db2 = diasSinPedir(b);
+      if (da === null && db2 === null) return 0;
+      if (da === null) return 1;
+      if (db2 === null) return -1;
+      return db2 - da;
+    });
+    case 'nombre':   return lista.sort((a,b) =>
+      (a.name||'').localeCompare(b.name||'', 'es', { sensitivity:'base' }));
+    default:         return lista.sort((a,b) => num(b.points) - num(a.points));
+  }
+}
+
+/* Exporta lo que se ve en pantalla, con el orden y el filtro puestos.
+   Con BOM para que Excel en Windows lea bien las tildes. */
+function exportarClientes() {
+  const q = cliFilter.trim().toLowerCase();
+  let list = !q ? cfUsers.slice() : cfUsers.filter(u =>
+    (u.name||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q) ||
+    (u.phone||'').includes(q));
+  list = ordenarClientes(filtrarClientes(list));
+
+  if (!list.length) { toast('No hay clientes que exportar'); return; }
+
+  const campo = v => {
+    const t = String(v == null ? '' : v);
+    // Se entrecomilla siempre: es CSV valido y evita tener que
+    // detectar comillas, puntos y coma o saltos de linea.
+    return '"' + t.replace(/"/g, '""') + '"';
+  };
+  const filas = [
+    ['Nombre','Correo','Telefono','Zona','Direccion','Nivel','Puntos','Puntos de por vida','Pedidos','Total comprado','Dias sin pedir','Cliente desde']
+  ];
+  list.forEach(u => {
+    const t = cfTierOf(u.lifetimePoints || 0);
+    const alta = u.createdAt && u.createdAt.toDate ? u.createdAt.toDate().toLocaleDateString('es-CR') : '';
+    const dias = diasSinPedir(u);
+    filas.push([u.name, u.email, u.phone, u.zone, u.address, t.name,
+      Number(u.points)||0, Number(u.lifetimePoints)||0, Number(u.ordersCount)||0,
+      Math.round(Number(u.totalSpent)||0), dias === null ? '' : dias, alta]);
+  });
+
+  // Excel en es-CR usa punto y coma como separador, espera CRLF y
+  // necesita el BOM para leer bien las tildes.
+  const SALTO = String.fromCharCode(13, 10);
+  const BOM   = String.fromCharCode(65279);
+  const csv = BOM + filas.map(f => f.map(campo).join(';')).join(SALTO);
+  const url = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8;' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'clientes-chusfish-' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(list.length + (list.length === 1 ? ' cliente exportado' : ' clientes exportados'));
+}
+
+// "1 pedidos" se leia mal en la lista de clientes.
+function nPedidos(n) {
+  n = Number(n) || 0;
+  return n + (n === 1 ? ' pedido' : ' pedidos');
+}
+
+function renderClientes() {
+  watchUsers();
+  const box = document.getElementById('cli-list');
+  if (!box) return;
+  const q = cliFilter.trim().toLowerCase();
+  let list = !q ? cfUsers.slice() : cfUsers.filter(u =>
+    (u.name||'').toLowerCase().includes(q) ||
+    (u.email||'').toLowerCase().includes(q) ||
+    (u.phone||'').includes(q));
+
+  list = ordenarClientes(filtrarClientes(list));
+
+  document.getElementById('cli-count').textContent =
+    cfUsers.length ? list.length + ' de ' + cfUsers.length + ' clientes' : '';
+
+  if (!list.length) {
+    box.innerHTML = '<div class="empty-state" style="padding:2.5rem 1rem;text-align:center;color:#7a95aa">' +
+      (cfUsers.length ? 'Ningun cliente coincide con la busqueda.'
+                      : 'Todavia no hay clientes registrados.') + '</div>';
+    return;
+  }
+
+  box.innerHTML = list.map(u => {
+    const t = cfTierOf(u.lifetimePoints || 0);
+    const waBtn = u.phone
+      ? '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' +
+        esc(String(u.phone).replace(/\D/g,'')) + '">WhatsApp</a>'
+      : '';
+    return '<div class="config-panel" style="margin-bottom:0.7rem;cursor:pointer" ' +
+      'onclick="if(!event.target.closest(&quot;button,a&quot;)) abrirFicha(&quot;' + esc(u.id) + '&quot;)">' +
+      '<div style="display:flex;flex-wrap:wrap;gap:0.8rem;align-items:center;justify-content:space-between">' +
+        '<div style="min-width:180px">' +
+          '<div style="font-size:0.95rem;color:#f0f4f8">' + esc(u.name || 'Sin nombre') + '</div>' +
+          '<div style="font-size:0.72rem;color:#7a95aa;margin-top:0.15rem">' +
+            esc(u.email || '') + (u.phone ? ' · ' + esc(u.phone) : '') + '</div>' +
+          '<div style="font-size:0.68rem;color:#c8a96e;margin-top:0.25rem">Nivel ' + t.name +
+            ' · ' + nPedidos(u.ordersCount) + ' · ' + fmt(Math.round(Number(u.totalSpent)||0)) + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:1.6rem;color:#e8c98a;line-height:1">' + (Number(u.points)||0) + '</div>' +
+          '<div style="font-size:0.6rem;color:#7a95aa;letter-spacing:0.14em">PUNTOS</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem">' +
+        '<button class="order-act-btn" onclick="abrirFicha(&quot;' + esc(u.id) + '&quot;)">Ver ficha</button>' +
+        '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,1)">+ Dar puntos</button>' +
+        '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,-1)">- Quitar puntos</button>' +
+        waBtn +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function promptAdjust(uid, sign) {
+  const who = cfUsers.find(u => u.id === uid);
+  const verb = sign > 0 ? 'dar' : 'quitar';
+  const raw = prompt('Cuantos puntos queres ' + verb + ' a ' + ((who && who.name) || 'este cliente') + '?');
+  if (raw === null) return;
+  const n = Math.abs(parseInt(raw, 10));
+  if (!n) { toast('Cantidad invalida'); return; }
+  const reason = prompt('Motivo (lo ve el cliente en su historial):',
+    sign > 0 ? 'Puntos de regalo' : 'Correccion de puntos');
+  if (reason === null) return;
+  try {
+    await adjustPoints(uid, sign * n, reason);
+    toast('Listo: ' + (sign > 0 ? '+' : '-') + n + ' puntos');
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+document.getElementById('cli-search').addEventListener('input', function () {
+  cliFilter = this.value; renderClientes();
+});
+
+document.getElementById('cli-orden').addEventListener('change', function () {
+  cliOrden = this.value; renderClientes();
+});
+document.getElementById('cli-grupo').addEventListener('change', function () {
+  cliGrupo = this.value; renderClientes();
+});
+document.getElementById('cli-export').addEventListener('click', exportarClientes);
+
+/* ════════ VISTA: PREMIOS ════════ */
+let cfRewards = [], unsubRewards = null, editingRewardId = null;
+
+function watchRewards() {
+  if (unsubRewards) return;
+  unsubRewards = REWARDS_REF.onSnapshot((snap) => {
+    cfRewards = [];
+    snap.forEach(d => cfRewards.push({ id: d.id, ...d.data() }));
+    cfRewards.sort((a,b) => (Number(a.cost)||0) - (Number(b.cost)||0));
+    if (currentView === 'premios')   renderRewardList();
+    if (currentView === 'dashboard') renderFidelidadKPIs();
+  }, (e) => console.error('[premios]', e));
+}
+
+function renderPremios() {
+  watchRewards();
+  renderRewardList();
+  const en = document.getElementById('pts-enabled');
+  const rt = document.getElementById('pts-rate');
+  const wb = document.getElementById('pts-welcome');
+  if (en) en.checked = ptsEnabled();
+  if (rt && document.activeElement !== rt) rt.value = ptsRate();
+  if (wb && document.activeElement !== wb) wb.value = Number(appConfig.welcomeBonus) || 0;
+  updatePtsExample();
+  renderTierEditor();
+}
+
+function updatePtsExample() {
+  const el = document.getElementById('pts-example');
+  if (!el) return;
+  const r = parseFloat(document.getElementById('pts-rate').value);
+  const rate = isNaN(r) ? 0 : r;
+  el.textContent = 'Ejemplo: un pedido de ' + fmt(20000) + ' le da ' +
+    Math.floor(20000 / 100 * rate) + ' puntos (nivel Bronce).';
+}
+document.getElementById('pts-rate').addEventListener('input', updatePtsExample);
+
+document.getElementById('pts-save').addEventListener('click', async function () {
+  const r = parseFloat(document.getElementById('pts-rate').value);
+  if (isNaN(r) || r < 0) { toast('Pone un numero valido de puntos'); return; }
+  this.disabled = true;
+  try {
+    // Merge de solo estos dos campos: mandar appConfig entero podria pisar
+    // el contador de facturas si hay otra pestana abierta con datos viejos.
+    const bono = Math.max(0, parseInt(document.getElementById('pts-welcome').value, 10) || 0);
+    await CFG_REF.set({ pointsEnabled: document.getElementById('pts-enabled').checked,
+                        pointsPer100:  r,
+                        welcomeBonus:  bono }, { merge: true });
+    appConfig.pointsEnabled = document.getElementById('pts-enabled').checked;
+    appConfig.pointsPer100  = r;
+    appConfig.welcomeBonus  = bono;
+    toast('Reglas de puntos guardadas');
+  } catch (e) { toast('Error: ' + e.message); }
+  finally { this.disabled = false; }
+});
+
+function renderRewardList() {
+  const box = document.getElementById('rw-list');
+  if (!box) return;
+  if (!cfRewards.length) {
+    box.innerHTML = '<div class="empty-state" style="padding:2.5rem 1rem;text-align:center;color:#7a95aa">' +
+      'Todavia no hay premios. Carga el primero arriba.</div>';
+    return;
+  }
+  box.innerHTML = cfRewards.map(r => {
+    const stock = (typeof r.stock === 'number' && r.stock >= 0) ? r.stock : null;
+    const thumb = r.img
+      ? '<img src="' + esc(r.img) + '" style="width:100%;height:100%;object-fit:cover">'
+      : esc(r.emoji || '🎁');
+    const stockLine = stock !== null
+      ? '<div style="font-size:0.68rem;color:' + (stock > 0 ? '#7a95aa' : '#e05c4a') +
+        ';margin-top:0.2rem">' + (stock > 0 ? 'Quedan ' + stock : 'Agotado') + '</div>'
+      : '';
+    const hidden = r.active === false
+      ? ' <span style="font-size:0.62rem;color:#e05c4a">(oculto)</span>' : '';
+    const star = r.featured
+      ? ' <span style="font-size:0.62rem;color:#e8c98a">★ destacado</span>' : '';
+    const catLine = r.cat
+      ? '<div style="font-size:0.64rem;color:#c8a96e;letter-spacing:0.08em;text-transform:uppercase;margin-top:0.2rem">' + esc(r.cat) + '</div>'
+      : '';
+    return '<div class="config-panel" style="margin-bottom:0.7rem;' +
+      (r.active === false ? 'opacity:0.55' : '') + '">' +
+      '<div style="display:flex;gap:0.9rem;align-items:center;flex-wrap:wrap">' +
+        '<div style="width:52px;height:52px;border-radius:10px;background:#122840;display:grid;' +
+          'place-items:center;font-size:1.5rem;overflow:hidden;flex-shrink:0">' + thumb + '</div>' +
+        '<div style="flex:1;min-width:160px">' +
+          '<div style="font-size:0.92rem;color:#f0f4f8">' + esc(r.name || '') + hidden + star + '</div>' +
+          '<div style="font-size:0.72rem;color:#7a95aa">' + esc(r.desc || '') + '</div>' +
+          catLine + stockLine +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:1.25rem;color:#e8c98a">' + (Number(r.cost)||0) + '</div>' +
+          '<div style="font-size:0.6rem;color:#7a95aa;letter-spacing:0.12em">PUNTOS</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.7rem">' +
+        '<button class="order-act-btn" onclick="editReward(&quot;' + esc(r.id) + '&quot;)">Editar</button>' +
+        '<button class="order-act-btn" onclick="toggleReward(&quot;' + esc(r.id) + '&quot;)">' +
+          (r.active === false ? 'Mostrar' : 'Ocultar') + '</button>' +
+        '<button class="order-act-btn order-act-cancel" onclick="deleteReward(&quot;' + esc(r.id) + '&quot;)">Borrar</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function rwForm() {
+  return {
+    name:  document.getElementById('rw-name'),
+    desc:  document.getElementById('rw-desc'),
+    cost:  document.getElementById('rw-cost'),
+    stock: document.getElementById('rw-stock'),
+    emoji: document.getElementById('rw-emoji'),
+    img:   document.getElementById('rw-img'),
+    active:document.getElementById('rw-active'),
+    cat:     document.getElementById('rw-cat'),
+    order:   document.getElementById('rw-order'),
+    featured:document.getElementById('rw-featured'),
+  };
+}
+function resetRewardForm() {
+  const f = rwForm();
+  f.name.value = ''; f.desc.value = ''; f.cost.value = '';
+  f.stock.value = '-1'; f.emoji.value = ''; f.img.value = '';
+  f.active.checked = true;
+  f.cat.value = ''; f.order.value = ''; f.featured.checked = false;
+  document.getElementById('rw-img-file').value = '';
+  renderRewardImgPreview();
+  editingRewardId = null;
+  document.getElementById('rw-form-title').textContent = 'Nuevo premio';
+  document.getElementById('rw-cancel').style.display = 'none';
+}
+function editReward(id) {
+  const r = cfRewards.find(x => x.id === id);
+  if (!r) return;
+  const f = rwForm();
+  f.name.value = r.name || ''; f.desc.value = r.desc || '';
+  f.cost.value = r.cost || ''; f.stock.value = (typeof r.stock === 'number' ? r.stock : -1);
+  f.emoji.value = r.emoji || ''; f.img.value = r.img || '';
+  f.active.checked = r.active !== false;
+  f.cat.value = r.cat || '';
+  f.order.value = (typeof r.order === 'number' ? r.order : '');
+  f.featured.checked = !!r.featured;
+  renderRewardImgPreview();
+  editingRewardId = id;
+  document.getElementById('rw-form-title').textContent = 'Editando: ' + (r.name || '');
+  document.getElementById('rw-cancel').style.display = '';
+  document.getElementById('rw-name').scrollIntoView({ behavior:'smooth', block:'center' });
+}
+document.getElementById('rw-cancel').addEventListener('click', resetRewardForm);
+
+function renderRewardImgPreview() {
+  const url  = document.getElementById('rw-img').value;
+  const prev = document.getElementById('rw-img-prev');
+  const quitar = document.getElementById('rw-clear-img');
+  if (url) {
+    prev.innerHTML = '<img src="' + esc(url) + '" style="max-height:90px;border-radius:6px">';
+    if (quitar) quitar.style.display = '';
+  } else {
+    // Sin foto la tienda muestra un monograma con las iniciales del premio.
+    const nombre = (document.getElementById('rw-name').value || '').trim();
+    const ini = (nombre.match(/[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}/g) || [])
+      .slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join('');
+    prev.innerHTML = '<div style="font-size:0.72rem;color:#7a95aa;line-height:1.6">' +
+      'Sin foto. En la tienda va a salir el monograma <b style="color:#c8a96e">' +
+      esc(ini || '✦') + '</b> sobre el fondo degradado.</div>';
+    if (quitar) quitar.style.display = 'none';
+  }
+}
+
+document.getElementById('rw-from-product').addEventListener('click', abrirSelectorProducto);
+document.getElementById('rw-cost').addEventListener('input', actualizarAyudaPuntos);
+
+document.getElementById('rw-pick-cat').addEventListener('click', function () {
+  openCatalogImgPicker('reward');
+});
+document.getElementById('rw-clear-img').addEventListener('click', function () {
+  document.getElementById('rw-img').value = '';
+  document.getElementById('rw-img-file').value = '';
+  renderRewardImgPreview();
+});
+document.getElementById('rw-name').addEventListener('input', function () {
+  if (!document.getElementById('rw-img').value) renderRewardImgPreview();
+});
+
+document.getElementById('rw-img-file').addEventListener('change', async function () {
+  const file = this.files && this.files[0];
+  if (!file) return;
+  const prev = document.getElementById('rw-img-prev');
+  prev.textContent = 'Subiendo imagen...';
+  try {
+    const url = await uploadToCloudinary(file);
+    document.getElementById('rw-img').value = url;
+    renderRewardImgPreview();
+  } catch (e) { prev.textContent = 'Error al subir: ' + e.message; }
+});
+
+document.getElementById('rw-save').addEventListener('click', async function () {
+  const f = rwForm();
+  const name = f.name.value.trim();
+  const cost = parseInt(f.cost.value, 10);
+  if (!name)             { toast('Ponele nombre al premio'); return; }
+  if (!cost || cost < 1) { toast('El costo en puntos tiene que ser mayor a 0'); return; }
+
+  const stockRaw = parseInt(f.stock.value, 10);
+  const payload = {
+    name:   name,
+    desc:   f.desc.value.trim(),
+    cost:   cost,                       // entero: firestore.rules exige `is int`
+    stock:  isNaN(stockRaw) ? -1 : stockRaw,
+    emoji:  f.emoji.value.trim(),
+    img:    f.img.value.trim(),
+    active: f.active.checked,
+    cat:      f.cat.value.trim(),
+    order:    parseInt(f.order.value, 10) || 0,
+    featured: f.featured.checked,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+  };
+  this.disabled = true;
+  try {
+    if (editingRewardId) {
+      await REWARDS_REF.doc(editingRewardId).update(payload);
+      toast('Premio actualizado');
+    } else {
+      payload.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await REWARDS_REF.add(payload);
+      toast('Premio creado');
+    }
+    resetRewardForm();
+  } catch (e) { toast('Error: ' + e.message); }
+  finally { this.disabled = false; }
+});
+
+async function toggleReward(id) {
+  const r = cfRewards.find(x => x.id === id);
+  if (!r) return;
+  try { await REWARDS_REF.doc(id).update({ active: r.active === false }); }
+  catch (e) { toast('Error: ' + e.message); }
+}
+async function deleteReward(id) {
+  const r = cfRewards.find(x => x.id === id);
+  if (!confirm('Borrar el premio "' + ((r && r.name) || '') + '"? No se puede deshacer.')) return;
+  try { await REWARDS_REF.doc(id).delete(); toast('Premio borrado'); }
+  catch (e) { toast('Error: ' + e.message); }
+}
+
+/* ════════ VISTA: CANJES ════════ */
+let cfRedeems = [], unsubRedeems = null, redeemFilter = 'solicitado';
+
+function watchRedeems() {
+  if (unsubRedeems) return;
+  unsubRedeems = REDEEM_REF.onSnapshot((snap) => {
+    cfRedeems = [];
+    snap.forEach(d => cfRedeems.push({ id: d.id, ...d.data() }));
+    cfRedeems.sort((a,b) => {
+      const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+      const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+      return tb - ta;
+    });
+    updateRedeemBadge();
+    if (currentView === 'canjes')    renderCanjes();
+    if (currentView === 'dashboard') renderFidelidadKPIs();
+  }, (e) => console.error('[canjes]', e));
+}
+
+function updateRedeemBadge() {
+  const b = document.getElementById('sb-redeem-badge');
+  if (!b) return;
+  const n = cfRedeems.filter(r => (r.status || 'solicitado') === 'solicitado').length;
+  b.textContent = n;
+  b.style.display = n ? '' : 'none';
+}
+
+function renderCanjes() {
+  watchRedeems();
+  watchUsers();
+  const box = document.getElementById('rd-list');
+  if (!box) return;
+  const list = redeemFilter === 'todos'
+    ? cfRedeems
+    : cfRedeems.filter(r => (r.status || 'solicitado') === redeemFilter);
+
+  if (!list.length) {
+    box.innerHTML = '<div class="empty-state" style="padding:2.5rem 1rem;text-align:center;color:#7a95aa">' +
+      'No hay canjes en este estado.</div>';
+    return;
+  }
+
+  box.innerHTML = list.map(r => {
+    const st = r.status || 'solicitado';
+    const when = r.createdAt && r.createdAt.toDate
+      ? r.createdAt.toDate().toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' })
+      : '';
+    const u = cfUsers.find(x => x.id === r.uid);
+    const bal = u ? (Number(u.points)||0) : null;
+    const short = bal !== null && bal < (Number(r.cost)||0);
+
+    let acts = '';
+    if (st === 'solicitado') {
+      acts = '<button class="order-act-btn order-act-confirm" onclick="approveRedeem(&quot;' + esc(r.id) + '&quot;)">Aprobar y descontar</button>' +
+             '<button class="order-act-btn order-act-cancel" onclick="rejectRedeem(&quot;' + esc(r.id) + '&quot;)">Rechazar</button>';
+    } else if (st === 'aprobado') {
+      acts = '<button class="order-act-btn order-act-deliver" onclick="markRedeemDelivered(&quot;' + esc(r.id) + '&quot;)">Marcar entregado</button>';
+    }
+    if (r.userPhone) {
+      acts += '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' +
+              esc(String(r.userPhone).replace(/\D/g,'')) + '">WhatsApp</a>';
+    }
+    const warn = (short && st === 'solicitado')
+      ? '<div style="margin-top:0.6rem;font-size:0.72rem;color:#e05c4a">Ojo: al cliente ya solo le quedan ' +
+        bal + ' puntos. Si aprobas, se rechaza solo.</div>' : '';
+
+    return '<div class="config-panel" style="margin-bottom:0.7rem">' +
+      '<div style="display:flex;flex-wrap:wrap;gap:0.7rem;align-items:center;justify-content:space-between">' +
+        '<div style="min-width:170px">' +
+          '<div style="font-size:0.93rem;color:#f0f4f8">' + esc(r.rewardName || 'Premio') + '</div>' +
+          '<div style="font-size:0.73rem;color:#7a95aa;margin-top:0.15rem">' +
+            esc(r.userName || 'Cliente') + (r.userPhone ? ' · ' + esc(r.userPhone) : '') + '</div>' +
+          '<div style="font-size:0.68rem;color:#7a95aa;margin-top:0.15rem">' + esc(when) + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:1.2rem;color:#e8c98a">' + (Number(r.cost)||0) + ' pts</div>' +
+          '<span class="order-status ' + esc(st === 'solicitado' ? 'pendiente' : st) + '">' + esc(st) + '</span>' +
+        '</div>' +
+      '</div>' + warn +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem">' + acts + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+document.querySelectorAll('.rd-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rd-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    redeemFilter = btn.dataset.filter;
+    renderCanjes();
+  });
+});
+
+/* Aprobar = el unico momento en que se descuentan puntos por un canje.
+   Va en transaccion porque el cliente pudo haber pedido dos canjes seguidos
+   antes de que mires el panel: el segundo tiene que fallar, no dejar saldo negativo. */
+async function approveRedeem(id) {
+  try {
+    await db.runTransaction(async (tx) => {
+      const rRef  = REDEEM_REF.doc(id);
+      const rSnap = await tx.get(rRef);
+      if (!rSnap.exists) throw new Error('Canje no encontrado');
+      const r = rSnap.data();
+      if ((r.status || 'solicitado') !== 'solicitado') throw new Error('Ese canje ya fue resuelto');
+
+      const uRef  = USERS_REF.doc(r.uid);
+      const uSnap = await tx.get(uRef);
+      if (!uSnap.exists) throw new Error('El cliente ya no existe');
+      const u = uSnap.data();
+
+      const cost = Number(r.cost) || 0;
+      const bal  = Number(u.points) || 0;
+      if (bal < cost) throw new Error('Al cliente solo le quedan ' + bal + ' puntos');
+
+      // Todas las lecturas de la transaccion van ANTES de cualquier escritura.
+      let rwSnap = null;
+      if (r.rewardId) rwSnap = await tx.get(REWARDS_REF.doc(r.rewardId));
+
+      // Canjear NO baja lifetimePoints: el nivel se gana con lo comprado,
+      // no se pierde por usar los puntos.
+      tx.update(uRef, {
+        points:    bal - cost,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      tx.set(uRef.collection('ledger').doc(), {
+        type:         'redeem',
+        points:       -cost,
+        redemptionId: id,
+        reason:       'Canje: ' + (r.rewardName || 'premio'),
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      tx.update(rRef, {
+        status:     'aprobado',
+        resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      if (rwSnap && rwSnap.exists) {
+        const st = rwSnap.data().stock;
+        if (typeof st === 'number' && st > 0) tx.update(rwSnap.ref, { stock: st - 1 });
+      }
+    });
+    toast('Canje aprobado y puntos descontados');
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+async function rejectRedeem(id) {
+  const note = prompt('Motivo del rechazo (lo ve el cliente):', 'Premio no disponible por ahora');
+  if (note === null) return;
+  try {
+    await REDEEM_REF.doc(id).update({
+      status: 'rechazado', adminNote: note,
+      resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    toast('Canje rechazado (no se descontaron puntos)');
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+async function markRedeemDelivered(id) {
+  try {
+    await REDEEM_REF.doc(id).update({
+      status: 'entregado',
+      deliveredAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    toast('Canje marcado como entregado');
+  } catch (e) { toast('Error: ' + e.message); }
+}
+
+
+/* ════════ NIVELES DE FIDELIDAD (editables) ════════
+   Antes estaban clavados en dos archivos (auth.js y aca). Ahora viven en
+   chusfish/config.tiers y los dos lados los leen de ahi. */
+
+const TIERS_FALLBACK = [
+  { id:'bronce', name:'Bronce', min:0,    mult:1.00, color:'#b87333',
+    perk:'Acumulas puntos en cada compra.' },
+  { id:'plata',  name:'Plata',  min:1000, mult:1.10, color:'#c0c9d4',
+    perk:'10% más de puntos en cada compra.' },
+  { id:'oro',    name:'Oro',    min:3000, mult:1.25, color:'#e8c98a',
+    perk:'25% más de puntos y prioridad en pedidos.' },
+];
+
+let tierDraft = [];
+
+function cfTiers() {
+  const raw = appConfig.tiers;
+  if (!raw || !raw.length) return TIERS_FALLBACK.slice();
+  return raw
+    .map((t, i) => {
+      const base = TIERS_FALLBACK[Math.min(i, TIERS_FALLBACK.length - 1)];
+      return {
+        id:    t.id   || base.id,
+        name:  t.name || base.name,
+        min:   Number(t.min)  || 0,
+        mult:  Number(t.mult) || 1,
+        color: t.color || base.color,
+        perk:  t.perk  || '',
+      };
+    })
+    .sort((a, b) => a.min - b.min);
+}
+
+function cfTierOf(lp) {
+  lp = Number(lp) || 0;
+  const list = cfTiers();
+  let t = list[0];
+  for (const x of list) if (lp >= x.min) t = x;
+  return t;
+}
+
+function renderTierEditor() {
+  const box = document.getElementById('tier-list');
+  if (!box) return;
+  if (!tierDraft.length) tierDraft = cfTiers();
+
+  box.innerHTML = tierDraft.map((t, i) => `
+    <div class="config-field" style="border:1px solid rgba(200,169,110,0.16);border-radius:10px;padding:0.8rem;margin-bottom:0.7rem">
+      <div style="display:flex;gap:0.7rem;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:110px">
+          <label class="config-label">Nombre</label>
+          <input type="text" class="config-input tier-f" data-i="${i}" data-k="name" value="${esc(t.name)}">
+        </div>
+        <div style="width:110px">
+          <label class="config-label">Desde (pts)</label>
+          <input type="number" class="config-input tier-f" data-i="${i}" data-k="min" step="1" min="0" value="${t.min}">
+        </div>
+        <div style="width:110px">
+          <label class="config-label">Multiplicador</label>
+          <input type="number" class="config-input tier-f" data-i="${i}" data-k="mult" step="0.05" min="1" value="${t.mult}">
+        </div>
+        <div style="width:60px">
+          <label class="config-label">Color</label>
+          <input type="color" class="tier-f" data-i="${i}" data-k="color" value="${esc(t.color)}"
+            style="width:100%;height:34px;border:none;background:none;cursor:pointer;border-radius:6px;padding:0">
+        </div>
+        <button class="order-act-btn order-act-cancel" onclick="tierRemove(${i})"
+          ${tierDraft.length <= 1 ? 'disabled style="opacity:.4"' : ''}>Quitar</button>
+      </div>
+      <div style="margin-top:0.6rem">
+        <label class="config-label">Beneficio (lo lee el cliente en su perfil)</label>
+        <input type="text" class="config-input tier-f" data-i="${i}" data-k="perk"
+          value="${esc(t.perk || '')}" placeholder="Ej: 10% más de puntos en cada compra">
+      </div>
+    </div>`).join('');
+
+  box.querySelectorAll('.tier-f').forEach(inp => {
+    inp.addEventListener('input', function () {
+      const i = +this.dataset.i, k = this.dataset.k;
+      tierDraft[i][k] = (k === 'min' || k === 'mult') ? parseFloat(this.value) || 0 : this.value;
+    });
+  });
+}
+
+function tierRemove(i) {
+  if (tierDraft.length <= 1) return;
+  tierDraft.splice(i, 1);
+  renderTierEditor();
+}
+
+document.getElementById('tier-add').addEventListener('click', () => {
+  const last = tierDraft[tierDraft.length - 1] || { min: 0, mult: 1 };
+  tierDraft.push({
+    id: 'nivel' + (tierDraft.length + 1),
+    name: 'Nuevo nivel',
+    min: (Number(last.min) || 0) + 2000,
+    mult: +((Number(last.mult) || 1) + 0.1).toFixed(2),
+    color: '#c8a96e',
+    perk: '',
+  });
+  renderTierEditor();
+});
+
+document.getElementById('tier-save').addEventListener('click', async function () {
+  // El primer nivel tiene que arrancar en 0: si no, un cliente nuevo con 0
+  // puntos se queda sin nivel y la interfaz muestra vacio.
+  const orden = tierDraft.slice().sort((a, b) => a.min - b.min);
+  orden[0].min = 0;
+
+  const mins = orden.map(t => t.min);
+  if (new Set(mins).size !== mins.length) {
+    toast('Hay dos niveles que arrancan en la misma cantidad de puntos');
+    return;
+  }
+  if (orden.some(t => !String(t.name).trim())) { toast('Todos los niveles necesitan nombre'); return; }
+
+  this.disabled = true;
+  try {
+    const limpio = orden.map((t, i) => ({
+      id:    (t.id || ('nivel' + (i + 1))).toString().toLowerCase().replace(/[^a-z0-9]/g, ''),
+      name:  String(t.name).trim(),
+      min:   Math.max(0, Math.round(Number(t.min) || 0)),
+      mult:  Math.max(1, Number(t.mult) || 1),
+      color: t.color || '#c8a96e',
+      perk:  String(t.perk || '').trim(),
+    }));
+    await CFG_REF.set({ tiers: limpio }, { merge: true });
+    appConfig.tiers = limpio;
+    tierDraft = cfTiers();
+    renderTierEditor();
+    toast('Niveles guardados');
+  } catch (e) { toast('Error: ' + e.message); }
+  finally { this.disabled = false; }
+});
+
+
+/* ════════ VISTA: CUPONES ════════
+   El ID del documento ES el codigo (coupons/BIENVENIDO10). Asi el cliente
+   puede consultar el suyo sin poder listar todos: las reglas permiten `get`
+   pero no `list`. */
+
+const COUPONS_REF = db.collection('coupons');
+let cfCoupons = [], unsubCoupons = null, editandoCupon = null;
+
+function watchCupones() {
+  if (unsubCoupons) return;
+  unsubCoupons = COUPONS_REF.onSnapshot((snap) => {
+    cfCoupons = [];
+    snap.forEach(d => cfCoupons.push({ id: d.id, ...d.data() }));
+    cfCoupons.sort((a, b) => {
+      const aa = a.active === false ? 1 : 0, bb = b.active === false ? 1 : 0;
+      if (aa !== bb) return aa - bb;              // activos primero
+      return a.id.localeCompare(b.id);
+    });
+    if (currentView === 'cupones') renderListaCupones();
+  }, (e) => console.error('[cupones]', e));
+}
+
+function renderCupones() {
+  watchCupones();
+  renderListaCupones();
+  actualizarPreviewCupon();
+}
+
+function cupForm() {
+  return {
+    code:    document.getElementById('cup-code'),
+    type:    document.getElementById('cup-type'),
+    value:   document.getElementById('cup-value'),
+    min:     document.getElementById('cup-min'),
+    max:     document.getElementById('cup-max'),
+    limit:   document.getElementById('cup-limit'),
+    peruser: document.getElementById('cup-peruser'),
+    from:    document.getElementById('cup-from'),
+    until:   document.getElementById('cup-until'),
+    first:   document.getElementById('cup-first'),
+    active:  document.getElementById('cup-active'),
+  };
+}
+
+/* Un cupon mal armado se detecta cuando ya lo uso un cliente. Este texto
+   dice en castellano lo que va a pasar, antes de guardarlo. */
+function actualizarPreviewCupon() {
+  const f = cupForm();
+  const el = document.getElementById('cup-preview');
+  if (!el) return;
+
+  const esPct = f.type.value === 'percent';
+  document.getElementById('cup-value-label').textContent = esPct ? 'Porcentaje' : 'Monto en colones';
+  document.getElementById('cup-max-wrap').style.display = esPct ? '' : 'none';
+
+  const val = parseFloat(f.value.value) || 0;
+  const min = parseFloat(f.min.value) || 0;
+  const max = parseFloat(f.max.value) || 0;
+  if (!val) { el.textContent = ''; return; }
+
+  const ejemplo = Math.max(min, 20000);
+  let desc = esPct ? ejemplo * val / 100 : val;
+  if (esPct && max > 0) desc = Math.min(desc, max);
+  desc = Math.min(Math.round(desc), ejemplo);
+
+  el.innerHTML = 'En un pedido de <b>' + fmt(ejemplo) + '</b> descuenta <b>' + fmt(desc) + '</b>' +
+    (min > 0 ? ' · aplica desde ' + fmt(min) : '') +
+    (esPct && max > 0 ? ' · tope ' + fmt(max) : '');
+}
+
+['cup-type','cup-value','cup-min','cup-max'].forEach(function (id) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', actualizarPreviewCupon);
+});
+document.getElementById('cup-type').addEventListener('change', actualizarPreviewCupon);
+
+function resetCuponForm() {
+  const f = cupForm();
+  f.code.value = ''; f.value.value = ''; f.min.value = '0'; f.max.value = '0';
+  f.limit.value = '-1'; f.peruser.value = '1';
+  f.from.value = ''; f.until.value = '';
+  f.type.value = 'percent';
+  f.first.checked = false; f.active.checked = true;
+  f.code.disabled = false;
+  editandoCupon = null;
+  document.getElementById('cup-form-title').textContent = 'Nuevo cupon';
+  document.getElementById('cup-cancel').style.display = 'none';
+  actualizarPreviewCupon();
+}
+document.getElementById('cup-cancel').addEventListener('click', resetCuponForm);
+
+function aFecha(v) {
+  if (!v) return '';
+  const d = v && typeof v.toDate === 'function' ? v.toDate() : new Date(v);
+  if (isNaN(d.getTime())) return '';
+  return d.toISOString().slice(0, 10);
+}
+
+function editCupon(id) {
+  const c = cfCoupons.find(x => x.id === id);
+  if (!c) return;
+  const f = cupForm();
+  f.code.value = c.id;
+  f.code.disabled = true;             // el codigo es el ID: no se puede renombrar
+  f.type.value = c.type || 'percent';
+  f.value.value = c.value || '';
+  f.min.value = c.minOrder || 0;
+  f.max.value = c.maxDiscount || 0;
+  f.limit.value = (typeof c.usageLimit === 'number' ? c.usageLimit : -1);
+  f.peruser.value = (typeof c.perUserLimit === 'number' ? c.perUserLimit : 1);
+  f.from.value = aFecha(c.validFrom);
+  f.until.value = aFecha(c.validUntil);
+  f.first.checked = !!c.firstOrderOnly;
+  f.active.checked = c.active !== false;
+  editandoCupon = id;
+  document.getElementById('cup-form-title').textContent = 'Editando: ' + id;
+  document.getElementById('cup-cancel').style.display = '';
+  actualizarPreviewCupon();
+  f.value.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+document.getElementById('cup-save').addEventListener('click', async function () {
+  const f = cupForm();
+  const codigo = String(f.code.value || '').trim().toUpperCase().replace(/\s+/g, '');
+  const valor  = parseFloat(f.value.value) || 0;
+
+  if (!codigo)            { toast('Escribi el codigo'); return; }
+  if (!/^[A-Z0-9-]{3,}$/.test(codigo)) {
+    toast('El codigo va con letras, numeros o guiones (minimo 3)'); return;
+  }
+  if (valor <= 0)         { toast('El descuento tiene que ser mayor a 0'); return; }
+  if (f.type.value === 'percent' && valor > 100) { toast('Un porcentaje no puede pasar de 100'); return; }
+
+  if (!editandoCupon && cfCoupons.some(c => c.id === codigo)) {
+    toast('Ya existe un cupon con ese codigo'); return;
+  }
+
+  const desde = f.from.value ? new Date(f.from.value + 'T00:00:00') : null;
+  const hasta = f.until.value ? new Date(f.until.value + 'T23:59:59') : null;
+  if (desde && hasta && hasta < desde) { toast('La fecha de fin es anterior a la de inicio'); return; }
+
+  const limite = parseInt(f.limit.value, 10);
+  const datos = {
+    type:         f.type.value,
+    value:        valor,
+    minOrder:     parseFloat(f.min.value) || 0,
+    maxDiscount:  f.type.value === 'percent' ? (parseFloat(f.max.value) || 0) : 0,
+    usageLimit:   isNaN(limite) ? -1 : limite,
+    perUserLimit: parseInt(f.peruser.value, 10) || 0,
+    validFrom:    desde,
+    validUntil:   hasta,
+    firstOrderOnly: f.first.checked,
+    active:       f.active.checked,
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+  };
+
+  this.disabled = true;
+  try {
+    if (editandoCupon) {
+      await COUPONS_REF.doc(editandoCupon).update(datos);
+      toast('Cupon actualizado');
+    } else {
+      datos.usedCount = 0;
+      datos.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      await COUPONS_REF.doc(codigo).set(datos);
+      toast('Cupon ' + codigo + ' creado');
+    }
+    resetCuponForm();
+  } catch (e) { toast('Error: ' + e.message); }
+  finally { this.disabled = false; }
+});
+
+function estadoCupon(c) {
+  if (c.active === false) return { txt: 'Desactivado', color: '#e05c4a' };
+  const ahora = new Date();
+  const desde = c.validFrom && c.validFrom.toDate ? c.validFrom.toDate() : null;
+  const hasta = c.validUntil && c.validUntil.toDate ? c.validUntil.toDate() : null;
+  if (desde && ahora < desde) return { txt: 'Aun no vigente', color: '#c8a96e' };
+  if (hasta && ahora > hasta) return { txt: 'Vencido', color: '#e05c4a' };
+  const lim = Number(c.usageLimit);
+  if (!isNaN(lim) && lim >= 0 && (Number(c.usedCount) || 0) >= lim) {
+    return { txt: 'Agotado', color: '#e05c4a' };
+  }
+  return { txt: 'Activo', color: '#27ae60' };
+}
+
+function renderListaCupones() {
+  const box = document.getElementById('cup-list');
+  if (!box) return;
+  if (!cfCoupons.length) {
+    box.innerHTML = '<div class="empty-state" style="padding:2.5rem 1rem;text-align:center;color:#7a95aa">' +
+      'Todavia no hay cupones. Crea el primero arriba.</div>';
+    return;
+  }
+
+  box.innerHTML = cfCoupons.map(c => {
+    const est = estadoCupon(c);
+    const esPct = c.type === 'percent';
+    const usados = Number(c.usedCount) || 0;
+    const lim = Number(c.usageLimit);
+    const restantes = (!isNaN(lim) && lim >= 0) ? Math.max(0, lim - usados) : null;
+
+    const detalles = [];
+    if (c.minOrder > 0)    detalles.push('desde ' + fmt(c.minOrder));
+    if (esPct && c.maxDiscount > 0) detalles.push('tope ' + fmt(c.maxDiscount));
+    if (c.firstOrderOnly)  detalles.push('solo 1a compra');
+    if (c.perUserLimit > 0) detalles.push(c.perUserLimit + ' por cliente');
+    const desde = c.validFrom && c.validFrom.toDate ? c.validFrom.toDate() : null;
+    const hasta = c.validUntil && c.validUntil.toDate ? c.validUntil.toDate() : null;
+    const f = d => d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short' });
+    if (desde || hasta) {
+      detalles.push((desde ? 'del ' + f(desde) : '') + (hasta ? ' al ' + f(hasta) : ''));
+    }
+
+    return '<div class="config-panel" style="margin-bottom:0.7rem;' +
+      (c.active === false ? 'opacity:0.6' : '') + '">' +
+      '<div style="display:flex;flex-wrap:wrap;gap:0.9rem;align-items:center;justify-content:space-between">' +
+        '<div style="min-width:180px">' +
+          '<div style="font-family:monospace;font-size:1.05rem;color:#e8c98a;letter-spacing:0.1em">' +
+            esc(c.id) + '</div>' +
+          '<div style="font-size:0.72rem;color:#7a95aa;margin-top:0.25rem">' +
+            (esPct ? c.value + '% de descuento' : fmt(c.value) + ' de descuento') +
+            (detalles.length ? ' · ' + esc(detalles.join(' · ')) : '') + '</div>' +
+        '</div>' +
+        '<div style="text-align:right">' +
+          '<div style="font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:' +
+            est.color + '">' + est.txt + '</div>' +
+          '<div style="font-size:0.72rem;color:#7a95aa;margin-top:0.2rem">' +
+            'Usado ' + usados + (restantes !== null ? ' · quedan ' + restantes : ' veces') + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.8rem">' +
+        '<button class="order-act-btn" onclick="editCupon(&quot;' + esc(c.id) + '&quot;)">Editar</button>' +
+        '<button class="order-act-btn" onclick="toggleCupon(&quot;' + esc(c.id) + '&quot;)">' +
+          (c.active === false ? 'Activar' : 'Desactivar') + '</button>' +
+        '<button class="order-act-btn" onclick="copiarCupon(&quot;' + esc(c.id) + '&quot;)">Copiar codigo</button>' +
+        (usados > 0
+          ? '<button class="order-act-btn" onclick="verUsosCupon(&quot;' + esc(c.id) + '&quot;,this)">Ver quien lo uso</button>'
+          : '') +
+        '<button class="order-act-btn order-act-cancel" onclick="borrarCupon(&quot;' + esc(c.id) + '&quot;)">Borrar</button>' +
+      '</div>' +
+      '<div class="cup-usos" id="usos-' + esc(c.id) + '" style="display:none"></div>' +
+    '</div>';
+  }).join('');
+}
+
+/* ═══ QUIEN USO UN CUPON ═══════════════════════════════════════
+   El contador decia "usado 3 veces" pero no quien, y sin eso no se puede
+   saber si una campana funciono. El dato ya se guardaba: cada vez que se
+   factura un pedido con cupon queda un registro en
+   coupons/{codigo}/orders/{idDelPedido} con el uid y la fecha. */
+async function verUsosCupon(codigo, boton) {
+  const caja = document.getElementById('usos-' + codigo);
+  if (!caja) return;
+
+  // Segundo clic: se cierra.
+  if (caja.style.display !== 'none') {
+    caja.style.display = 'none';
+    boton.textContent = 'Ver quien lo uso';
+    return;
+  }
+
+  boton.textContent = 'Ocultar';
+  caja.style.display = 'block';
+  caja.innerHTML = '<div style="padding:0.9rem 0;color:#7a95aa;font-size:0.75rem">Cargando…</div>';
+
+  try {
+    const snap = await db.collection('coupons').doc(codigo).collection('orders').get();
+    const usos = [];
+    snap.forEach(d => usos.push(d.data()));
+    usos.sort((a, b) => (b.at && b.at.toMillis ? b.at.toMillis() : 0) -
+                        (a.at && a.at.toMillis ? a.at.toMillis() : 0));
+
+    if (!usos.length) {
+      caja.innerHTML = '<div style="padding:0.9rem 0;color:#7a95aa;font-size:0.75rem">' +
+        'Todavia no hay pedidos facturados con este cupon.</div>';
+      return;
+    }
+
+    caja.innerHTML =
+      '<div style="border-top:1px solid rgba(200,169,110,0.12);margin-top:0.9rem;padding-top:0.8rem">' +
+      '<div style="font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:#7a95aa;margin-bottom:0.6rem">' +
+        usos.length + (usos.length === 1 ? ' uso' : ' usos') + '</div>' +
+      usos.map(u => {
+        const cliente = u.uid ? cfUsers.find(x => x.id === u.uid) : null;
+        // Un pedido sin cuenta tambien puede llevar cupon: no es un error.
+        const quien = cliente
+          ? esc(cliente.name || cliente.email || 'Cliente')
+          : (u.uid ? 'Cliente dado de baja' : 'Pedido sin cuenta');
+        const cuando = u.at && u.at.toDate
+          ? u.at.toDate().toLocaleDateString('es-CR', { day:'2-digit', month:'short', year:'numeric' })
+          : '';
+        return '<div style="display:flex;justify-content:space-between;gap:0.8rem;flex-wrap:wrap;' +
+          'padding:0.5rem 0;border-bottom:1px solid rgba(200,169,110,0.07);font-size:0.78rem">' +
+          '<span style="color:#d4dde8">' + quien +
+            (cliente && cliente.phone ? ' <span style="color:#7a95aa">· ' + esc(cliente.phone) + '</span>' : '') +
+          '</span>' +
+          '<span style="color:#7a95aa;white-space:nowrap">' + cuando + '</span>' +
+        '</div>';
+      }).join('') +
+      '</div>';
+  } catch (e) {
+    console.error('[usos cupon]', e);
+    caja.innerHTML = '<div style="padding:0.9rem 0;color:#ff9b8c;font-size:0.75rem">' +
+      'No se pudieron cargar los usos. Recarga la pagina.</div>';
+  }
+}
+
+async function toggleCupon(id) {
+  const c = cfCoupons.find(x => x.id === id);
+  if (!c) return;
+  try { await COUPONS_REF.doc(id).update({ active: c.active === false }); }
+  catch (e) { toast('Error: ' + e.message); }
+}
+
+async function borrarCupon(id) {
+  const c = cfCoupons.find(x => x.id === id);
+  const usados = Number(c && c.usedCount) || 0;
+  const aviso = usados > 0
+    ? 'El cupon ' + id + ' ya se uso ' + usados + ' vez/veces. Si lo borras se pierde ese historial.\n\nMejor desactivalo.\n\nBorrar igual?'
+    : 'Borrar el cupon ' + id + '?';
+  if (!confirm(aviso)) return;
+  try { await COUPONS_REF.doc(id).delete(); toast('Cupon borrado'); }
+  catch (e) { toast('Error: ' + e.message); }
+}
+
+function copiarCupon(id) {
+  try {
+    navigator.clipboard.writeText(id);
+    toast('Codigo ' + id + ' copiado');
+  } catch (e) { toast('Codigo: ' + id); }
+}
+
+
+/* ── El cupon en la factura ─────────────────────────────────────
+   Se cuenta como usado al FACTURAR, no al pedir: si el pedido se cae,
+   el cupon no se gasta. Idempotente por pedido, para que reabrir y
+   volver a guardar la factura no lo cuente dos veces. */
+function renderAvisoCupon() {
+  var cont = document.getElementById('inv-discount');
+  if (!cont) return;
+  var campo = cont.closest('.invoice-field') || cont.parentElement;
+  var viejo = document.getElementById('inv-cupon-aviso');
+  if (viejo) viejo.remove();
+  if (!invoiceState || !invoiceState.cupon) return;
+
+  var d = document.createElement('div');
+  d.id = 'inv-cupon-aviso';
+  d.style.cssText = 'font-size:0.7rem;color:#c8a96e;margin-top:0.35rem;line-height:1.5';
+  d.textContent = 'El cliente aplicó el cupón ' + invoiceState.cupon +
+                  '. Se cuenta como usado al guardar esta factura.';
+  campo.appendChild(d);
+}
+
+async function marcarCuponUsado(codigo, orderId, uid) {
+  try {
+    await db.runTransaction(async (tx) => {
+      const cRef = COUPONS_REF.doc(codigo);
+      const cSnap = await tx.get(cRef);
+      if (!cSnap.exists) return;
+
+      // Marca por pedido: si ya se conto este pedido, no se cuenta de nuevo.
+      const marcaRef = cRef.collection('orders').doc(orderId);
+      const marca = await tx.get(marcaRef);
+      if (marca.exists) return;
+
+      let usoCliente = null;
+      if (uid) {
+        const uRef = cRef.collection('redemptions').doc(uid);
+        usoCliente = await tx.get(uRef);
+      }
+
+      tx.update(cRef, { usedCount: (Number(cSnap.data().usedCount) || 0) + 1 });
+      tx.set(marcaRef, { orderId: orderId, uid: uid || null,
+                         at: firebase.firestore.FieldValue.serverTimestamp() });
+      if (uid) {
+        tx.set(cRef.collection('redemptions').doc(uid), {
+          count: ((usoCliente && usoCliente.exists ? Number(usoCliente.data().count) : 0) || 0) + 1,
+          last: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
+    });
+  } catch (e) {
+    console.error('[cupon uso]', e);
+    toast('No se pudo registrar el uso del cupon: ' + e.message);
+  }
+}
+
+
+/* ════════ FICHA DEL CLIENTE ════════
+   Se abre al tocar un cliente. Junta en una pantalla lo que Jesus necesita
+   cuando alguien llama: quien es, cuantos puntos tiene, que compro, que
+   canjeo y de donde salio cada punto. */
+
+let fichaUid = null, unsubFichaLedger = null, unsubFichaCanjes = null;
+
+function abrirFicha(uid) {
+  const u = cfUsers.find(x => x.id === uid);
+  if (!u) return;
+  fichaUid = uid;
+  document.getElementById('cli-ficha-ov').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderFicha();
+
+  if (unsubFichaLedger) unsubFichaLedger();
+  unsubFichaLedger = USERS_REF.doc(uid).collection('ledger')
+    .orderBy('createdAt', 'desc').limit(50)
+    .onSnapshot(s => {
+      const m = [];
+      s.forEach(d => m.push(d.data()));
+      pintarFichaLedger(m);
+    }, e => console.error('[ficha ledger]', e));
+
+  if (unsubFichaCanjes) unsubFichaCanjes();
+  unsubFichaCanjes = REDEEM_REF.where('uid', '==', uid)
+    .onSnapshot(s => {
+      const m = [];
+      s.forEach(d => m.push({ id: d.id, ...d.data() }));
+      m.sort((a, b) => {
+        const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+        const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+        return tb - ta;
+      });
+      pintarFichaCanjes(m);
+    }, e => console.error('[ficha canjes]', e));
+}
+
+/* Editar los datos del cliente, dentro de la ficha que ya esta abierta.
+   Antes, si alguien escribia mal la direccion, habia que pedirle que entrara
+   a corregirla el.
+   Aca NO se tocan puntos, nivel ni totales: eso lo mueve el circuito de
+   pedidos y editarlo a mano descuadraria el programa. Para puntos estan
+   "dar" y "quitar", que dejan el movimiento anotado en el historial.
+   El correo tampoco: es con lo que el cliente entra. */
+function editarDatosCliente() {
+  const u = cfUsers.find(x => x.id === fichaUid);
+  if (!u) return;
+
+  const caja = document.getElementById('cli-ficha-datos');
+  const zonas = (appConfig.zones || []).filter(z => z.active !== false).map(z => z.name);
+  // Si la zona guardada del cliente ya no esta en la lista (se desactivo o se
+  // renombro), igual se ofrece: si no, al abrir el formulario aparecia
+  // "Sin zona" y guardar le borraba la zona sin que nadie lo pidiera.
+  if (u.zone && zonas.indexOf(u.zone) < 0) zonas.unshift(u.zone);
+
+  caja.innerHTML =
+    '<div style="display:grid;gap:0.7rem;padding:0.3rem 0 0.2rem">' +
+      '<div><label class="config-label">Nombre completo</label>' +
+        '<input class="config-input" id="ed-name" value="' + esc(u.name || '') + '"></div>' +
+      '<div><label class="config-label">Telefono (8 digitos)</label>' +
+        '<input class="config-input" id="ed-phone" inputmode="numeric" value="' + esc(u.phone || '') + '"></div>' +
+      '<div><label class="config-label">Direccion</label>' +
+        '<input class="config-input" id="ed-address" value="' + esc(u.address || '') + '"></div>' +
+      '<div><label class="config-label">Zona de entrega</label>' +
+        (zonas.length
+          ? '<select class="config-input" id="ed-zone"><option value="">Sin zona</option>' +
+            zonas.map(z => '<option value="' + esc(z) + '"' +
+              (u.zone === z ? ' selected' : '') + '>' + esc(z) + '</option>').join('') + '</select>'
+          : '<input class="config-input" id="ed-zone" value="' + esc(u.zone || '') + '">') +
+      '</div>' +
+      '<p style="font-size:0.67rem;color:#7a95aa;line-height:1.55;margin:0.2rem 0 0">' +
+        'El correo no se cambia desde aca: es con lo que el cliente entra. ' +
+        'Los puntos y el nivel tampoco — para eso estan "dar" y "quitar puntos", ' +
+        'que dejan el movimiento anotado.</p>' +
+      '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.3rem">' +
+        '<button class="order-act-btn order-act-deliver" id="ed-guardar">Guardar</button>' +
+        '<button class="order-act-btn" id="ed-cancelar">Cancelar</button>' +
+      '</div>' +
+    '</div>';
+
+  document.getElementById('ed-cancelar').onclick = renderFicha;
+
+  document.getElementById('ed-guardar').onclick = async function () {
+    const val = k => (document.getElementById('ed-' + k) || {}).value || '';
+    const tel = val('phone').replace(/[^0-9]/g, '');
+    if (tel && tel.length !== 8) { toast('El telefono va con 8 digitos'); return; }
+
+    this.disabled = true;
+    this.textContent = 'Guardando…';
+    try {
+      await USERS_REF.doc(u.id).update({
+        name:      val('name').trim(),
+        phone:     tel,
+        address:   val('address').trim(),
+        zone:      val('zone'),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      toast('Datos actualizados');
+      // El onSnapshot de clientes repinta solo; esto es para no dejar el
+      // formulario abierto mientras llega.
+      renderFicha();
+    } catch (e) {
+      console.error('[editar cliente]', e);
+      toast('No se pudieron guardar los datos');
+      this.disabled = false;
+      this.textContent = 'Guardar';
+    }
+  };
+}
+
+function cerrarFicha() {
+  document.getElementById('cli-ficha-ov').classList.remove('open');
+  document.body.style.overflow = '';
+  if (unsubFichaLedger) { unsubFichaLedger(); unsubFichaLedger = null; }
+  if (unsubFichaCanjes) { unsubFichaCanjes(); unsubFichaCanjes = null; }
+  fichaUid = null;
+}
+
+function fechaCorta(v) {
+  if (!v) return '';
+  const d = v && typeof v.toDate === 'function' ? v.toDate() : new Date(v);
+  if (isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('es-CR', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function renderFicha() {
+  const u = cfUsers.find(x => x.id === fichaUid);
+  if (!u) { cerrarFicha(); return; }
+  const t = cfTierOf(u.lifetimePoints || 0);
+  const tel = String(u.phone || '').replace(/\D/g, '');
+
+  document.getElementById('cli-ficha-nombre').textContent = u.name || 'Sin nombre';
+  document.getElementById('cli-ficha-sub').textContent =
+    (u.email || '') + (u.phone ? ' · ' + u.phone : '');
+
+  document.getElementById('cli-ficha-resumen').innerHTML =
+    '<div class="cf-dato"><div class="cf-dato-n">' + (Number(u.points) || 0) + '</div>' +
+      '<div class="cf-dato-l">Puntos hoy</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + (Number(u.lifetimePoints) || 0) + '</div>' +
+      '<div class="cf-dato-l">Acumulados</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + t.name + '</div>' +
+      '<div class="cf-dato-l">Nivel</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + (Number(u.ordersCount) || 0) + '</div>' +
+      '<div class="cf-dato-l">Pedidos</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + fmt(Math.round(Number(u.totalSpent) || 0)) + '</div>' +
+      '<div class="cf-dato-l">Total comprado</div></div>' +
+    '<div class="cf-dato"><div class="cf-dato-n">' + (fechaCorta(u.createdAt) || '—') + '</div>' +
+      '<div class="cf-dato-l">Cliente desde</div></div>';
+
+  document.getElementById('cli-ficha-datos').innerHTML =
+    '<div class="cf-fila"><span>Direccion</span><b>' + esc(u.address || '—') + '</b></div>' +
+    '<div class="cf-fila"><span>Zona</span><b>' + esc(u.zone || '—') + '</b></div>' +
+    '<div class="cf-fila"><span>Cumpleanos</span><b>' + esc(u.birthday || '—') + '</b></div>' +
+    '<div class="cf-fila"><span>Favoritos</span><b>' + ((u.favs || []).length) + ' productos</b></div>';
+
+  document.getElementById('cli-ficha-acciones').innerHTML =
+    '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,1)">+ Dar puntos</button>' +
+    '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,-1)">- Quitar puntos</button>' +
+    '<button class="order-act-btn" onclick="editarDatosCliente()">Editar datos</button>' +
+    (tel ? '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' + esc(tel) + '">WhatsApp</a>' : '');
+
+  // Los pedidos ya estan cargados en memoria: no hace falta otra consulta.
+  const suyos = orders.filter(o => o.uid === fichaUid).sort((a, b) => {
+    const ta = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+    const tb = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+    return tb - ta;
+  });
+  document.getElementById('cli-ficha-pedidos').innerHTML = suyos.length
+    ? suyos.map(o => {
+        const st = o.status || 'pendiente';
+        return '<div class="cf-item"><div><div class="cf-item-t">' + fechaCorta(o.createdAt) +
+          (o.invoice && o.invoice.number ? ' · ' + esc(o.invoice.number) : '') + '</div>' +
+          '<div class="cf-item-s">' + (o.items || []).length + ' productos · ' +
+          esc(st.replace('_', ' ')) + '</div></div>' +
+          '<div class="cf-item-n">' + fmt(Math.round(calcOrderTotal(o))) + '</div></div>';
+      }).join('')
+    : '<div class="cf-vacio">Sin pedidos todavia.</div>';
+}
+
+function pintarFichaLedger(movs) {
+  const box = document.getElementById('cli-ficha-ledger');
+  if (!box) return;
+  box.innerHTML = movs.length
+    ? movs.map(m => {
+        const n = Number(m.points) || 0;
+        return '<div class="cf-item"><div><div class="cf-item-t">' +
+          esc(m.reason || (n >= 0 ? 'Puntos ganados' : 'Canje')) + '</div>' +
+          '<div class="cf-item-s">' + fechaCorta(m.createdAt) + '</div></div>' +
+          '<div class="cf-item-n" style="color:' + (n >= 0 ? '#27ae60' : '#c8a96e') + '">' +
+          (n >= 0 ? '+' : '-') + Math.abs(n) + '</div></div>';
+      }).join('')
+    : '<div class="cf-vacio">Sin movimientos.</div>';
+}
+
+function pintarFichaCanjes(cs) {
+  const box = document.getElementById('cli-ficha-canjes');
+  if (!box) return;
+  box.innerHTML = cs.length
+    ? cs.map(r => '<div class="cf-item"><div><div class="cf-item-t">' +
+        esc(r.rewardName || 'Premio') + '</div>' +
+        '<div class="cf-item-s">' + fechaCorta(r.createdAt) + ' · ' +
+        esc(r.status || 'solicitado') + '</div></div>' +
+        '<div class="cf-item-n">' + (Number(r.cost) || 0) + ' pts</div></div>').join('')
+    : '<div class="cf-vacio">Sin canjes.</div>';
+}
+
+document.getElementById('cli-ficha-x').addEventListener('click', cerrarFicha);
+document.getElementById('cli-ficha-ov').addEventListener('click', function (e) {
+  if (e.target === this) cerrarFicha();
+});
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' && fichaUid) cerrarFicha();
+});
+
 </script>
 </body>
 </html>

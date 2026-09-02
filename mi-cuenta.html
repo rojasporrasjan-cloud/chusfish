@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Mi cuenta | Chus's Fish</title>
+<meta name="description" content="Tu cuenta de Chus's Fish: tus pedidos, tus puntos y tus premios." />
+<meta name="robots" content="noindex, nofollow" />
+<link rel="icon" href="icon-192.png" />
+<link rel="manifest" href="manifest.json" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     MI CUENTA
+     Criterio: UNA sola historia por pantalla.
+       · una sola cifra de puntos, grande
+       · una sola barra de progreso (hacia el próximo premio, que es
+         concreto). El nivel se cuenta en texto, sin competir.
+       · 4 pestañas, no 5. Todo lo de puntos vive junto.
+     Antes había 3 barras midiendo cosas distintas y 4 cifras de
+     puntos en la misma pantalla: por eso no se entendía.
+     ═══════════════════════════════════════════════════════════════ */
+  :root{
+    --deep:#050c18; --ocean:#081426; --petrol:#0c1c30; --mid:#102438;
+    --gold:#c8a96e; --gold-lt:#e8c98a; --gold-dk:#8f7040;
+    --text:#c9d4e0; --muted:#6f8599; --dim:#4d6478; --white:#f2f5f8;
+    --line:rgba(200,169,110,.14); --line-soft:rgba(255,255,255,.06);
+    --nav-h:66px; --ease:cubic-bezier(.22,.61,.36,1);
+    --green:#7fd6a4; --red:#e0836f; --blue:#7db4ec; --purple:#c39bd3;
+    --tier:#c8a96e;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--deep); color:var(--text);
+    font-family:'Montserrat',system-ui,sans-serif; font-size:15px; line-height:1.6;
+    padding-top:var(--nav-h); min-height:100vh; min-height:100dvh;   /* dvh: en iOS el 100vh sobra por abajo */ overflow-x:hidden;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  }
+  a{color:inherit;text-decoration:none}
+  ::selection{background:rgba(200,169,110,.25)}
+  .serif{font-family:'Cormorant Garamond',Georgia,serif;font-weight:300}
+  .label{font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;color:var(--dim)}
+
+  /* ── NAV ── */
+  nav{
+    position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:300;
+    display:flex;align-items:center;gap:.8rem;padding:0 1.4rem;
+    background:rgba(5,12,24,.86);backdrop-filter:blur(16px) saturate(140%);
+    -webkit-backdrop-filter:blur(16px) saturate(140%);
+    border-bottom:1px solid var(--line-soft);
+  }
+  .nav-logo{display:flex;align-items:center;gap:.65rem;margin-right:auto}
+  .nav-logo img{height:34px;width:34px;border-radius:7px;object-fit:cover}
+  .nav-logo-text{font-family:'Cormorant Garamond',serif;font-size:1.12rem;color:var(--white)}
+  .nav-logo-text span{color:var(--gold)}
+  .nav-lnk{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+    padding:.5rem .1rem;margin-left:1.5rem;transition:color .3s var(--ease);
+    white-space:nowrap;position:relative}
+  .nav-lnk::after{content:'';position:absolute;left:0;right:0;bottom:.15rem;height:1px;
+    background:var(--gold);transform:scaleX(0);transform-origin:left;
+    transition:transform .4s var(--ease)}
+  .nav-lnk:hover{color:var(--gold-lt)} .nav-lnk:hover::after{transform:scaleX(1)}
+  .nav-lnk.on{color:var(--gold)} .nav-lnk.on::after{transform:scaleX(1)}
+  @media(max-width:600px){ .nav-lnk{margin-left:1rem;letter-spacing:.14em}
+    .nav-lnk.hide-sm{display:none} }
+
+  .wrap{max-width:920px;margin:0 auto;padding:2rem 1.4rem 5rem}
+
+  /* ── BOTONES ── */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+    padding:.9rem 1.8rem;border:1px solid var(--gold);border-radius:2px;cursor:pointer;
+    background:var(--gold);color:var(--deep);font-family:inherit;font-size:.62rem;
+    font-weight:700;letter-spacing:.2em;text-transform:uppercase;
+    transition:background .4s var(--ease),border-color .4s var(--ease);
+  }
+  .btn:hover{background:var(--gold-lt);border-color:var(--gold-lt)}
+  .btn.ghost{background:transparent;color:var(--gold);border-color:rgba(200,169,110,.35)}
+  .btn.ghost:hover{background:rgba(200,169,110,.08);border-color:var(--gold);color:var(--gold-lt)}
+  .btn.sm{padding:.58rem 1.2rem;font-size:.57rem;letter-spacing:.16em}
+  .btn:disabled{opacity:.32;cursor:default;background:transparent;color:var(--muted)}
+
+  /* ── PUERTA (sin sesión) ── */
+  #gate{display:none;text-align:center;padding:3rem 0 2rem}
+  #gate.show{display:block}
+  #gate .mark{font-family:'Cormorant Garamond',serif;font-size:2.6rem;color:var(--gold);margin-bottom:.5rem}
+  #gate h1{font-family:'Cormorant Garamond',serif;font-weight:300;
+    font-size:clamp(2.2rem,7vw,3.2rem);color:var(--white);line-height:1.1}
+  #gate h1 em{font-style:italic;color:var(--gold-lt)}
+  #gate p.lead{color:var(--muted);font-size:.84rem;line-height:1.8;margin:1rem auto 0;max-width:46ch}
+
+  /* ══ TARJETA PRINCIPAL ══ */
+  #app{display:none}
+
+  /* ── MIENTRAS FIREBASE RESPONDE ──
+     Antes esta pagina no mostraba NADA hasta que llegaba la sesion: ni la
+     puerta ni el perfil, los dos en display:none. En una conexion lenta se
+     veia como si "Mi cuenta" no entrara y se quedara cargando para siempre,
+     sin una sola pista de que estaba pasando. */
+  #cargando{padding:5rem 1.4rem;text-align:center}
+  #cargando .pulso{
+    width:34px;height:34px;margin:0 auto 1.4rem;border-radius:50%;
+    border:1px solid var(--line);border-top-color:var(--gold);
+    animation:girar 1s linear infinite}
+  @keyframes girar{to{transform:rotate(360deg)}}
+  #cargando p{font-size:.8rem;color:var(--muted);line-height:1.8;max-width:34ch;margin:0 auto}
+  #cargando .btn{margin-top:1.6rem}
+  @media (prefers-reduced-motion: reduce){ #cargando .pulso{animation:none} }
+  #app.show{display:block}
+
+  .hero{
+    position:relative;overflow:hidden;padding:2rem 2rem 1.8rem;margin-bottom:1rem;
+    background:linear-gradient(150deg,var(--petrol),var(--deep) 68%);
+    border:1px solid var(--line);
+  }
+  .hero::before{content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(circle at 90% -12%,var(--tier),transparent 55%);opacity:.15}
+  .hero::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--tier),transparent)}
+  .hero > *{position:relative;z-index:1}
+
+  .who{display:flex;align-items:center;gap:1rem;margin-bottom:1.6rem}
+  .avatar{width:52px;height:52px;flex-shrink:0;border-radius:50%;overflow:hidden;
+    border:1px solid var(--tier);display:grid;place-items:center;
+    background:linear-gradient(150deg,var(--mid),var(--petrol));
+    font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--tier)}
+  .avatar img{width:100%;height:100%;object-fit:cover}
+  .who-b{min-width:0;flex:1}
+  .who-n{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.5rem;
+    color:var(--white);line-height:1.2}
+  .who-t{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--tier);margin-top:.25rem}
+  .who-da{font-size:.73rem;color:var(--muted);margin-top:.3rem;line-height:1.6}
+
+  /* La única cifra grande de la pantalla */
+  .saldo{display:flex;align-items:baseline;gap:.65rem;flex-wrap:wrap}
+  .saldo b{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:4rem;
+    line-height:.85;color:var(--gold-lt);letter-spacing:-.02em}
+  .saldo span{font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:var(--muted)}
+  @media(max-width:520px){ .saldo b{font-size:3.2rem} .hero{padding:1.6rem 1.3rem} }
+
+  /* La única barra de progreso: hacia el próximo premio */
+  .meta{margin-top:1.7rem;padding-top:1.5rem;border-top:1px solid var(--line-soft)}
+  .meta-l{font-size:.56rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);
+    margin-bottom:.7rem}
+  .meta-row{display:flex;align-items:center;gap:1rem}
+  .meta-img{width:56px;height:56px;flex-shrink:0;overflow:hidden;
+    background:linear-gradient(150deg,var(--mid),var(--petrol));display:grid;place-items:center}
+  .meta-img img{width:100%;height:100%;object-fit:cover}
+  .meta-img i{font-style:normal;font-family:'Cormorant Garamond',serif;font-size:1.1rem;
+    color:var(--gold);opacity:.75}
+  .meta-b{flex:1;min-width:0}
+  .meta-n{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--white);
+    line-height:1.25;margin-bottom:.5rem}
+  .meta-bar{display:block;height:3px;background:var(--line-soft);overflow:hidden}
+  .meta-bar i{display:block;height:100%;background:var(--gold);width:0;
+    transition:width 1.1s var(--ease)}
+  .meta-x{display:block;font-size:.72rem;color:var(--muted);margin-top:.55rem}
+  .meta-x b{color:var(--gold-lt);font-weight:600}
+  .meta-x.ok{color:var(--green)}
+
+  .hero-cta{margin-top:1.7rem;display:flex;gap:.6rem;flex-wrap:wrap}
+  .hero-nivel{margin-top:1rem;font-size:.7rem;color:var(--dim);line-height:1.6}
+
+  /* ── Completar perfil ── */
+  .fill{border:1px solid rgba(200,169,110,.32);padding:1.1rem 1.3rem;margin-bottom:1.4rem;
+    background:rgba(200,169,110,.04);display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap}
+  .fill-b{flex:1;min-width:190px}
+  .fill-t{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--white)}
+  .fill-m{font-size:.74rem;color:var(--muted);line-height:1.7;margin-top:.3rem}
+  .fill-m b{color:var(--text);font-weight:500}
+
+  /* ── 3 datos, sin repetir los puntos ── */
+  .stats{display:grid;gap:0;margin-bottom:1.6rem;grid-template-columns:repeat(3,1fr);
+    border-top:1px solid var(--line-soft);border-left:1px solid var(--line-soft)}
+  .stat{padding:1.1rem 1rem;border-right:1px solid var(--line-soft);
+    border-bottom:1px solid var(--line-soft)}
+  .stat-n{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.6rem;
+    color:var(--white);line-height:1.1}
+  .stat-l{font-size:.53rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--dim);margin-top:.4rem}
+  @media(max-width:480px){ .stat{padding:.9rem .7rem} .stat-n{font-size:1.3rem} }
+
+  /* ── MENU DEL PERFIL ──
+     Antes era una tira de texto chiquito en versalitas: se leia mal y no
+     decia nada. Ahora cada opcion muestra su estado ("2 pedidos",
+     "1.250 puntos"), que es lo que hace que se entienda de un vistazo. */
+  .menu{display:grid;gap:.7rem;grid-template-columns:repeat(4,1fr);margin-bottom:2rem}
+  @media(max-width:860px){ .menu{grid-template-columns:repeat(2,1fr)} }
+  @media(max-width:420px){ .menu{grid-template-columns:1fr} }
+
+  .mi{position:relative;display:flex;align-items:center;gap:.85rem;text-align:left;
+    padding:1.05rem 1.1rem;background:none;cursor:pointer;font-family:inherit;
+    border:1px solid var(--line-soft);transition:border-color .35s var(--ease),
+    background .35s var(--ease)}
+  .mi:hover{border-color:var(--line);background:rgba(200,169,110,.03)}
+  .mi.on{border-color:var(--gold);background:rgba(200,169,110,.07)}
+  .mi.on::before{content:'';position:absolute;top:-1px;left:-1px;width:3px;bottom:-1px;
+    background:var(--gold)}
+  .mi svg{width:20px;height:20px;flex-shrink:0;fill:none;stroke:var(--dim);
+    stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;
+    transition:stroke .35s var(--ease)}
+  .mi.on svg{stroke:var(--gold)}
+  /* display:block en los dos — son <span> dentro de <span>, y sin esto el
+     estado se pega al título ("Mis pedidos1 pedido") y el ellipsis del
+     .mi-s no hace nada. Misma regla en .gl-t/.gl-s más abajo. */
+  .mi-b{min-width:0;flex:1}
+  .mi-t{display:block;font-size:.72rem;color:var(--text);letter-spacing:.02em;line-height:1.3}
+  .mi.on .mi-t{color:var(--white)}
+  .mi-s{display:block;font-size:.63rem;color:var(--dim);margin-top:.2rem;line-height:1.4;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mi.on .mi-s{color:var(--gold-lt)}
+  .mi-alerta{position:absolute;top:.55rem;right:.6rem;width:6px;height:6px;
+    border-radius:50%;background:var(--gold)}
+
+  .panel{display:none}
+  .panel.on{display:block;animation:fade .45s var(--ease)}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  .sec{margin-bottom:2.4rem}
+  .sec-h{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.4rem;
+    color:var(--white);margin-bottom:.4rem}
+  .sec-p{font-size:.75rem;color:var(--muted);line-height:1.75;margin-bottom:1.2rem;max-width:60ch}
+
+  /* ── Tarjetas ── */
+  .card{border:1px solid var(--line-soft);padding:1.3rem 1.4rem;margin-bottom:.9rem}
+  .card-hd{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;
+    justify-content:space-between;margin-bottom:.9rem;padding-bottom:.85rem;
+    border-bottom:1px solid var(--line-soft)}
+  .card-date{font-size:.62rem;color:var(--dim);letter-spacing:.12em;text-transform:uppercase}
+  .pill{display:inline-block;padding:.22rem .65rem;font-size:.54rem;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase;border:1px solid currentColor}
+  .pill.pendiente,.pill.solicitado{color:var(--gold)}
+  .pill.confirmado,.pill.aprobado{color:var(--blue)}
+  .pill.en_camino{color:var(--purple)}
+  .pill.entregado{color:var(--green)}
+  .pill.cancelado,.pill.rechazado{color:var(--red)}
+
+  .items{list-style:none;font-size:.78rem}
+  .items li{display:flex;justify-content:space-between;gap:1rem;padding:.32rem 0}
+  .items .qty{color:var(--dim);font-size:.72rem;white-space:nowrap}
+  .tot{display:flex;justify-content:space-between;gap:1rem;margin-top:.9rem;padding-top:.85rem;
+    border-top:1px solid var(--line-soft);font-size:.78rem;align-items:baseline}
+  .tot b{font-family:'Cormorant Garamond',serif;font-weight:400;font-size:1.25rem;
+    color:var(--gold-lt);white-space:nowrap}
+  .tot small{display:block;font-size:.62rem;color:var(--dim);font-weight:400;margin-top:.15rem}
+  .gan{margin-top:.85rem;font-size:.7rem;letter-spacing:.03em}
+  .gan.si{color:var(--green)} .gan.no{color:var(--dim)}
+
+  /* ── Movimientos ── */
+  .mov{display:flex;align-items:center;gap:1rem;padding:.95rem .2rem;
+    border-bottom:1px solid var(--line-soft)}
+  .mov:last-child{border-bottom:0}
+  .mov-b{flex:1;min-width:0}
+  .mov-t{font-size:.78rem;color:var(--text)}
+  .mov-d{font-size:.61rem;color:var(--dim);margin-top:.2rem;letter-spacing:.1em;text-transform:uppercase}
+  .mov-n{font-family:'Cormorant Garamond',serif;font-size:1.2rem;white-space:nowrap}
+  .mov-n.pos{color:var(--green)} .mov-n.neg{color:var(--gold-lt)}
+
+  /* ── Niveles ── */
+  .rungs{border-top:1px solid var(--line-soft)}
+  .rung{display:flex;gap:1rem;align-items:flex-start;padding:1rem .2rem;
+    border-bottom:1px solid var(--line-soft)}
+  .rung.locked{opacity:.42}
+  .rung-i{width:26px;height:26px;flex-shrink:0;display:grid;place-items:center;
+    font-size:.62rem;font-weight:700;color:var(--deep);background:var(--rc);
+    font-family:'Cormorant Garamond',serif}
+  .rung.locked .rung-i{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .rung-b{flex:1;min-width:0}
+  .rung-t{display:flex;flex-wrap:wrap;gap:.55rem;align-items:baseline}
+  .rung-t>span:first-child{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--white)}
+  .rung-t .req{font-size:.61rem;color:var(--dim);letter-spacing:.06em}
+  .rung-t .you{font-size:.52rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--deep);background:var(--rc);padding:.14rem .5rem;font-weight:700}
+  .rung-p{font-size:.74rem;color:var(--muted);margin-top:.3rem;line-height:1.7}
+
+  /* ── Favoritos ── */
+  .favs{display:grid;gap:0;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+    border-top:1px solid var(--line-soft);border-left:1px solid var(--line-soft)}
+  .fav{padding:1.2rem;display:flex;flex-direction:column;
+    border-right:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+  .fav-n{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--white);
+    line-height:1.3;margin-bottom:.45rem}
+  .fav-p{font-size:.75rem;color:var(--gold-lt)}
+  .fav-x{margin-top:.9rem;align-self:flex-start;background:none;border:0;cursor:pointer;
+    color:var(--dim);font-family:inherit;font-size:.56rem;letter-spacing:.16em;
+    text-transform:uppercase;padding:0;transition:color .35s var(--ease)}
+  .fav-x:hover{color:var(--red)}
+
+  /* ── Formulario ── */
+  .form-grid{display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .fld label{display:block;font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--dim);margin-bottom:.45rem}
+  .fld input,.fld select{width:100%;padding:.65rem 0;background:transparent;border:0;
+    border-bottom:1px solid var(--line-soft);color:var(--white);font-family:inherit;
+    font-size:.88rem;outline:none;transition:border-color .4s var(--ease)}
+  .fld input:focus,.fld select:focus{border-bottom-color:var(--gold)}
+  .fld select option{background:var(--petrol);color:var(--white)}
+  .fld input:disabled{color:var(--dim)}
+  .fld .hint{font-size:.62rem;color:var(--dim);margin-top:.4rem;line-height:1.6}
+  .fld.bad input{border-bottom-color:var(--red)}
+
+  /* ── Vacíos / avisos ── */
+  .empty{text-align:center;padding:3.2rem 1rem;color:var(--muted)}
+  .empty .mark{font-family:'Cormorant Garamond',serif;font-size:2rem;display:block;
+    margin-bottom:.9rem;color:var(--gold);opacity:.55}
+  .empty p{font-size:.79rem;margin-bottom:1.4rem;line-height:1.8}
+  .note{border-left:1px solid var(--gold);padding:.85rem 1.1rem;font-size:.73rem;
+    color:var(--muted);line-height:1.75;margin-bottom:1.4rem;background:rgba(200,169,110,.03)}
+  .note a{color:var(--gold);text-decoration:underline}
+  .note b{color:var(--text);font-weight:500}
+
+  .pasos{display:grid;gap:1.4rem;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    margin-bottom:1rem}
+  .paso em{font-family:'Cormorant Garamond',serif;font-style:normal;font-size:1.3rem;
+    color:var(--gold);display:block;margin-bottom:.4rem}
+  .paso p{font-size:.74rem;color:var(--muted);line-height:1.75}
+
+  .skel{height:80px;border:1px solid var(--line-soft);margin-bottom:.9rem;
+    background:linear-gradient(100deg,rgba(16,36,56,.4),rgba(16,36,56,.8),rgba(16,36,56,.4));
+    background-size:220% 100%;animation:sk 1.6s infinite linear}
+  @keyframes sk{0%{background-position:220% 0}100%{background-position:-220% 0}}
+
+  #toast{position:fixed;left:50%;bottom:2rem;transform:translate(-50%,180%);
+    background:var(--gold);color:var(--deep);padding:.8rem 1.5rem;
+    font-size:.63rem;font-weight:700;letter-spacing:.12em;z-index:900;
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:transform .5s var(--ease),opacity .3s ease,visibility 0s linear .5s;
+    max-width:92vw;text-align:center}
+  #toast.on{transform:translate(-50%,0);opacity:1;visibility:visible;
+    transition:transform .5s var(--ease),opacity .3s ease,visibility 0s}
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.001ms !important; animation-iteration-count:1 !important;
+      transition-duration:.001ms !important; scroll-behavior:auto !important;
+    }
+  }
+
+  /* ══ TU NIVEL ══
+     Sale de la pestaña escondida y pasa a la vista principal: el cliente
+     tiene que ver QUE GANA con su nivel, no solo como se llama. */
+  .nivel-sec{border:1px solid var(--line);padding:1.6rem 1.5rem;margin-bottom:1.6rem;
+    background:linear-gradient(160deg,rgba(12,28,48,.5),transparent)}
+  .nivel-h{display:flex;align-items:baseline;justify-content:space-between;
+    gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
+  .nivel-h h3{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.5rem;color:var(--white)}
+  .nivel-h span{font-size:.7rem;color:var(--muted)}
+  .nivel-p{font-size:.75rem;color:var(--muted);line-height:1.75;margin-bottom:1.4rem;max-width:62ch}
+
+  .escala{display:grid;gap:.7rem;grid-template-columns:repeat(3,1fr);margin-bottom:1.5rem}
+  @media(max-width:640px){ .escala{grid-template-columns:1fr} }
+  .esc{border:1px solid var(--line-soft);padding:1.1rem 1.1rem 1.2rem;position:relative;
+    transition:border-color .4s var(--ease)}
+  .esc.tuyo{border-color:var(--ec);background:rgba(200,169,110,.05)}
+  .esc.lejos{opacity:.5}
+  .esc-top{display:flex;align-items:center;gap:.55rem;margin-bottom:.7rem}
+  .esc-pin{width:22px;height:22px;flex-shrink:0;display:grid;place-items:center;
+    font-family:'Cormorant Garamond',serif;font-size:.62rem;font-weight:700;
+    color:var(--deep);background:var(--ec)}
+  .esc.lejos .esc-pin{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  .esc-n{font-family:'Cormorant Garamond',serif;font-size:1.25rem;color:var(--white);line-height:1}
+  .esc-tu{position:absolute;top:-1px;right:-1px;font-size:.5rem;letter-spacing:.18em;
+    text-transform:uppercase;font-weight:700;color:var(--deep);background:var(--ec);
+    padding:.16rem .5rem}
+  .esc-req{font-size:.61rem;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);
+    margin-bottom:.6rem}
+  .esc-da{font-size:.75rem;color:var(--text);line-height:1.7}
+  .esc.lejos .esc-da{color:var(--muted)}
+
+  .nivel-bar-l{display:flex;justify-content:space-between;gap:1rem;font-size:.7rem;
+    color:var(--muted);margin-bottom:.5rem}
+  .nivel-bar-l b{color:var(--gold-lt);font-weight:600;white-space:nowrap}
+  /* Mas fina y apagada que la del premio: esa es la que importa, esta
+     es informacion de contexto. Dos barras iguales confunden. */
+  .nivel-bar{height:2px;background:var(--line-soft);overflow:hidden}
+  .nivel-bar i{display:block;height:100%;background:var(--gold-dk);width:0;
+    transition:width 1.1s var(--ease)}
+
+  /* Abrir/cerrar el detalle de niveles. Cerrado por defecto: lo que cambia
+     de una visita a otra es la barra de avance, no la explicacion. */
+  .nivel-mas{
+    margin-top:1rem;background:none;border:0;padding:.2rem 0;cursor:pointer;
+    font-family:inherit;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--gold);text-decoration:underline;text-underline-offset:4px;
+  }
+  .nivel-mas:hover{color:var(--gold-lt)}
+  .nivel-detalle{margin-top:1.2rem;animation:fade .4s var(--ease)}
+  .nivel-detalle .nivel-p{margin-bottom:1.2rem}
+
+  /* El ejemplo en plata: es lo que hace entender el beneficio */
+  .ejemplo{margin-top:1.4rem;padding:1rem 1.1rem;border-left:1px solid var(--gold);
+    background:rgba(200,169,110,.04);font-size:.76rem;color:var(--muted);line-height:1.8}
+  .ejemplo b{color:var(--gold-lt);font-weight:600}
+  .ejemplo em{font-style:normal;color:var(--text)}
+
+  /* ══ PUERTA (sin sesión) ══
+     Antes eran 4 frases genéricas. Ahora muestra datos reales: cuántos
+     puntos da una compra, qué premios hay con su foto y su costo, y los
+     niveles. Ver el premio concreto convence mucho más que prometerlo. */
+  .gate-cta{margin-top:2rem}
+  .gate-ya{font-size:.75rem;color:var(--muted);margin-top:1rem}
+  .gate-ya button{background:none;border:0;padding:0;cursor:pointer;font-family:inherit;
+    font-size:.75rem;color:var(--gold);text-decoration:underline}
+  .gate-ya button:hover{color:var(--gold-lt)}
+
+  .gate-sec{margin-top:3.5rem;text-align:left}
+  .gate-h{font-family:'Cormorant Garamond',serif;font-weight:300;font-size:1.6rem;
+    color:var(--white);margin-bottom:.4rem;text-align:center}
+  .gate-p{font-size:.76rem;color:var(--muted);line-height:1.7;margin-bottom:1.4rem;
+    text-align:center}
+  .gate-link{display:block;text-align:center;margin-top:1.3rem;font-size:.6rem;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--gold)}
+  .gate-link:hover{color:var(--gold-lt)}
+
+  .gate-lista{border-top:1px solid var(--line-soft)}
+  .gl{display:flex;gap:1rem;align-items:flex-start;padding:1rem .2rem;
+    border-bottom:1px solid var(--line-soft)}
+  .gl-i{width:34px;height:34px;flex-shrink:0;display:grid;place-items:center;
+    border:1px solid var(--line);border-radius:50%}
+  .gl-i svg{width:17px;height:17px;fill:none;stroke:var(--gold);stroke-width:1.4;
+    stroke-linecap:round;stroke-linejoin:round}
+  .gl-b{flex:1;min-width:0}
+  .gl-t{display:block;font-size:.82rem;color:var(--white);line-height:1.4}
+  .gl-s{display:block;font-size:.73rem;color:var(--muted);margin-top:.25rem;line-height:1.65}
+
+  .gate-premios{display:grid;gap:.8rem;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .gp{border:1px solid var(--line-soft);overflow:hidden;text-align:left}
+  .gp-img{position:relative;aspect-ratio:4/3;overflow:hidden;
+    background:linear-gradient(150deg,var(--mid),var(--ocean))}
+  .gp-img img{width:100%;height:100%;object-fit:cover}
+  .gp-img i{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;
+    font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold);opacity:.5}
+  .gp-b{padding:.7rem .8rem .85rem}
+  .gp-n{font-size:.75rem;color:var(--white);line-height:1.35}
+  .gp-c{font-size:.7rem;color:var(--gold-lt);margin-top:.3rem}
+
+  .gate-niveles{display:grid;gap:.7rem;grid-template-columns:repeat(3,1fr)}
+  @media(max-width:640px){ .gate-niveles{grid-template-columns:1fr} }
+  .gn{border:1px solid var(--line-soft);padding:1rem 1rem 1.1rem;text-align:left}
+  .gn-t{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+  .gn-p{width:20px;height:20px;flex-shrink:0;background:var(--gc)}
+  .gn-n{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--white)}
+  .gn-r{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);
+    margin-bottom:.45rem}
+  .gn-d{font-size:.73rem;color:var(--muted);line-height:1.65}
+
+  .gate-final{margin-top:3.5rem;padding-top:2.5rem;border-top:1px solid var(--line-soft)}
+  .gate-final p{font-size:.78rem;color:var(--muted);line-height:1.75;
+    max-width:44ch;margin:0 auto 1.4rem}
+
+  /* Franja de fotos reales del catálogo. Es lo primero que se ve al entrar
+     sin cuenta: producto de verdad, no un dibujo.
+     Siempre son 4 fotos, así que la grilla solo puede ser de 4 o de 2
+     columnas: con 3 quedaba una huérfana sola en la segunda fila. */
+  .gate-fotos{display:grid;gap:.4rem;grid-template-columns:repeat(4,1fr);
+    margin:0 0 2.2rem;min-height:0}
+  .gate-fotos figure{position:relative;aspect-ratio:1;overflow:hidden;margin:0;
+    background:linear-gradient(150deg,var(--mid),var(--ocean))}
+  .gate-fotos img{width:100%;height:100%;object-fit:cover;opacity:.78}
+  .gate-fotos figure::after{content:'';position:absolute;inset:0;
+    background:linear-gradient(to top,rgba(5,12,24,.55),transparent 60%)}
+  /* En celular: 2×2 con las fotos más grandes. Es lo primero que ve alguien
+     que todavía no tiene cuenta — el producto tiene que verse. */
+  @media(max-width:560px){
+    .gate-fotos{grid-template-columns:repeat(2,1fr);gap:.35rem;margin-bottom:1.8rem}
+    .gate-fotos figure{aspect-ratio:3/2}
+  }
+
+  /* ── Zonas seguras del iPhone (muesca / gesto inferior) ── */
+  @supports (top: env(safe-area-inset-top)) {
+    nav { padding-top: env(safe-area-inset-top); box-sizing: content-box; }
+    body { padding-top: calc(var(--nav-h) + env(safe-area-inset-top)); }
+  }
+
+  @media (max-width: 860px) {
+    /* Ver nota de fluidez en catalogo.html: una barra fija con vidrio
+       esmerilado se vuelve a desenfocar en cada cuadro del desplazamiento. */
+    nav { backdrop-filter: none; -webkit-backdrop-filter: none; background: #050c18; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">
+    <img src="logo-256.jpg" alt="Chus's Fish" />
+    <div class="nav-logo-text">Chus<span>'s Fish</span></div>
+  </a>
+  <a href="catalogo.html" class="nav-lnk hide-sm">Catálogo</a>
+  <a href="premios.html" class="nav-lnk">La Reserva</a>
+  <a href="mi-cuenta.html" class="nav-lnk on" id="cf-account-link"><span class="cf-acc-label">Mi cuenta</span></a>
+</nav>
+
+<div class="wrap">
+
+  <!-- ══ MIENTRAS CARGA ══ -->
+  <section id="cargando">
+    <div class="pulso"></div>
+    <p id="cargando-txt">Abriendo tu cuenta…</p>
+  </section>
+
+  <!-- ══ SIN SESIÓN ══ -->
+  <section id="gate">
+    <div class="gate-fotos" id="gate-fotos"></div>
+    <div class="mark">✦</div>
+    <h1 class="serif">Tu cuenta <em>Chus's Fish</em></h1>
+    <p class="lead">
+      Es gratis. Cada compra te suma puntos y los cambiás por producto
+      de verdad en La Reserva.
+    </p>
+    <div class="gate-cta">
+      <button class="btn" id="gate-in">Crear mi cuenta</button>
+      <p class="gate-ya">¿Ya tenés cuenta?
+        <button type="button" id="gate-login">Iniciar sesión</button></p>
+    </div>
+
+    <!-- Todo lo de abajo se llena con datos reales: si no hay premios
+         cargados, la seccion no se muestra. -->
+    <div class="gate-sec">
+      <h2 class="gate-h">Cómo ganás puntos</h2>
+      <div class="gate-lista" id="gate-ganar"></div>
+    </div>
+
+    <div class="gate-sec" id="gate-premios-sec" style="display:none">
+      <h2 class="gate-h">Qué podés canjear</h2>
+      <p class="gate-p" id="gate-premios-sub"></p>
+      <div class="gate-premios" id="gate-premios"></div>
+      <a href="premios.html" class="gate-link">Ver toda La Reserva →</a>
+    </div>
+
+    <div class="gate-sec">
+      <h2 class="gate-h">Los niveles</h2>
+      <p class="gate-p">Mientras más comprás, más puntos te da cada compra.</p>
+      <div class="gate-niveles" id="gate-niveles"></div>
+    </div>
+
+    <div class="gate-final">
+      <p>Crear la cuenta lleva menos de un minuto y empezás a sumar
+        desde tu próxima compra.</p>
+      <button class="btn" id="gate-in2">Crear mi cuenta</button>
+    </div>
+  </section>
+
+  <!-- ══ CON SESIÓN ══ -->
+  <section id="app">
+
+    <!-- Una sola tarjeta: quién sos, cuánto tenés, qué sigue -->
+    <div class="hero" id="hero">
+      <div class="who">
+        <div class="avatar" id="u-avatar">·</div>
+        <div class="who-b">
+          <div class="who-n" id="u-name">—</div>
+          <div class="who-t" id="u-tier">—</div>
+          <div class="who-da" id="u-tier-da"></div>
+        </div>
+      </div>
+
+      <div class="saldo"><b id="u-pts">0</b><span>puntos</span></div>
+
+      <div class="meta" id="meta"></div>
+
+      <div class="hero-cta">
+        <a href="premios.html" class="btn sm">Ver La Reserva</a>
+        <a href="catalogo.html" class="btn sm ghost">Hacer un pedido</a>
+      </div>
+    </div>
+
+    <div id="fill-box"></div>
+
+    <div class="stats">
+      <div class="stat"><div class="stat-n" id="s-orders">0</div><div class="stat-l">Pedidos</div></div>
+      <div class="stat"><div class="stat-n" id="s-spent">₡0</div><div class="stat-l">Total comprado</div></div>
+      <div class="stat"><div class="stat-n" id="s-since">—</div><div class="stat-l">Cliente desde</div></div>
+    </div>
+
+    <div class="nivel-sec" id="nivel-sec"></div>
+
+    <div class="menu">
+      <button class="mi on" data-tab="pedidos">
+        <svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/></svg>
+        <span class="mi-b"><span class="mi-t">Mis pedidos</span>
+          <span class="mi-s" id="m-ped">—</span></span>
+      </button>
+      <button class="mi" data-tab="puntos">
+        <svg viewBox="0 0 24 24"><path d="M12 3l2.4 6.3H21l-5.3 3.9 2 6.4-5.7-4.1-5.7 4.1 2-6.4L3 9.3h6.6z"/></svg>
+        <span class="mi-b"><span class="mi-t">Mis puntos</span>
+          <span class="mi-s" id="m-pts">—</span></span>
+      </button>
+      <button class="mi" data-tab="favoritos">
+        <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 2.5c0 5-7 9.5-7 9.5z"/></svg>
+        <span class="mi-b"><span class="mi-t">Favoritos</span>
+          <span class="mi-s" id="m-fav">—</span></span>
+      </button>
+      <button class="mi" data-tab="datos">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6"/></svg>
+        <span class="mi-b"><span class="mi-t">Mis datos</span>
+          <span class="mi-s" id="m-dat">—</span></span>
+      </button>
+    </div>
+
+    <div class="panel on" id="p-pedidos">
+      <div id="orders-box"><div class="skel"></div><div class="skel"></div></div>
+    </div>
+
+    <!-- Todo lo de puntos junto: cómo se ganan, qué pediste, el detalle y los niveles -->
+    <div class="panel" id="p-puntos">
+      <div class="sec">
+        <h3 class="sec-h">Cómo funcionan tus puntos</h3>
+        <div class="pasos">
+          <div class="paso"><em>I</em><p>Hacé tu pedido con la cuenta iniciada.</p></div>
+          <div class="paso"><em>II</em><p>Al entregarse, los puntos se suman solos según el monto facturado.</p></div>
+          <div class="paso"><em>III</em><p>Los cambiás por producto en La Reserva. Canjear no te baja de nivel.</p></div>
+        </div>
+      </div>
+
+      <div class="sec">
+        <h3 class="sec-h">Premios que pediste</h3>
+        <div id="redeem-box"><div class="skel"></div></div>
+      </div>
+
+      <div class="sec">
+        <h3 class="sec-h">Detalle de movimientos</h3>
+        <p class="sec-p">Cada suma y cada canje, con su fecha.</p>
+        <div id="ledger-box"><div class="skel"></div></div>
+      </div>
+
+    </div>
+
+    <div class="panel" id="p-favoritos">
+      <div id="favs-box"><div class="skel"></div></div>
+    </div>
+
+    <div class="panel" id="p-datos">
+      <div class="form-grid">
+        <div class="fld"><label for="f-name">Nombre completo</label>
+          <input id="f-name" type="text" autocomplete="name" /></div>
+        <div class="fld"><label for="f-phone">Teléfono (WhatsApp)</label>
+          <input id="f-phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="8888 8888" />
+          <div class="hint">Con este número coordinamos la entrega.</div></div>
+        <div class="fld" style="grid-column:1/-1"><label for="f-address">Dirección de entrega</label>
+          <input id="f-address" type="text" autocomplete="street-address" /></div>
+        <div class="fld"><label for="f-zone">Zona</label>
+          <select id="f-zone"><option value="">— Seleccioná —</option></select>
+          <div class="hint">El envío es gratis en todas las zonas.</div></div>
+        <div class="fld"><label for="f-birthday">Cumpleaños</label>
+          <input id="f-birthday" type="date" />
+          <div class="hint">Para sorprenderte el día que cumplís.</div></div>
+        <div class="fld"><label for="f-email">Correo</label>
+          <input id="f-email" type="email" disabled />
+          <div class="hint">No se puede cambiar desde acá.</div></div>
+      </div>
+      <div style="margin-top:1.8rem;display:flex;flex-wrap:wrap;gap:.6rem">
+        <button class="btn sm" id="save-btn">Guardar cambios</button>
+        <button class="btn sm ghost" id="out-btn">Cerrar sesión</button>
+      </div>
+    </div>
+
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script src="auth.js?v=10"></script>
+<script src="ui.js?v=15"></script>
+<script>
+(function(){
+  'use strict';
+
+  var $ = function(s){ return document.querySelector(s); };
+  var db=null;
+  var unsubOrders=null, unsubLedger=null, unsubRedeem=null, unsubRewards=null;
+  var loadedZones=false, products=null, rewards=[], wired=null;
+
+  function toast(msg){
+    var t=$('#toast'); t.textContent=msg; t.classList.add('on');
+    clearTimeout(t._h); t._h=setTimeout(function(){ t.classList.remove('on'); },2600);
+  }
+
+  document.querySelectorAll('.mi').forEach(function(b){
+    b.addEventListener('click', function(){
+      document.querySelectorAll('.mi').forEach(function(x){ x.classList.remove('on'); });
+      document.querySelectorAll('.panel').forEach(function(x){ x.classList.remove('on'); });
+      b.classList.add('on');
+      var p=document.getElementById('p-'+b.dataset.tab);
+      if(p) p.classList.add('on');
+    });
+  });
+
+  $('#gate-in').addEventListener('click', function(){ CF.openAuth('up'); });
+  $('#gate-in2').addEventListener('click', function(){ CF.openAuth('up'); });
+  $('#gate-login').addEventListener('click', function(){ CF.openAuth('in'); });
+
+
+
+  /* Iconos de línea, no emoji. Trazo fino y dorado: acompañan sin gritar.
+     Un emoji al lado de una foto de producto abarata las dos cosas. */
+  var ICO = {
+    bolsa:    '<svg viewBox="0 0 24 24"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>',
+    estrella: '<svg viewBox="0 0 24 24"><path d="M12 4l2.2 5.6H20l-4.6 3.4 1.7 5.6L12 15.2 6.9 18.6l1.7-5.6L4 9.6h5.8z"/></svg>',
+    regalo:   '<svg viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="11" rx="1"/><path d="M3 13h18M12 9v11"/><path d="M12 9S9.5 4 7.5 5.5 9 9 12 9zM12 9s2.5-5 4.5-3.5S15 9 12 9z"/></svg>',
+    subir:    '<svg viewBox="0 0 24 24"><path d="M4 17l5-5 4 4 7-7"/><path d="M15 9h5v5"/></svg>',
+    ticket:   '<svg viewBox="0 0 24 24"><path d="M3 9V7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v2a2 2 0 0 0 0 4v2a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-2a2 2 0 0 0 0-4z"/><path d="M13 6v2M13 11v2M13 16v2"/></svg>'
+  };
+
+  /* ═══ PUERTA: se llena con datos reales ═══
+     Prometer "ganás puntos" no convence. Ver "1 kg de Filete de Corvina
+     por 1.800 puntos" con su foto, sí. Todo sale de la base: si Jesús
+     cambia la tasa o los premios, este texto cambia solo. */
+  var puertaLista = false;
+  function pintarPuerta(){
+    // `onUser` avisa varias veces (auth + cada cambio de perfil). Lo fijo se
+    // arma una sola vez; lo que cambia (los premios) tiene su propia funcion.
+    if (puertaLista){ pintarPremiosPuerta(); return; }
+    puertaLista = true;
+
+    var cfg = CF.siteCfg || {};
+    var tasa = parseFloat(cfg.pointsPer100); if (isNaN(tasa)) tasa = 1;
+    var bono = Math.round(Number(cfg.welcomeBonus) || 0);
+    var ejemplo = 20000;
+    var t0 = CF.TIERS[0] || { mult:1 };
+
+    // Cómo se ganan
+    var pasos = [
+      { i:'bolsa', t:'Comprá como siempre',
+        s:'Hacé tu pedido con la cuenta iniciada. No hay que hacer nada más.' },
+      { i:'estrella', t:'Los puntos caen solos',
+        s:'Un pedido de ' + CF.fmtColones(ejemplo) + ' te da <b>' +
+          CF.fmtNum(Math.floor(ejemplo/100*tasa*(Number(t0.mult)||1))) +
+          ' puntos</b>. Se acreditan cuando te lo entregamos.' }
+    ];
+    if (bono > 0) {
+      pasos.push({ i:'regalo', t:'Bono de bienvenida',
+        s:'Tu primer pedido entregado te suma <b>' + CF.fmtNum(bono) +
+          ' puntos</b> extra, de regalo.' });
+    }
+    pasos.push({ i:'subir', t:'Subís de nivel',
+      s:'Mientras más acumulás, más puntos te da cada compra. Canjear no te baja de nivel.' });
+
+    $('#gate-ganar').innerHTML = pasos.map(function(p){
+      return '<div class="gl"><span class="gl-i">'+ICO[p.i]+'</span><span class="gl-b">'+
+        '<span class="gl-t">'+p.t+'</span><span class="gl-s">'+p.s+'</span></span></div>';
+    }).join('');
+
+    // Niveles reales
+    $('#gate-niveles').innerHTML = CF.TIERS.map(function(t){
+      var extra = Math.round(((Number(t.mult)||1)-1)*100);
+      return '<div class="gn" style="--gc:'+CF.esc(t.color||'#c8a96e')+'">'+
+        '<div class="gn-t"><span class="gn-p"></span>'+
+        '<span class="gn-n">'+CF.esc(t.name)+'</span></div>'+
+        '<div class="gn-r">'+(t.min===0?'Desde el inicio':'Desde '+CF.fmtNum(t.min)+' puntos')+'</div>'+
+        '<div class="gn-d">'+CF.esc(t.perk || (extra>0 ? extra+'% más de puntos en cada compra.'
+          : 'Acumulás puntos en cada compra.'))+'</div></div>';
+    }).join('');
+
+    pintarPremiosPuerta();
+    pintarFotosPuerta();
+  }
+
+  /* Cuatro fotos del catalogo, tomadas de categorias distintas para que la
+     franja no salga toda de camarones. */
+  async function pintarFotosPuerta(){
+    var box=$('#gate-fotos');
+    if(!box || box.children.length) return;
+    var prods=await loadProducts();
+    var vistas={}, elegidas=[];
+    prods.forEach(function(p){
+      if(!p.img || vistas[p.cat] || elegidas.length>=4) return;
+      vistas[p.cat]=1; elegidas.push(p);
+    });
+    if(elegidas.length<4){
+      prods.forEach(function(p){
+        if(p.img && elegidas.indexOf(p)<0 && elegidas.length<4) elegidas.push(p);
+      });
+    }
+    if(!elegidas.length){ box.style.display='none'; return; }
+    box.innerHTML=elegidas.map(function(p){
+      return '<figure><img src="'+CF.esc(p.img)+'" alt="'+CF.esc(p.name)+'" loading="lazy" /></figure>';
+    }).join('');
+  }
+
+  // Los premios de verdad, con su foto y su costo.
+  function pintarPremiosPuerta(){
+    var sec = $('#gate-premios-sec');
+    var disp = rewards.filter(function(r){
+      return r.active!==false && Number(r.stock)!==0;
+    }).sort(function(a,b){ return (Number(a.cost)||0)-(Number(b.cost)||0); });
+
+    if(!disp.length){ sec.style.display='none'; return; }
+    sec.style.display='';
+
+    var barato = disp[0];
+    $('#gate-premios-sub').innerHTML = 'Desde <b style="color:var(--gold-lt)">' +
+      CF.fmtNum(barato.cost) + ' puntos</b> ya podés llevarte algo.';
+
+    $('#gate-premios').innerHTML = disp.slice(0,4).map(function(r){
+      var img = r.img
+        ? '<img src="'+CF.esc(r.img)+'" alt="" loading="lazy" />'
+        : '<i>'+CF.esc(CF.monograma(r.name))+'</i>';
+      return '<div class="gp"><div class="gp-img">'+img+'</div>'+
+        '<div class="gp-b"><div class="gp-n">'+CF.esc(r.name)+'</div>'+
+        '<div class="gp-c">'+CF.fmtNum(r.cost)+' puntos</div></div></div>';
+    }).join('');
+  }
+
+  /* ═══ TARJETA PRINCIPAL ═══ */
+  function pintarHero(user, p){
+    var perfilReal = p || null;   // en el primer aviso puede llegar null
+    p = p || {};
+    var pts = Number(p.points)||0;
+    var lp  = Number(p.lifetimePoints)||0;
+    var t   = CF.tierOf(lp), sig = CF.nextTier(lp);
+
+    $('#hero').style.setProperty('--tier', t.color || '#c8a96e');
+    $('#u-name').textContent = (p.name || user.displayName || 'Cliente').split(/\s+/).slice(0,2).join(' ');
+    $('#u-tier').textContent = 'Nivel ' + t.name;
+    $('#u-pts').textContent  = CF.fmtNum(pts);
+    // `ordersCount` cuenta solo los pedidos ENTREGADOS (los que sumaron
+    // puntos); la lista de abajo los muestra todos. Mostrar los dos numeros
+    // en la misma pantalla decia "4 pedidos" arriba y "1 pedido" en el menu.
+    // Manda siempre la lista, que es lo que la persona puede ver y contar.
+    $('#s-orders').textContent = CF.fmtNum(
+      pedidosTotal !== null ? pedidosTotal : (p.ordersCount||0));
+    $('#s-spent').textContent  = CF.fmtColones(p.totalSpent||0);
+    var alta = CF.toDate(p.createdAt);
+    $('#s-since').textContent = alta
+      ? alta.toLocaleDateString('es-CR',{month:'short',year:'numeric'}).replace('.','')
+      : '—';
+
+
+    pintarAvatar(user, p);
+    pintarMenu(perfilReal);
+    pintarMeta(pts);
+    pintarNiveles(lp, t);
+    pintarPerfil(p);
+  }
+
+  /* Cada opcion del menu dice su estado. Es lo que hace que se entienda
+     sin tener que entrar a mirar.
+     Los tres datos llegan por caminos distintos (perfil, pedidos, favoritos)
+     y en momentos distintos: cada uno se pinta solo cuando de verdad llego,
+     nunca se sobreescribe con un cero de relleno. */
+  var pedidosTotal = null;
+
+  function pintarMenu(p, pedidos, favs){
+    var set=function(id,txt){ var e=document.getElementById(id); if(e) e.textContent=txt; };
+
+    if (typeof pedidos === 'number'){
+      pedidosTotal = pedidos;
+      set('m-ped', pedidos ? pedidos + (pedidos===1?' pedido':' pedidos') : 'Ninguno todavía');
+      set('s-orders', CF.fmtNum(pedidos));
+    }
+    if (typeof favs === 'number'){
+      set('m-fav', favs ? favs + (favs===1?' producto':' productos') : 'Ninguno todavía');
+    }
+
+    // Sin perfil todavia no hay nada que decir de puntos ni de datos: dejar
+    // el guion es mas honesto que escribir "0 disponibles" y corregirlo.
+    if (!p) return;
+
+    set('m-pts', CF.fmtNum(p.points||0) + ' disponibles');
+
+    var faltan = CAMPOS.filter(function(c){ return !p[c.k]; });
+    set('m-dat', faltan.length ? 'Falta completar' : 'Todo completo');
+
+    // Punto de aviso solo donde hay algo que hacer.
+    var bDatos = document.querySelector('.mi[data-tab="datos"]');
+    if (bDatos){
+      var punto = bDatos.querySelector('.mi-alerta');
+      if (faltan.length && !punto){
+        var d=document.createElement('span'); d.className='mi-alerta'; bDatos.appendChild(d);
+      } else if (!faltan.length && punto) punto.remove();
+    }
+  }
+
+  function pintarAvatar(user, p){
+    var el=$('#u-avatar');
+    var foto=(p && p.photoURL) || user.photoURL;
+    if(foto){ el.innerHTML='<img src="'+CF.esc(foto)+'" alt="" referrerpolicy="no-referrer" />'; return; }
+    el.textContent = CF.monograma((p && p.name) || user.displayName || user.email || '');
+  }
+
+  /* La única barra de la pantalla: hacia un premio concreto. */
+  function pintarMeta(pts){
+    var box=$('#meta');
+    // stock -1 (o ausente) es ILIMITADO; solo el 0 exacto agota.
+    var disp=rewards.filter(function(r){
+      return r.active!==false && Number(r.stock)!==0;
+    });
+    if(!disp.length){ box.innerHTML=''; return; }
+
+    var falta=disp.filter(function(r){ return (Number(r.cost)||0) > pts; })
+                  .sort(function(a,b){ return (a.cost||0)-(b.cost||0); })[0];
+    var puede=disp.filter(function(r){ return (Number(r.cost)||0) <= pts; })
+                  .sort(function(a,b){ return (b.cost||0)-(a.cost||0); })[0];
+    var r = puede || falta;
+    if(!r){ box.innerHTML=''; return; }
+
+    var costo=Number(r.cost)||0, esMeta=!puede;
+    var pct = esMeta ? (costo>0 ? Math.max(2,Math.min(100,(pts/costo)*100)) : 0) : 100;
+    var img = r.img ? '<img src="'+CF.esc(r.img)+'" alt="" />'
+                    : '<i>'+CF.esc(CF.monograma(r.name))+'</i>';
+
+    box.innerHTML=
+      // Con saldo 0 decir "te falta poco" suena a burla: se cambia el rotulo.
+      '<div class="meta-l">'+(!esMeta ? 'Ya te alcanza para'
+                              : (pts>0 ? 'Te falta poco para' : 'Tu primer premio'))+'</div>'+
+      '<a class="meta-row" href="premios.html#premio-'+CF.esc(r.id)+'">'+
+        '<span class="meta-img">'+img+'</span>'+
+        '<span class="meta-b">'+
+          '<span class="meta-n">'+CF.esc(r.name)+'</span>'+
+          '<span class="meta-bar"><i style="width:'+pct+'%"></i></span>'+
+          '<span class="meta-x'+(esMeta?'':' ok')+'">'+(esMeta
+            ? (pts>0 ? 'Te faltan <b>'+CF.fmtNum(costo-pts)+' puntos</b> de '+CF.fmtNum(costo)
+                     : 'Se canjea con <b>'+CF.fmtNum(costo)+' puntos</b>. Empezás a sumar con tu primera compra.')
+            : 'Cuesta '+CF.fmtNum(costo)+' puntos. Tocá para canjearlo.')+'</span>'+
+        '</span>'+
+      '</a>';
+  }
+
+  /* ═══ TU NIVEL ═══
+     "10% mas de puntos" no le dice nada a nadie. Acá se traduce a plata:
+     cuantos puntos le daria EL MISMO pedido en cada nivel. */
+  var PEDIDO_EJEMPLO = 20000;
+
+  // Era una copia de la formula de auth.js. Dos copias terminan diciendo
+  // numeros distintos; ahora las dos paginas preguntan al mismo lugar.
+  function puntosDe(monto, tier){ return CF.pointsForTier(monto, tier); }
+
+  function beneficioDe(t){
+    if (t.perk) return t.perk;
+    var extra = Math.round(((Number(t.mult)||1)-1)*100);
+    return extra > 0
+      ? extra + '% más de puntos en cada compra.'
+      : 'Acumulás puntos en cada compra.';
+  }
+
+  function pintarNiveles(lp, actual){
+    var lista = CF.TIERS, sig = CF.nextTier(lp);
+
+    // La franja del carnet dice el nivel Y qué da, juntos.
+    $('#u-tier-da').textContent = beneficioDe(actual);
+
+    var tarjetas = lista.map(function(t,i){
+      var alcanzado = lp >= t.min, esTuyo = t.id === actual.id;
+      return '<div class="esc '+(esTuyo?'tuyo':(alcanzado?'':'lejos'))+
+        '" style="--ec:'+CF.esc(t.color||'#c8a96e')+'">'+
+        (esTuyo?'<span class="esc-tu">Tu nivel</span>':'')+
+        '<div class="esc-top"><span class="esc-pin">'+(alcanzado?'✓':(i+1))+'</span>'+
+          '<span class="esc-n">'+CF.esc(t.name)+'</span></div>'+
+        '<div class="esc-req">'+(t.min===0?'Desde el inicio':'Desde '+CF.fmtNum(t.min)+' puntos')+'</div>'+
+        '<div class="esc-da">'+CF.esc(beneficioDe(t))+'</div>'+
+      '</div>';
+    }).join('');
+
+    var progreso = '';
+    if (sig){
+      var span = sig.min - actual.min, hecho = lp - actual.min;
+      var pct = span > 0 ? Math.max(2, Math.min(100, (hecho/span)*100)) : 0;
+      progreso =
+        '<div class="nivel-bar-l"><span>Para llegar a '+CF.esc(sig.name)+'</span>'+
+        '<b>'+CF.fmtNum(lp)+' / '+CF.fmtNum(sig.min)+'</b></div>'+
+        '<div class="nivel-bar"><i style="width:'+pct+'%"></i></div>';
+    }
+
+    // El ejemplo concreto: mismo pedido, distintos puntos.
+    var ahora = puntosDe(PEDIDO_EJEMPLO, actual);
+    var ejemplo;
+    if (sig){
+      var luego = puntosDe(PEDIDO_EJEMPLO, sig);
+      ejemplo = luego > ahora
+        ? 'Un pedido de <em>'+CF.fmtColones(PEDIDO_EJEMPLO)+'</em> hoy te da <b>'+CF.fmtNum(ahora)+
+          ' puntos</b>. Con nivel '+CF.esc(sig.name)+' ese mismo pedido te daría <b>'+
+          CF.fmtNum(luego)+'</b>.'
+        : 'Un pedido de <em>'+CF.fmtColones(PEDIDO_EJEMPLO)+'</em> te da <b>'+CF.fmtNum(ahora)+' puntos</b>.';
+    } else {
+      var base = puntosDe(PEDIDO_EJEMPLO, lista[0]);
+      ejemplo = 'Estás en el nivel más alto. Un pedido de <em>'+CF.fmtColones(PEDIDO_EJEMPLO)+
+        '</em> te da <b>'+CF.fmtNum(ahora)+' puntos</b>'+
+        (ahora>base ? ', contra '+CF.fmtNum(base)+' del nivel inicial.' : '.');
+    }
+
+    $('#nivel-sec').innerHTML =
+      '<div class="nivel-h"><h3>Tu nivel</h3><span>Sos <b style="color:'+
+        CF.esc(actual.color||'#c8a96e')+'">'+CF.esc(actual.name)+'</b></span></div>'+
+      progreso +
+      '<button type="button" class="nivel-mas" id="nivel-mas" aria-expanded="false">'+
+        'Cómo funcionan los niveles</button>'+
+      '<div class="nivel-detalle" id="nivel-detalle" hidden>'+
+        '<p class="nivel-p">El nivel sube solo, con los puntos que vas acumulando desde '+
+          'siempre. Canjear premios <b style="color:var(--text)">no</b> te baja de nivel.</p>'+
+        '<div class="escala">'+tarjetas+'</div>'+
+        '<div class="ejemplo">'+ejemplo+'</div>'+
+      '</div>';
+
+    var masBtn = document.getElementById('nivel-mas');
+    var detalle = document.getElementById('nivel-detalle');
+    masBtn.addEventListener('click', function(){
+      var abierto = !detalle.hidden;
+      detalle.hidden = abierto;
+      masBtn.setAttribute('aria-expanded', String(!abierto));
+      masBtn.textContent = abierto ? 'Cómo funcionan los niveles' : 'Ocultar';
+    });
+  }
+
+  /* ═══ COMPLETAR PERFIL ═══ */
+  var CAMPOS=[
+    { k:'phone',    label:'tu teléfono' },
+    { k:'address',  label:'tu dirección' },
+    { k:'zone',     label:'tu zona' },
+    { k:'birthday', label:'tu cumpleaños' }
+  ];
+  function pintarPerfil(p){
+    var box=$('#fill-box'); p=p||{};
+    var faltan=CAMPOS.filter(function(c){ return !p[c.k]; });
+    if(!faltan.length){ box.innerHTML=''; return; }
+    var lista=faltan.map(function(c){ return '<b>'+c.label+'</b>'; });
+    var texto=lista.length===1 ? 'Solo falta '+lista[0]+'.'
+      : 'Falta '+lista.slice(0,-1).join(', ')+' y '+lista[lista.length-1]+'.';
+
+    box.innerHTML='<div class="fill"><div class="fill-b">'+
+      '<div class="fill-t">Completá tu perfil</div>'+
+      '<div class="fill-m">'+texto+(!p.phone?' Sin teléfono no podemos coordinar la entrega.':'')+'</div>'+
+      '</div><button class="btn sm ghost" id="fill-go">Completar</button></div>';
+    $('#fill-go').addEventListener('click', function(){
+      var t=document.querySelector('[data-tab="datos"]'); if(t) t.click();
+      setTimeout(function(){
+        var el=document.getElementById('f-'+faltan[0].k);
+        if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); }
+      },220);
+    });
+  }
+
+  /* ═══ PEDIDOS ═══ */
+  function pintarPedidos(docs){
+    var box=$('#orders-box');
+    pintarMenu(CF.profile, docs.length);
+    if(!docs.length){
+      box.innerHTML='<div class="empty"><span class="mark">✦</span>'+
+        '<p>Todavía no tenés pedidos con esta cuenta.</p>'+
+        '<a class="btn sm" href="catalogo.html">Hacer mi primer pedido</a></div>'+
+        '<div class="note" style="margin-top:1.6rem">¿Ya habías comprado antes de crear la cuenta? '+
+        'Escribinos por <a href="https://wa.me/50660017370" target="_blank" rel="noopener">WhatsApp</a> '+
+        'con tu teléfono y los pasamos a tu cuenta.</div>';
+      return;
+    }
+    var lp=(CF.profile && CF.profile.lifetimePoints)||0;
+    box.innerHTML=docs.map(function(o){
+      var st=o.status||'pendiente';
+      var items=(o.items||[]).map(function(i){
+        return '<li><span>'+CF.esc(i.name)+'</span><span class="qty">'+
+               CF.esc(String(i.qty))+' '+CF.esc(i.unit||'')+'</span></li>';
+      }).join('');
+      var facturado = o.invoice && typeof o.invoice.total === 'number';
+      // Sin factura, el estimado tiene que restar el cupon: si no, el pedido
+      // se mostraba mas caro de lo que el cliente va a pagar. Con factura ya
+      // viene descontado, que es el monto que Jesus confirmo.
+      var desc = (o.discount && Number(o.discount.amount)) || 0;
+      var total = facturado ? o.invoice.total
+        : Math.max(0,
+            (o.items||[]).reduce(function(s,i){ return s+(parseFloat(i.price)||0)*(parseFloat(i.qty)||1); },0)
+            + (parseFloat(o.deliveryFee)||0) - desc);
+
+      /* Tres estados distintos, no dos:
+         · ya se acreditaron  -> se dice cuanto (aunque haya sido 0)
+         · no se van a acreditar (cancelado, o programa apagado) -> nada
+         · todavia no          -> el estimado
+         Antes `o.pointsEarned ? ... : ...` trataba el 0 como "todavia no",
+         y un pedido ENTREGADO que acredito 0 seguia prometiendo puntos. */
+      var acreditado = typeof o.pointsEarned === 'number';
+      var estimado   = CF.pointsFor(total, lp);
+      var linea = '';
+      if (acreditado) {
+        linea = o.pointsEarned > 0
+          ? '<div class="gan si">Te sumó '+CF.fmtNum(o.pointsEarned)+' puntos</div>'
+          : '<div class="gan no">Este pedido no sumó puntos</div>';
+      } else if (st !== 'cancelado' && estimado > 0) {
+        linea = '<div class="gan no">Te va a sumar unos '+CF.fmtNum(estimado)+' puntos al entregarse</div>';
+      }
+      return '<div class="card">'+
+        '<div class="card-hd"><span class="card-date">'+CF.fmtDate(o.createdAt)+
+          (o.invoice && o.invoice.number ? ' · '+CF.esc(o.invoice.number) : '')+'</span>'+
+          '<span class="pill '+CF.esc(st)+'">'+CF.esc(st.replace('_',' '))+'</span></div>'+
+        (items?'<ul class="items">'+items+'</ul>':'')+
+        '<div class="tot"><span>'+(facturado?'Total facturado':'Monto de referencia')+
+          (facturado?'':'<small>El peso final puede variar</small>')+'</span>'+
+          '<b>'+CF.fmtColones(total)+'</b></div>'+linea+
+      '</div>';
+    }).join('');
+  }
+
+  function watchOrders(uid){
+    if(unsubOrders) unsubOrders();
+    unsubOrders=db.collection('orders').where('uid','==',uid).onSnapshot(function(snap){
+      var docs=[]; snap.forEach(function(d){ docs.push(Object.assign({id:d.id}, d.data())); });
+      docs.sort(function(a,b){
+        var ta=CF.toDate(a.createdAt), tb=CF.toDate(b.createdAt);
+        return (tb?tb.getTime():0)-(ta?ta.getTime():0);
+      });
+      pintarPedidos(docs);
+    }, function(e){
+      console.error('[pedidos]', e);
+      $('#orders-box').innerHTML='<div class="empty"><span class="mark">!</span>'+
+        '<p>No pudimos cargar tus pedidos. Recargá la página.</p></div>';
+    });
+  }
+
+  /* ═══ MOVIMIENTOS ═══ */
+  function pintarLedger(docs){
+    var box=$('#ledger-box');
+    if(!docs.length){
+      box.innerHTML='<div class="empty" style="padding:2.2rem 1rem"><span class="mark">✦</span>'+
+        '<p>Todavía no hay movimientos.<br>Tu primer pedido entregado te suma puntos.</p></div>';
+      return;
+    }
+    box.innerHTML=docs.map(function(m){
+      var n=Number(m.points)||0;
+      return '<div class="mov"><div class="mov-b">'+
+        '<div class="mov-t">'+CF.esc(m.reason||(n>=0?'Puntos ganados':'Canje'))+'</div>'+
+        '<div class="mov-d">'+CF.fmtDate(m.createdAt)+'</div></div>'+
+        '<div class="mov-n '+(n>=0?'pos':'neg')+'">'+(n>=0?'+':'−')+CF.fmtNum(Math.abs(n))+'</div></div>';
+    }).join('');
+  }
+
+  function watchLedger(uid){
+    if(unsubLedger) unsubLedger();
+    unsubLedger=db.collection('users').doc(uid).collection('ledger')
+      .orderBy('createdAt','desc').limit(80)
+      .onSnapshot(function(snap){
+        var docs=[]; snap.forEach(function(d){ docs.push(Object.assign({id:d.id}, d.data())); });
+        pintarLedger(docs);
+      }, function(e){ console.error('[ledger]', e); });
+  }
+
+  /* ═══ PREMIOS PEDIDOS ═══ */
+  function pintarCanjes(docs){
+    var box=$('#redeem-box');
+    if(!docs.length){
+      box.innerHTML='<div class="empty" style="padding:2.2rem 1rem"><span class="mark">✦</span>'+
+        '<p>Todavía no pediste ningún premio.</p>'+
+        '<a class="btn sm ghost" href="premios.html">Ver La Reserva</a></div>';
+      return;
+    }
+    box.innerHTML=docs.map(function(r){
+      var st=r.status||'solicitado';
+      var txt = st==='solicitado' ? 'Jesús lo está revisando. Te lo entregamos con tu próximo pedido.'
+              : st==='aprobado'   ? 'Aprobado. Se entrega con tu próximo pedido.'
+              : st==='entregado'  ? 'Entregado. ¡Que lo disfrutés!'
+              : (r.adminNote ? CF.esc(r.adminNote) : 'No se pudo aprobar. Tus puntos no se descontaron.');
+      return '<div class="card"><div class="card-hd">'+
+        '<span class="card-date">'+CF.fmtDate(r.createdAt)+'</span>'+
+        '<span class="pill '+CF.esc(st)+'">'+CF.esc(st)+'</span></div>'+
+        '<div class="serif" style="font-size:1.2rem;color:var(--white)">'+CF.esc(r.rewardName||'Premio')+'</div>'+
+        '<div style="font-size:.73rem;color:var(--muted);margin-top:.35rem;line-height:1.7">'+txt+'</div>'+
+        '<div class="tot"><span>Costo en puntos</span><b>'+CF.fmtNum(r.cost)+'</b></div></div>';
+    }).join('');
+  }
+
+  function watchCanjes(uid){
+    if(unsubRedeem) unsubRedeem();
+    unsubRedeem=db.collection('redemptions').where('uid','==',uid).onSnapshot(function(snap){
+      var docs=[]; snap.forEach(function(d){ docs.push(Object.assign({id:d.id}, d.data())); });
+      docs.sort(function(a,b){
+        var ta=CF.toDate(a.createdAt), tb=CF.toDate(b.createdAt);
+        return (tb?tb.getTime():0)-(ta?ta.getTime():0);
+      });
+      pintarCanjes(docs);
+    }, function(e){ console.error('[canjes]', e); });
+  }
+
+  function watchRewards(){
+    if(unsubRewards) return;
+    unsubRewards=db.collection('rewards').onSnapshot(function(snap){
+      rewards=[]; snap.forEach(function(d){ rewards.push(Object.assign({id:d.id}, d.data())); });
+      if(CF.user) pintarHero(CF.user, CF.profile);
+      else pintarPremiosPuerta();
+    }, function(e){ console.error('[premios]', e); });
+  }
+
+  /* ═══ FAVORITOS ═══ */
+  // Los favoritos los maneja auth.js, para que el catalogo y esta pagina
+  // guarden lo mismo y del mismo tipo.
+  function localFavs(){ return CF.favs(); }
+  async function loadProducts(){
+    if(products) return products;
+    try{
+      var snap=await db.collection('chusfish').doc('catalog').get();
+      products=(snap.exists && snap.data().products)||[];
+    }catch(e){ products=[]; }
+    return products;
+  }
+  function syncFavs(){ return CF.syncFavs(); }
+
+  // El perfil puede llegar null en el primer aviso: se repinta cuando cambia
+  // de verdad, comparando una firma.
+  var favSig=null;
+  function tocaPintarFavs(profile){
+    var remotos=((profile && profile.favs)||[]).slice().sort();
+    var sig=JSON.stringify(remotos)+'|'+JSON.stringify(localFavs().slice().sort());
+    if(sig===favSig) return;
+    favSig=sig;
+    pintarFavs(profile);
+  }
+
+  async function pintarFavs(profile){
+    var box=$('#favs-box');
+    var ids=syncFavs();
+    pintarMenu(profile, undefined, ids.length);
+    if(!ids.length){
+      box.innerHTML='<div class="empty"><span class="mark">✦</span>'+
+        '<p>Todavía no marcaste favoritos.<br>Tocá el corazón en el catálogo y quedan guardados acá.</p>'+
+        '<a class="btn sm" href="catalogo.html">Ir al catálogo</a></div>';
+      return;
+    }
+    var prods=await loadProducts();
+    var cards=ids.map(function(id){
+      var p=prods.filter(function(x){ return x.id===id; })[0];
+      if(!p) return '';
+      return '<div class="fav"><div class="fav-n">'+CF.esc(p.name)+'</div>'+
+        '<div class="fav-p">'+(p.price?CF.fmtColones(p.price)+' '+CF.esc(p.unit||''):'Consultar')+'</div>'+
+        '<button class="fav-x" data-id="'+id+'">Quitar</button></div>';
+    }).filter(Boolean).join('');
+
+    box.innerHTML = cards
+      ? '<div class="favs">'+cards+'</div>'
+      : '<div class="empty"><span class="mark">✦</span><p>Tus favoritos ya no están en el catálogo.</p></div>';
+
+    box.querySelectorAll('.fav-x').forEach(function(b){
+      b.addEventListener('click', function(){
+        // Antes comparaba numero contra texto y el "Quitar" no quitaba nada.
+        CF.toggleFav(b.dataset.id);
+        toast('Quitado de favoritos');
+        favSig=null; tocaPintarFavs(CF.profile);
+      });
+    });
+  }
+
+  /* ═══ DATOS ═══ */
+  async function loadZones(){
+    if(loadedZones) return;
+    loadedZones=true;
+    try{
+      var cfg=await CF.cfgReady;
+      var sel=$('#f-zone');
+      ((cfg && cfg.zones)||[]).filter(function(z){ return z.active!==false; }).forEach(function(z){
+        var o=document.createElement('option'); o.value=z.name; o.textContent=z.name; sel.appendChild(o);
+      });
+    }catch(e){ console.error('[zonas]', e); }
+  }
+
+  function llenarForm(user,p){
+    p=p||{};
+    if(document.activeElement && document.activeElement.closest &&
+       document.activeElement.closest('#p-datos')) return;
+    $('#f-name').value=p.name||user.displayName||'';
+    $('#f-phone').value=p.phone||'';
+    $('#f-address').value=p.address||'';
+    $('#f-email').value=p.email||user.email||'';
+    $('#f-birthday').value=p.birthday||'';
+    var sel=$('#f-zone');
+    if(p.zone && !Array.prototype.some.call(sel.options,function(o){return o.value===p.zone;})){
+      var o=document.createElement('option'); o.value=p.zone; o.textContent=p.zone; sel.appendChild(o);
+    }
+    sel.value=p.zone||'';
+  }
+
+  $('#save-btn').addEventListener('click', async function(){
+    var btn=this, name=$('#f-name').value.trim(), phone=CF.normPhone($('#f-phone').value);
+    var bad=false;
+    $('#f-name').parentElement.classList.toggle('bad',!name); if(!name) bad=true;
+    $('#f-phone').parentElement.classList.toggle('bad',phone.length<8); if(phone.length<8) bad=true;
+    if(bad){ toast('Revisá el nombre y el teléfono (8 dígitos)'); return; }
+    btn.disabled=true; btn.textContent='Guardando…';
+    try{
+      await CF.saveProfile({ name:name, phone:phone,
+        address:$('#f-address').value.trim(), zone:$('#f-zone').value,
+        birthday:$('#f-birthday').value||'' });
+      toast('Datos guardados');
+    }catch(e){ console.error(e); toast('No se pudo guardar. Probá de nuevo.'); }
+    finally{ btn.disabled=false; btn.textContent='Guardar cambios'; }
+  });
+
+  $('#out-btn').addEventListener('click', async function(){
+    await CF.signOut(); location.href='index.html';
+  });
+
+  /* ═══ ARRANQUE ═══ */
+  /* En cuanto sabemos si hay sesion o no, fuera el cartel de carga. */
+  function quitarCargando(){
+    var c = document.getElementById('cargando');
+    if (c) c.remove();
+    clearTimeout(avisoLento);
+  }
+
+  /* Si Firebase no contesta en 12 s, se lo decimos en vez de dejar la
+     ruedita girando. La cuenta y los puntos siguen ahi: es la conexion. */
+  var avisoLento = setTimeout(function(){
+    var t = document.getElementById('cargando-txt');
+    if (!t) return;
+    t.innerHTML = 'Se está tardando más de lo normal.<br>' +
+      'Revisá tu conexión — tus puntos y tus pedidos están a salvo.';
+    var c = document.getElementById('cargando');
+    if (c && !c.querySelector('.btn')) {
+      var b = document.createElement('button');
+      b.className = 'btn sm';
+      b.textContent = 'Reintentar';
+      b.addEventListener('click', function(){ location.reload(); });
+      c.appendChild(b);
+    }
+  }, 12000);
+
+  /* Sin el SDK de Firebase no hay cuenta posible. Antes esto tiraba
+     "CF is not defined", el script entero moria y la pagina se quedaba con
+     la ruedita girando para siempre, sin decir nada.
+     Pasa de verdad: los SDK vienen de gstatic.com y en una conexion floja
+     no siempre llegan. */
+  if (typeof window.CF === 'undefined') {
+    clearTimeout(avisoLento);
+    var cajaErr = document.getElementById('cargando');
+    if (cajaErr) {
+      cajaErr.innerHTML =
+        '<div style="font-family:Cormorant Garamond,serif;font-size:2.4rem;' +
+        'color:var(--gold);margin-bottom:.8rem">&#10022;</div>' +
+        '<p>No pudimos conectar con el servidor.<br>' +
+        'Revisá tu conexión y volvé a intentar — ' +
+        'tus puntos y tus pedidos están a salvo.</p>';
+      var btnRe = document.createElement('button');
+      btnRe.className = 'btn sm';
+      btnRe.textContent = 'Reintentar';
+      btnRe.addEventListener('click', function () { location.reload(); });
+      cajaErr.appendChild(btnRe);
+    }
+    throw new Error('[CF] sin conexión con Firebase');
+  }
+
+  CF.onUser(function(user, profile){
+    db=CF.db;
+    quitarCargando();
+
+    if(!user){
+      $('#gate').classList.add('show');
+      $('#app').classList.remove('show');
+      // Premios y config son de lectura publica: la puerta puede mostrarlos
+      // sin que la persona tenga cuenta.
+      watchRewards();
+      CF.cfgReady.then(pintarPuerta);
+      [unsubOrders,unsubLedger,unsubRedeem].forEach(function(f){ if(f) f(); });
+      unsubOrders=unsubLedger=unsubRedeem=null; wired=null;
+      return;
+    }
+    $('#gate').classList.remove('show');
+    $('#app').classList.add('show');
+    pintarHero(user, profile);
+    llenarForm(user, profile);
+    loadZones();
+    if(wired!==user.uid){
+      wired=user.uid;
+      watchOrders(user.uid);
+      watchLedger(user.uid);
+      watchCanjes(user.uid);
+      watchRewards();
+    }
+    tocaPintarFavs(profile);
+  });
+
+  CF.ready.then(function(u){
+    if(!u && /[?&]login=1/.test(location.search)) CF.openAuth('in');
+  });
+})();
+</script>
+<script src="analytics.js?v=1" defer></script>
+</body>
+</html>
