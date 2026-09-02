@@ -30,6 +30,32 @@
        el zoom con dos dedos sigue funcionando. */
     html { touch-action: manipulation; }
     html, body { height: 100%; }
+
+    /* Boton de Google, en su variante oscura oficial. */
+    .login-gbtn{
+      width:100%;display:flex;align-items:center;justify-content:center;gap:.65rem;
+      padding:.8rem 1rem;margin-bottom:.2rem;border-radius:10px;cursor:pointer;
+      background:#131314;border:1px solid #8e918f;color:#e3e3e3;
+      font-family:inherit;font-size:.78rem;font-weight:500;
+      transition:background .2s ease,border-color .2s ease;
+    }
+    .login-gbtn:hover{background:#1e1f20;border-color:#a8abaa}
+    .login-gbtn:disabled{opacity:.6;cursor:default}
+    .login-gmark{display:grid;place-items:center;width:19px;height:19px;
+      flex-shrink:0;border-radius:50%;background:#fff}
+    .login-or{display:flex;align-items:center;gap:.7rem;margin:1.1rem 0;
+      color:#5b7a90;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase}
+    .login-or::before,.login-or::after{content:"";flex:1;height:1px;
+      background:rgba(200,169,110,0.16)}
+
+    /* El UID que hay que pegar en la consola cuando la cuenta no es admin. */
+    .login-uid{display:block;margin-top:.8rem;padding:.7rem .8rem;border-radius:9px;
+      background:rgba(6,14,28,0.75);border:1px solid rgba(200,169,110,0.18);
+      font-size:.68rem;color:#7a95aa;line-height:1.7;text-align:left}
+    .login-uid code{display:block;margin-top:.35rem;padding:.4rem .5rem;
+      border-radius:6px;background:rgba(0,0,0,0.35);color:#c8a96e;
+      font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.7rem;
+      word-break:break-all;-webkit-user-select:all;user-select:all}
     body { font-family: 'Montserrat', sans-serif; background: var(--ocean); color: var(--text); overflow-x: hidden; display: flex; }
     ::selection { background: var(--gold-dk); color: #fff; }
     ::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -1283,6 +1309,24 @@
   <div class="login-box">
     <div class="login-logo">Chus<em>'s Fish</em></div>
     <div class="login-sub">Panel de Administración</div>
+
+    <!-- Entrar con Google.
+         Una cuenta de Google no tiene contraseña en Firebase, asi que con
+         el formulario de abajo no hay forma de entrar con ella. El permiso
+         no lo da el boton: lo da tener documento en /admins, que es lo
+         mismo que exige firestore.rules. -->
+    <button class="login-gbtn" id="login-google" type="button">
+      <span class="login-gmark">
+        <svg width="13" height="13" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.6l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.8 6.1C12.3 13.2 17.7 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9.1h12.4c-.5 2.9-2.2 5.3-4.6 7l7.6 5.9c4.4-4.1 6.7-10.1 6.7-17.4z"/>
+          <path fill="#FBBC05" d="M10.4 28.7c-.5-1.4-.8-2.9-.8-4.7s.3-3.3.8-4.7l-7.8-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.8-6.1z"/>
+          <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.3 0-11.7-3.7-13.6-9.8l-7.8 6.1C6.5 42.6 14.6 48 24 48z"/>
+        </svg>
+      </span>
+      <span id="login-glabel">Continuar con Google</span>
+    </button>
+    <div class="login-or">o con usuario y contraseña</div>
     <label class="login-label">Usuario</label>
     <input type="text" class="login-input" id="login-user" placeholder="admin" autocomplete="off" />
     <label class="login-label">Contraseña</label>
@@ -3369,6 +3413,44 @@ document.getElementById('login-btn').addEventListener('click', async () => {
     document.getElementById('login-pass').value = '';
   }
 });
+/* ── Entrar con Google ──────────────────────────────────────────
+   No abre nada por si solo: al terminar, onAuthStateChanged consulta
+   /admins y cierra la sesion si la cuenta no esta. El boton solo
+   resuelve el como se inicia sesion, no el quien puede. */
+document.getElementById('login-google').addEventListener('click', async () => {
+  const btn = document.getElementById('login-google');
+  const lbl = document.getElementById('login-glabel');
+  const err = document.getElementById('login-err');
+  err.textContent = '';
+  btn.disabled = true;
+  lbl.textContent = 'Abriendo Google…';
+
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    await firebase.auth().signInWithPopup(provider);
+    // De aca en adelante manda onAuthStateChanged.
+  } catch (e) {
+    const c = e && e.code;
+    if (c === 'auth/popup-blocked' || c === 'auth/operation-not-supported-in-this-environment') {
+      // En varios navegadores moviles el popup no existe o lo bloquean.
+      try {
+        const pr = new firebase.auth.GoogleAuthProvider();
+        pr.setCustomParameters({ prompt: 'select_account' });
+        await firebase.auth().signInWithRedirect(pr);
+        return;
+      } catch (e2) { err.textContent = 'No se pudo abrir Google: ' + (e2.code || e2.message); }
+    } else if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') {
+      err.textContent = '';          // cerro la ventana a proposito
+    } else {
+      err.textContent = 'No se pudo entrar con Google: ' + (c || e.message);
+    }
+  }
+
+  btn.disabled = false;
+  lbl.textContent = 'Continuar con Google';
+});
+
 document.getElementById('login-user').addEventListener('keydown', e => {
   if (e.key === 'Enter') document.getElementById('login-pass').focus();
 });
@@ -5642,7 +5724,16 @@ async function loadNotifications() {
         document.getElementById('login-screen').style.display = 'flex';
         const err = document.getElementById('login-err');
         if (err) {
-          err.textContent = 'Esta cuenta no tiene acceso al panel.';
+          /* Se muestra el UID: es el dato exacto que hay que pegar como ID
+             de documento en la coleccion admins de Firestore. Sin esto hay
+             que ir a buscarlo a Authentication y copiarlo a mano. */
+          err.innerHTML =
+            'Esta cuenta no tiene acceso al panel.' +
+            '<span class=\'login-uid\'>' +
+              'Si el acceso te corresponde, hay que crear el documento ' +
+              '<b>admins/{este UID}</b> en Firestore:' +
+              '<code>' + esc(user.uid) + '</code>' +
+            '</span>';
           err.style.display = 'block';
         }
         // Se cierra la sesion del cliente para no dejarlo a medias en una
