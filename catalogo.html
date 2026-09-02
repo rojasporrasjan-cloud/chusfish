@@ -3120,13 +3120,13 @@ function renderCartUI() {
   let msg = "Hola Chus's Fish! 🛒🐟 Quiero hacer el siguiente pedido:\n\n";
   cart.forEach(i => {
     msg += `⬢ ${fmtQty(i.qty, i.product.unit)} de ${i.product.name}`;
-    if (i.product.price) msg += ` ₡ ${fmt(i.product.price * i.qty)} (${fmt(i.product.price)}${i.product.unit})`;
+    if (i.product.price) msg += ` ${fmt(i.product.price * i.qty)} (${fmt(i.product.price)}${i.product.unit})`;
     else msg += ' 💬 Consultar precio';
     if (i.product.preorder) msg += ' 📅 (pedido previo)';
     msg += '\n';
   });
   if (hasPreorder) msg += '\n📅 Algunos productos requieren pedido con 1 semana de anticipación.\n';
-  if (total > 0) msg += `\n💰 Monto de referencia: ₡${fmt(total)} (el peso final puede variar)\n`;
+  if (total > 0) msg += `\n💰 Monto de referencia: ${fmt(total)} (el peso final puede variar)\n`;
   msg += '\nPor favor confirmar disponibilidad y coordinar entrega. ¡Muchas gracias!';
 
   window._cartWaMsg = msg;
@@ -3871,7 +3871,7 @@ function renderOrderSummary() {
   const itemCount = cartItems.length;
   const itemsHtml = cartItems.map(i => {
     const priceHtml = i.product.price
-      ? '<span class="ofs-item-price">₡ ' + fmt(i.product.price * i.qty) + '</span>'
+      ? '<span class="ofs-item-price">' + fmt(i.product.price * i.qty) + '</span>'
       : '';
     const tag = i.product.preorder
       ? ' <span class="ofs-item-tag">· Previo</span>'
@@ -4048,24 +4048,43 @@ document.getElementById('order-form').addEventListener('submit', async function(
         amount: cuponAplicado.descuento }
     : null;
 
-  const saveOrder = db_cat.collection('orders').add({
+  const datosPedido = {
     uid: cfUid,
     customer: { name, phone, address, zone: zone || null, fecha: fecha || null, payment },
     items: itemsForOrder,
     deliveryFee: currentDeliveryFee || 0,
     discount: descuentoCupon,
-    status: 'pendiente',
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(() => {
-    if (window.fbq) {
-      const orderTotal = itemsForOrder.reduce((s,i) => s + (i.price||0)*i.qty, 0);
-      fbq('track','Purchase',{ value: orderTotal, currency:'CRC', num_items: itemsForOrder.length });
-    }
-  }).catch(() => {});
+    status: 'pendiente'
+  };
 
-  // Abrimos WhatsApp DENTRO del gesto del usuario (antes de cualquier await) para que
-  // el navegador no bloquee la ventana emergente. Esa era la causa de los pedidos sin aviso.
-  const waWin = window.open(waLink, '_blank');
+  /* ═══ PRIMERO SE GUARDA, DESPUES SE ABRE WHATSAPP ═══════════════
+     Antes era al reves: se guardaba "en segundo plano" y WhatsApp se abria
+     enseguida para no toparse con el bloqueador de ventanas. En el celular
+     eso pierde pedidos: al abrir WhatsApp el navegador congela la pagina y
+     la escritura, que iba a medias, se muere. El mensaje llega igual porque
+     ya estaba armado en el telefono, pero a la base NO. Y el `.catch(() => {})`
+     que tenia hacia que nadie se enterara.
+
+     Ahora se espera el guardado. No hay problema de bloqueador: se navega
+     con location.href, que es una navegacion normal y nunca se bloquea.
+     Si tarda demasiado o falla, el pedido se guarda en el telefono y se
+     reintenta al volver a entrar — no se pierde. */
+  const btnEnviar = document.querySelector('.order-form-submit');
+  const textoBtn = btnEnviar ? btnEnviar.innerHTML : '';
+  if (btnEnviar) { btnEnviar.disabled = true; btnEnviar.textContent = 'Enviando pedido…'; }
+
+  const guardado = await guardarPedido(datosPedido);
+
+  if (guardado) {
+    if (window.fbq) {
+      const orderTotal = itemsForOrder.reduce((s2, i) => s2 + (i.price || 0) * i.qty, 0);
+      fbq('track', 'Purchase', { value: orderTotal, currency: 'CRC', num_items: itemsForOrder.length });
+    }
+  } else {
+    encolarPedido(datosPedido);   // se reintenta la proxima vez que entre
+  }
+
+  if (btnEnviar) { btnEnviar.disabled = false; btnEnviar.innerHTML = textoBtn; }
 
   // Se guardan los datos en el perfil para que la proxima vez venga prellenado.
   if (cfUid && window.CF) {
@@ -4076,9 +4095,68 @@ document.getElementById('order-form').addEventListener('submit', async function(
   saveCart();
   closeOrderForm();
 
-  // Si el navegador bloqueó la ventana emergente, esperamos a guardar y navegamos a WhatsApp.
-  if (!waWin) saveOrder.finally(() => { window.location.href = waLink; });
+  window.location.href = waLink;
 });
+
+/* ═══ GUARDAR EL PEDIDO, SIN PERDERLO ════════════════════════════
+   Un pedido que llega a WhatsApp pero no a la base es peor que uno que
+   no llega: Jesus lo atiende, lo entrega, y no queda registrado ni suma
+   puntos. Paso el 2-sep-2026 con un pedido de Alajuela.
+
+   Tres redes: se espera el guardado, hay tope de tiempo para no dejar a
+   nadie mirando la pantalla, y lo que falle queda guardado en el telefono
+   para reintentarlo. */
+const PEDIDOS_PENDIENTES = 'chusfish_pedidos_pendientes';
+const TOPE_GUARDADO = 8000;   // ms
+
+async function guardarPedido(datos) {
+  try {
+    const escribir = db_cat.collection('orders').add(Object.assign({}, datos, {
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }));
+    // Carrera contra el reloj: si Firestore no responde, no se deja a la
+    // persona esperando. El pedido se encola y se reintenta.
+    const conTope = new Promise(function (res) { setTimeout(function () { res('tarde'); }, TOPE_GUARDADO); });
+    const r = await Promise.race([escribir.then(function () { return 'ok'; }), conTope]);
+    return r === 'ok';
+  } catch (e) {
+    console.error('[pedido] no se pudo guardar', e && e.code, e && e.message);
+    return false;
+  }
+}
+
+function encolarPedido(datos) {
+  try {
+    const cola = JSON.parse(localStorage.getItem(PEDIDOS_PENDIENTES) || '[]');
+    cola.push({ datos: datos, cuando: Date.now() });
+    // Se guardan los ultimos 10 y nada mas: si algo esta roto de verdad,
+    // no tiene sentido acumular pedidos viejos para siempre.
+    localStorage.setItem(PEDIDOS_PENDIENTES, JSON.stringify(cola.slice(-10)));
+  } catch (e) {}
+}
+
+async function reintentarPedidosPendientes() {
+  let cola;
+  try { cola = JSON.parse(localStorage.getItem(PEDIDOS_PENDIENTES) || '[]'); }
+  catch (e) { return; }
+  if (!cola.length) return;
+
+  const quedan = [];
+  for (const p of cola) {
+    // Mas de 3 dias: el pedido ya se atendio por WhatsApp o ya no aplica.
+    if (Date.now() - (p.cuando || 0) > 3 * 24 * 3600 * 1000) continue;
+    const ok = await guardarPedido(p.datos);
+    if (!ok) quedan.push(p);
+  }
+  try {
+    if (quedan.length) localStorage.setItem(PEDIDOS_PENDIENTES, JSON.stringify(quedan));
+    else localStorage.removeItem(PEDIDOS_PENDIENTES);
+  } catch (e) {}
+}
+
+// Al volver a entrar, se reintenta lo que quedo colgado. Sin prisa: va
+// despues del load para no competir con lo que la persona vino a ver.
+window.addEventListener('load', function () { setTimeout(reintentarPedidosPendientes, 3000); });
 
 /* La pantalla de carga se maneja arriba, junto a initCatalog(). */
 </script>
