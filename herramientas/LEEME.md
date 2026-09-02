@@ -13,3 +13,20 @@ difícil ver de un vistazo qué archivos usa la web de verdad.
 | `fix_icons.js` | Regenerar los iconos de la app |
 
 Los `.ps1` se corren desde PowerShell; los `.js`, con `node archivo.js`.
+
+## probar-reglas.js — comprobar las reglas ANTES de publicarlas
+
+Necesita el emulador y el servidor local corriendo (`npm run emu` y `npm run dev`).
+
+```
+node herramientas/probar-reglas.js
+```
+
+Corre 22 comprobaciones contra el emulador con tres identidades —sin sesión,
+cliente y admin— y verifica que cada una pueda **exactamente** lo que debe:
+que cualquiera lea el catálogo pero no lo borre, que un cliente no pueda
+regalarse puntos ni espiar otra cuenta, y que el admin sí pueda todo.
+
+Sale con código 1 si alguna falla, así que sirve tal cual antes de publicar.
+Esto es lo que faltó en agosto, cuando se publicaron reglas sin probar y
+Jesús se quedó un día sin panel.
