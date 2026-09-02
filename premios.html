@@ -6,6 +6,22 @@
 <title>La Reserva | Chus's Fish</title>
 <meta name="description" content="La Reserva de Chus's Fish: canjeá tus puntos por producto selecto, descuentos y envíos sin costo." />
 <link rel="icon" href="icon-192.png" />
+<link rel="canonical" href="https://chusfish.com/premios.html" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Chus's Fish" />
+<meta property="og:locale" content="es_CR" />
+<meta property="og:title" content="La Reserva | Canjeá tus puntos — Chus's Fish" />
+<meta property="og:description" content="Acumulá puntos con cada pedido y canjealos por producto selecto, descuentos y envíos sin costo." />
+<meta property="og:image" content="https://chusfish.com/facebook/portada_facebook.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="628" />
+<meta property="og:image:alt" content="La Reserva de Chus's Fish: canjeá tus puntos por mariscos" />
+<meta property="og:url" content="https://chusfish.com/premios.html" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="La Reserva | Chus's Fish" />
+<meta name="twitter:description" content="Canjeá tus puntos por producto selecto, descuentos y envíos sin costo." />
+<meta name="twitter:image" content="https://chusfish.com/facebook/portada_facebook.png" />
 <link rel="manifest" href="manifest.json" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -41,7 +57,7 @@
   body{
     background:var(--deep); color:var(--text);
     font-family:'Montserrat',system-ui,sans-serif; font-size:15px; line-height:1.6;
-    padding-top:var(--nav-h); min-height:100vh; overflow-x:hidden;
+    padding-top:var(--nav-h); min-height:100vh; min-height:100dvh;   /* dvh: en iOS el 100vh sobra por abajo */ overflow-x:hidden;
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   }
   body.locked{overflow:hidden}
@@ -368,8 +384,11 @@
   .note{position:fixed;left:50%;bottom:2rem;transform:translate(-50%,180%);
     background:var(--gold);color:var(--deep);padding:.85rem 1.6rem;
     font-size:.66rem;font-weight:700;letter-spacing:.1em;z-index:900;
-    transition:transform .5s var(--ease);max-width:92vw;text-align:center}
-  .note.on{transform:translate(-50%,0)}
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:transform .5s var(--ease),opacity .3s ease,visibility 0s linear .5s;
+    max-width:92vw;text-align:center}
+  .note.on{transform:translate(-50%,0);opacity:1;visibility:visible;
+    transition:transform .5s var(--ease),opacity .3s ease,visibility 0s}
 
   /* Movimiento reducido: quien lo pide en su sistema ve todo sin animacion.
      Ademas quita un modo de fallo: la ficha arranca en opacity:0 y aparece
@@ -400,6 +419,48 @@
   @media (max-width: 860px) {
     /* Ver nota de fluidez en catalogo.html. */
     nav { backdrop-filter: none; -webkit-backdrop-filter: none; background: #050c18; }
+  }
+
+  /* ══ EL ENCABEZADO, MAS CORTO EN CELULAR ════════════════════════
+     Entre el titulo, el parrafo y la barra de saldo habia casi 1.000 px
+     antes de ver el primer premio. En una tienda de canje lo que importa
+     es el premio; el texto de bienvenida se lee una vez y estorba el
+     resto de las visitas. */
+  @media(max-width:860px){
+    .cover{ padding-top:2rem; padding-bottom:1.4rem; }
+    .cover .eyebrow{ font-size:.52rem; }
+    .cover h1{ font-size:2.1rem; margin:.4rem 0 .6rem; }
+    .cover p{ font-size:.78rem; line-height:1.65; max-width:38ch; margin:0 auto; }
+    .purse{ margin-bottom:1.4rem; }
+  }
+  @media(max-width:420px){
+    .cover{ padding-top:1.5rem; }
+    .cover h1{ font-size:1.8rem; }
+    .cover p{ font-size:.74rem; }
+  }
+
+  /* ══ EL PREMIO DESTACADO, MAS CHICO EN CELULAR ══════════════════
+     No tenia ninguna regla para movil: heredaba las dos columnas, los
+     340 px de alto de foto y el titulo de 2,4 rem. Resultado: una sola
+     pieza se comia la pantalla entera y habia que desplazar mucho antes
+     de ver el primer premio canjeable.
+     Se apila, la foto baja a 190 px y el texto entra en proporcion. */
+  @media(max-width:860px){
+    .hero-rw{ grid-template-columns:1fr; margin-bottom:2rem; }
+    .hero-rw-media{ min-height:190px; aspect-ratio:16/10; }
+    .hero-rw-media i{ font-size:3.6rem; }
+    .hero-rw-b{ padding:1.3rem 1.2rem 1.5rem; }
+    .hero-rw-b h2{ font-size:1.5rem; margin:.5rem 0 .5rem; }
+    .hero-rw-b p{ font-size:.76rem; line-height:1.65; }
+    .hero-rw-cost{ margin-top:1rem; padding-top:.9rem; }
+    .hero-rw-cost b{ font-size:1.5rem; }
+    .hero-rw-cta{ margin-top:1.1rem; gap:.8rem; }
+  }
+
+  /* Muy angosto: la foto se achica un poco mas todavia. */
+  @media(max-width:420px){
+    .hero-rw-media{ min-height:150px; }
+    .hero-rw-b h2{ font-size:1.32rem; }
   }
 </style>
 </head>
@@ -475,8 +536,8 @@
 
 <div class="note" id="note"></div>
 
-<script src="auth.js?v=9"></script>
-<script src="ui.js?v=8"></script>
+<script src="auth.js?v=10"></script>
+<script src="ui.js?v=12"></script>
 <script>
 (function(){
   'use strict';
@@ -864,5 +925,6 @@
   });
 })();
 </script>
+<script src="analytics.js?v=1" defer></script>
 </body>
 </html>

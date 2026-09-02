@@ -10,7 +10,7 @@
 
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al tocar este archivo hay que subir el ?v= en TODOS los HTML.
-      Versión actual: v8
+      Versión actual: v12
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -64,16 +64,24 @@
       svg:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/>' }
   ];
 
-  var CSS = ''
+  var CSS =
+    'html{touch-action:manipulation}'
+  + ''
   /* ── barra de pestañas ── */
   + '.cfui-tabs{position:fixed;left:0;right:0;bottom:0;top:auto!important;z-index:250;display:none;'
   /* Fondo solido, sin desenfoque: la barra esta fija y visible durante
      todo el desplazamiento, asi que el navegador tendria que volver a
      desenfocar el fondo en cada cuadro. Medido: costaba unos 6 fps. */
   + 'background:#070f1e;'
+  /* Capa propia en el compositor. Sin esto la barra se repinta junto con
+     la pagina y se ve "subir" mientras se desplaza (se nota en iOS).
+     Antes se la daba el backdrop-filter, que quitamos por rendimiento. */
+  + 'transform:translateZ(0);will-change:transform;'
   + '-webkit-backdrop-filter:blur(18px) saturate(140%);'
   + 'border-top:1px solid rgba(200,169,110,.14);'
   + 'padding-bottom:env(safe-area-inset-bottom)}'
+  + '.cfui-tabs::after{content:"";position:absolute;left:0;right:0;top:100%;'
+  + 'height:120px;background:inherit;pointer-events:none}'
   + '.cfui-tabs-in{display:grid;grid-template-columns:repeat(4,1fr)}'
   + '.cfui-tab{background:none;border:0;cursor:pointer;font-family:inherit;'
   + 'display:flex;flex-direction:column;align-items:center;gap:.28rem;'
@@ -88,6 +96,7 @@
   + '.cfui-tab:active{color:#c8a96e}'
   /* ── barra de carrito ── */
   + '.cfui-cart{position:fixed;left:.7rem;right:.7rem;z-index:260;display:flex;'
+  + 'transform:translateZ(0);'
   + 'align-items:center;gap:.8rem;padding:.75rem .9rem .75rem 1rem;'
   + 'background:linear-gradient(135deg,#c8a96e,#a8874e);color:#050c18;'
   + 'border:0;cursor:pointer;font-family:inherit;text-align:left;'
@@ -107,6 +116,29 @@
   + 'line-height:1.1;font-weight:600}'
   + '.cfui-cart-go{font-size:.58rem;letter-spacing:.18em;text-transform:uppercase;'
   + 'font-weight:700;white-space:nowrap}'
+  /* ── boton flotante de La Reserva ──
+     Va encima del de WhatsApp, en dorado y con el mismo tamaño, para que se
+     lea como una pareja y no como un anadido. Se esconde en la propia
+     pagina de premios, donde no tiene sentido. */
+  + '.cfui-reserva{position:fixed;right:1.2rem;z-index:300;'
+  + 'display:flex;align-items:center;gap:.5rem;text-decoration:none;'
+  + 'padding:0 1rem 0 .85rem;height:52px;border-radius:26px;'
+  + 'background:linear-gradient(135deg,#9a7a48,#c8a96e);color:#060e1c;'
+  + 'font-family:Montserrat,system-ui,sans-serif;font-size:.62rem;font-weight:700;'
+  + 'letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;'
+  + 'box-shadow:0 8px 28px rgba(200,169,110,.35);'
+  + 'opacity:0;transform:translateY(14px) scale(.94);pointer-events:none;'
+  + 'transition:opacity .35s ease,transform .35s ease,box-shadow .3s ease}'
+  + '.cfui-reserva.ver{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}'
+  + '.cfui-reserva.ver:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(200,169,110,.5)}'
+  + '.cfui-reserva.ver:active{transform:translateY(0) scale(.97)}'
+  + '@media(prefers-reduced-motion:reduce){.cfui-reserva{transition:opacity .2s linear}}'
+  + '.cfui-reserva svg{width:19px;height:19px;flex-shrink:0;fill:none;stroke:#060e1c;'
+  + 'stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}'
+  /* En pantallas angostas solo el icono: el texto empujaba el boton fuera. */
+  + '@media(max-width:380px){.cfui-reserva{padding:0;width:52px;justify-content:center}'
+  + '.cfui-reserva span{display:none}}'
+
   /* ── hoja de búsqueda ── */
   /* Con \`bottom\` explicito, no \`inset:0\`: la hoja va en z-index 350 y la
      barra de pestañas en 250, asi que la tapaba entera. Al abrir "Buscar"
@@ -253,7 +285,44 @@
   }
 
   /* ═══ Montaje ═══ */
-  var elTabs, elCart, elSheet, elInput, elBody;
+  var elTabs, elCart, elSheet, elInput, elBody, elReserva;
+
+  /* Deja el boton de La Reserva apoyado sobre el de WhatsApp, sea cual sea
+     el alto de ese: en movil se achica y en escritorio no. */
+  function colocarReserva() {
+    if (!elReserva) return;
+    var wa = document.querySelector('.wa-float');
+    var base = 1.2 * 16;                       // el "bottom: 1.2rem" del de WhatsApp
+    var altoWa = wa ? wa.getBoundingClientRect().height : 52;
+    if (wa) {
+      var cs = getComputedStyle(wa);
+      var b = parseFloat(cs.bottom);
+      if (!isNaN(b)) base = b;
+    }
+    var piso = base + altoWa + 12;
+
+    // La barra del carrito, cuando esta puesta, manda: su borde de arriba
+    // es el techo real. Se mide en vivo porque cambia de alto con el texto.
+    if (elCart && elCart.classList.contains('on')) {
+      var rc = elCart.getBoundingClientRect();
+      if (rc.height) piso = Math.max(piso, Math.round(window.innerHeight - rc.top) + 12);
+    }
+
+    elReserva.style.bottom = 'calc(' + Math.round(piso) + 'px + env(safe-area-inset-bottom))';
+  }
+
+  /* Aparece pasados 240 px de bajada. Excepcion: si la pagina es tan corta
+     que nunca se van a poder bajar esos 240 px, se muestra de una — si no,
+     en una pantalla grande el boton no saldria nunca. */
+  var reservaVisible = false;
+  function revisarReserva() {
+    if (!elReserva) return;
+    var corta = document.documentElement.scrollHeight <= window.innerHeight + 240;
+    var debe = corta || window.scrollY > 240;
+    if (debe === reservaVisible) return;        // sin tocar el DOM si no cambio
+    reservaVisible = debe;
+    elReserva.classList.toggle('ver', debe);
+  }
 
   function montar(){
     var st = document.createElement('style');
@@ -280,6 +349,34 @@
     document.body.appendChild(elTabs);
 
     // Barra de carrito
+    /* Boton flotante de La Reserva.
+       Va JUSTO encima del de WhatsApp, calculando su altura real en vez de
+       clavar un numero: ese boton se achica en movil (52px -> 44px) y con un
+       valor fijo quedaban separados o encimados. */
+    // Ojo: no usar paginaActual() aca — devuelve 'cuenta' tanto para
+    // mi-cuenta.html como para pedido.html. El pathname si las separa.
+    var sinFlotante = /premios|mi-cuenta/.test(location.pathname);
+    if (!sinFlotante) {
+      elReserva = document.createElement('a');
+      elReserva.className = 'cfui-reserva';
+      elReserva.href = 'premios.html';
+      elReserva.setAttribute('aria-label', 'La Reserva: canjeá tus puntos');
+      elReserva.innerHTML =
+        '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+          '<rect x="3" y="9" width="18" height="11" rx="1"/>' +
+          '<path d="M3 13h18M12 9v11"/>' +
+          '<path d="M12 9S9.5 4 7.5 5.5 9 9 12 9zM12 9s2.5-5 4.5-3.5S15 9 12 9z"/>' +
+        '</svg><span>La Reserva</span>';
+      document.body.appendChild(elReserva);
+      colocarReserva();
+      revisarReserva();
+      window.addEventListener('scroll', revisarReserva, { passive: true });
+      window.addEventListener('resize', function () {
+        colocarReserva();
+        revisarReserva();
+      }, { passive: true });
+    }
+
     elCart = document.createElement('button');
     elCart.className = 'cfui-cart';
     elCart.type = 'button';
@@ -372,6 +469,11 @@
   }
 
   function posicionarCarrito(visible){
+    acomodarCarrito(visible);
+    colocarReserva();          // cambio el techo: el boton lo sigue
+  }
+
+  function acomodarCarrito(visible){
     if (window.innerWidth > 860){ document.body.style.paddingBottom = ''; return; }
     // La barra del carrito se apoya justo encima de las pestañas.
     var altoTabs = elTabs ? Math.round(elTabs.getBoundingClientRect().height) : 56;

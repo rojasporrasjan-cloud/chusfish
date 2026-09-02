@@ -4,13 +4,18 @@
     <loc>https://chusfish.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-09-01</lastmod>
   </url>
   <url>
     <loc>https://chusfish.com/catalogo.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-    <lastmod>2026-06-08</lastmod>
+    <lastmod>2026-09-01</lastmod>
+  </url>
+  <url>
+    <loc>https://chusfish.com/premios.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <lastmod>2026-09-01</lastmod>
   </url>
 </urlset>
-

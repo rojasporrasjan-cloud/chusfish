@@ -26,6 +26,9 @@
       --radius: 12px; --sidebar: 260px;
       --red: #e74c3c; --green: #27ae60; --blue: #2980b9; --amber: #f39c12;
     }
+    /* El doble toque ya no amplia la pagina. Solo apaga ese gesto:
+       el zoom con dos dedos sigue funcionando. */
+    html { touch-action: manipulation; }
     html, body { height: 100%; }
     body { font-family: 'Montserrat', sans-serif; background: var(--ocean); color: var(--text); overflow-x: hidden; display: flex; }
     ::selection { background: var(--gold-dk); color: #fff; }
@@ -1945,27 +1948,16 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="14" height="14" style="vertical-align:-2px;margin-right:5px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               Productos destacados en inicio
             </div>
-            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1.2rem;line-height:1.6">
-              Elegí hasta 4 productos que aparecerán en la sección "Productos del mar" de la página principal. Si no elegís ninguno se usan los productos por defecto.
+            <p style="font-size:0.72rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+              Los que quieras, sin límite. Salen en una tira que se desliza,
+              arriba del catálogo. Tocá para elegirlos y arrastralos si querés
+              cambiar el orden.
             </p>
-            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0.8rem;margin-bottom:1rem" id="featured-selects-wrap">
-              <div class="config-field">
-                <label class="config-label">Destacado 1</label>
-                <select id="feat-sel-0" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-              <div class="config-field">
-                <label class="config-label">Destacado 2</label>
-                <select id="feat-sel-1" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-              <div class="config-field">
-                <label class="config-label">Destacado 3</label>
-                <select id="feat-sel-2" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-              <div class="config-field">
-                <label class="config-label">Destacado 4</label>
-                <select id="feat-sel-3" class="config-input"><option value="">— Sin selección —</option></select>
-              </div>
-            </div>
+            <div id="feat-elegidos" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.9rem"></div>
+            <button type="button" class="config-save-btn" id="feat-abrir"
+              style="background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e;margin-bottom:0.9rem">
+              Elegir del catálogo
+            </button>
             <button class="config-save-btn" id="cfg-save-featured">Guardar destacados</button>
           </div>
 
@@ -2083,7 +2075,7 @@
           <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.9rem">
             El nivel se gana con los puntos <b>acumulados de por vida</b>, y no se pierde
             al canjear. El multiplicador es el premio por subir: con 1.25 el cliente gana
-            25% mas de puntos en cada compra.
+            25% más de puntos en cada compra.
           </div>
           <div id="tier-list"></div>
           <button class="config-save-btn" id="tier-add" style="background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e;margin-right:0.5rem">+ Agregar nivel</button>
@@ -4564,30 +4556,109 @@ async function loadConfig() {
     if (sfInput && typeof appConfig.shippingFee === 'number') sfInput.value = appConfig.shippingFee;
 }
 
+/* ═══ PRODUCTOS DESTACADOS ═══════════════════════════════════════
+   Antes eran cuatro <select> fijos: solo se podian elegir 4, habia que
+   buscar cada nombre en una lista de 87 sin ver la foto, y no se podia
+   cambiar el orden. Ahora se eligen del mismo selector con fotos que usan
+   los premios, sin tope, y se reordenan con las flechas. */
+let featSeleccion = [];
+
 function populateFeaturedSelects() {
-  const featuredIds = appConfig.featuredIds || [];
-  for (let i = 0; i < 4; i++) {
-    const sel = document.getElementById('feat-sel-' + i);
-    if (!sel) continue;
-    sel.innerHTML = '<option value="">— Sin selección —</option>';
-    products.forEach(p => {
-      const opt = document.createElement('option');
-      opt.value = p.id;
-      opt.textContent = p.name;
-      if (featuredIds[i] === p.id) opt.selected = true;
-      sel.appendChild(opt);
-    });
-  }
+  featSeleccion = (appConfig.featuredIds || []).slice();
+  renderFeatElegidos();
 }
 
-document.getElementById('cfg-save-featured').addEventListener('click', async () => {
-  const ids = [];
-  for (let i = 0; i < 4; i++) {
-    const sel = document.getElementById('feat-sel-' + i);
-    const val = sel && sel.value !== '' ? parseInt(sel.value) : null;
-    if (val !== null && !isNaN(val)) ids.push(val);
+function renderFeatElegidos() {
+  const caja = document.getElementById('feat-elegidos');
+  if (!caja) return;
+
+  if (!featSeleccion.length) {
+    caja.innerHTML = '<p style="font-size:0.72rem;color:#7a95aa;margin:0">' +
+      'Ninguno elegido todavía. Sin destacados, la sección no aparece en el catálogo.</p>';
+    return;
   }
-  appConfig.featuredIds = ids;
+
+  caja.innerHTML = featSeleccion.map(function (id, i) {
+    const p = (products || []).find(function (x) { return x.id === id; });
+    const nombre = p ? esc(p.name) : ('Producto ' + id + ' (ya no existe)');
+    const foto = p && p.img
+      ? '<img src="' + esc(p.img) + '" alt="" style="width:34px;height:34px;object-fit:cover;border-radius:6px;flex-shrink:0">'
+      : '<span style="width:34px;height:34px;border-radius:6px;background:rgba(200,169,110,0.12);' +
+        'display:grid;place-items:center;color:#c8a96e;flex-shrink:0">—</span>';
+    return '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0.5rem;' +
+      'background:rgba(6,14,28,0.6);border:1px solid rgba(200,169,110,0.18);border-radius:9px">' +
+      foto +
+      '<span style="font-size:0.74rem;color:#d4dde8;max-width:150px;overflow:hidden;' +
+        'text-overflow:ellipsis;white-space:nowrap">' + nombre + '</span>' +
+      '<button type="button" onclick="moverFeat(' + i + ',-1)" title="Subir" ' +
+        'style="background:none;border:0;color:' + (i === 0 ? '#3a4a58' : '#7a95aa') +
+        ';cursor:pointer;font-size:0.9rem;padding:0 0.15rem">&#8593;</button>' +
+      '<button type="button" onclick="moverFeat(' + i + ',1)" title="Bajar" ' +
+        'style="background:none;border:0;color:' + (i === featSeleccion.length - 1 ? '#3a4a58' : '#7a95aa') +
+        ';cursor:pointer;font-size:0.9rem;padding:0 0.15rem">&#8595;</button>' +
+      '<button type="button" onclick="quitarFeat(' + i + ')" title="Quitar" ' +
+        'style="background:none;border:0;color:#ff9b8c;cursor:pointer;font-size:1rem;padding:0 0.15rem">&times;</button>' +
+      '</div>';
+  }).join('');
+}
+
+function moverFeat(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= featSeleccion.length) return;
+  const tmp = featSeleccion[i];
+  featSeleccion[i] = featSeleccion[j];
+  featSeleccion[j] = tmp;
+  renderFeatElegidos();
+}
+
+function quitarFeat(i) {
+  featSeleccion.splice(i, 1);
+  renderFeatElegidos();
+}
+
+/* Reusa el selector con fotos de los premios, en modo "varios". */
+function abrirSelectorDestacados() {
+  _catalogImgTarget = 'featured';
+  const cont = document.getElementById('catalog-img-grid');
+  document.querySelector('.catalog-img-modal-header h4').textContent =
+    'Elegí los productos destacados';
+
+  let html = '';
+  CAT_ORDER.forEach(function (cat) {
+    const enCat = (products || []).filter(function (p) { return p.cat === cat; });
+    if (!enCat.length) return;
+    html += '<div class="catalog-img-section">' +
+      '<div class="catalog-img-section-title">' + (CAT_NAMES[cat] || cat) + '</div>' +
+      '<div class="catalog-img-row">' +
+      enCat.map(function (p) {
+        const elegido = featSeleccion.indexOf(p.id) >= 0 ? ' selected' : '';
+        const precio = p.price ? fmt(p.price) + ' ' + esc(p.unit || '') : 'sin precio';
+        return '<div class="catalog-img-item con-precio' + elegido + '" data-pid="' + p.id + '" ' +
+          'onclick="alternarFeat(this)" title="' + esc(p.name) + '">' +
+          (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">'
+                 : '<div style="height:100%;display:grid;place-items:center;color:#7a95aa">—</div>') +
+          '<div class="catalog-img-item-name">' + esc(p.name) +
+            '<span class="cip-precio">' + precio + '</span></div>' +
+          '</div>';
+      }).join('') +
+      '</div></div>';
+  });
+
+  cont.innerHTML = html || '<p style="color:#7a95aa;padding:1rem">No hay productos.</p>';
+  document.getElementById('catalog-img-overlay').classList.add('open');
+}
+
+function alternarFeat(el) {
+  const id = parseInt(el.getAttribute('data-pid'), 10);
+  const i = featSeleccion.indexOf(id);
+  if (i >= 0) { featSeleccion.splice(i, 1); el.classList.remove('selected'); }
+  else { featSeleccion.push(id); el.classList.add('selected'); }
+}
+
+document.getElementById('feat-abrir').addEventListener('click', abrirSelectorDestacados);
+
+document.getElementById('cfg-save-featured').addEventListener('click', async () => {
+  appConfig.featuredIds = featSeleccion.slice();
   try {
     await CFG_REF.set(cfgSavePayload(), { merge: true });
     toast('Productos destacados guardados');
@@ -6272,6 +6343,7 @@ function toggleCatalogImgItem(el) {
 function applyCatalogImgSelection() {
   if (!_catalogImgTarget) return;
   if (_catalogImgTarget === 'reward-full') { aplicarProductoPremio(); return; }
+  if (_catalogImgTarget === 'featured') { renderFeatElegidos(); closeCatalogImgPicker(); return; }
   const selectedImgs = [];
   document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected').forEach(function(el) {
     const imgUrl = el.getAttribute('data-img');
@@ -7101,9 +7173,9 @@ const TIERS_FALLBACK = [
   { id:'bronce', name:'Bronce', min:0,    mult:1.00, color:'#b87333',
     perk:'Acumulas puntos en cada compra.' },
   { id:'plata',  name:'Plata',  min:1000, mult:1.10, color:'#c0c9d4',
-    perk:'10% mas de puntos en cada compra.' },
+    perk:'10% más de puntos en cada compra.' },
   { id:'oro',    name:'Oro',    min:3000, mult:1.25, color:'#e8c98a',
-    perk:'25% mas de puntos y prioridad en pedidos.' },
+    perk:'25% más de puntos y prioridad en pedidos.' },
 ];
 
 let tierDraft = [];
@@ -7165,7 +7237,7 @@ function renderTierEditor() {
       <div style="margin-top:0.6rem">
         <label class="config-label">Beneficio (lo lee el cliente en su perfil)</label>
         <input type="text" class="config-input tier-f" data-i="${i}" data-k="perk"
-          value="${esc(t.perk || '')}" placeholder="Ej: 10% mas de puntos en cada compra">
+          value="${esc(t.perk || '')}" placeholder="Ej: 10% más de puntos en cada compra">
       </div>
     </div>`).join('');
 

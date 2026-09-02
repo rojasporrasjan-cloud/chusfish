@@ -41,7 +41,7 @@
   body{
     background:var(--deep); color:var(--text);
     font-family:'Montserrat',system-ui,sans-serif; font-size:15px; line-height:1.6;
-    padding-top:var(--nav-h); min-height:100vh; overflow-x:hidden;
+    padding-top:var(--nav-h); min-height:100vh; min-height:100dvh;   /* dvh: en iOS el 100vh sobra por abajo */ overflow-x:hidden;
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   }
   a{color:inherit;text-decoration:none}
@@ -332,8 +332,11 @@
   #toast{position:fixed;left:50%;bottom:2rem;transform:translate(-50%,180%);
     background:var(--gold);color:var(--deep);padding:.8rem 1.5rem;
     font-size:.63rem;font-weight:700;letter-spacing:.12em;z-index:900;
-    transition:transform .5s var(--ease);max-width:92vw;text-align:center}
-  #toast.on{transform:translate(-50%,0)}
+    opacity:0;visibility:hidden;pointer-events:none;
+    transition:transform .5s var(--ease),opacity .3s ease,visibility 0s linear .5s;
+    max-width:92vw;text-align:center}
+  #toast.on{transform:translate(-50%,0);opacity:1;visibility:visible;
+    transition:transform .5s var(--ease),opacity .3s ease,visibility 0s}
 
   @media (prefers-reduced-motion: reduce){
     *,*::before,*::after{
@@ -381,6 +384,17 @@
   .nivel-bar{height:2px;background:var(--line-soft);overflow:hidden}
   .nivel-bar i{display:block;height:100%;background:var(--gold-dk);width:0;
     transition:width 1.1s var(--ease)}
+
+  /* Abrir/cerrar el detalle de niveles. Cerrado por defecto: lo que cambia
+     de una visita a otra es la barra de avance, no la explicacion. */
+  .nivel-mas{
+    margin-top:1rem;background:none;border:0;padding:.2rem 0;cursor:pointer;
+    font-family:inherit;font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--gold);text-decoration:underline;text-underline-offset:4px;
+  }
+  .nivel-mas:hover{color:var(--gold-lt)}
+  .nivel-detalle{margin-top:1.2rem;animation:fade .4s var(--ease)}
+  .nivel-detalle .nivel-p{margin-bottom:1.2rem}
 
   /* El ejemplo en plata: es lo que hace entender el beneficio */
   .ejemplo{margin-top:1.4rem;padding:1rem 1.1rem;border-left:1px solid var(--gold);
@@ -655,8 +669,8 @@
 
 <div id="toast"></div>
 
-<script src="auth.js?v=9"></script>
-<script src="ui.js?v=8"></script>
+<script src="auth.js?v=10"></script>
+<script src="ui.js?v=12"></script>
 <script>
 (function(){
   'use strict';
@@ -977,11 +991,24 @@
     $('#nivel-sec').innerHTML =
       '<div class="nivel-h"><h3>Tu nivel</h3><span>Sos <b style="color:'+
         CF.esc(actual.color||'#c8a96e')+'">'+CF.esc(actual.name)+'</b></span></div>'+
-      '<p class="nivel-p">El nivel sube solo, con los puntos que vas acumulando desde siempre. '+
-        'Canjear premios <b style="color:var(--text)">no</b> te baja de nivel.</p>'+
-      '<div class="escala">'+tarjetas+'</div>'+
-      progreso+
-      '<div class="ejemplo">'+ejemplo+'</div>';
+      progreso +
+      '<button type="button" class="nivel-mas" id="nivel-mas" aria-expanded="false">'+
+        'Cómo funcionan los niveles</button>'+
+      '<div class="nivel-detalle" id="nivel-detalle" hidden>'+
+        '<p class="nivel-p">El nivel sube solo, con los puntos que vas acumulando desde '+
+          'siempre. Canjear premios <b style="color:var(--text)">no</b> te baja de nivel.</p>'+
+        '<div class="escala">'+tarjetas+'</div>'+
+        '<div class="ejemplo">'+ejemplo+'</div>'+
+      '</div>';
+
+    var masBtn = document.getElementById('nivel-mas');
+    var detalle = document.getElementById('nivel-detalle');
+    masBtn.addEventListener('click', function(){
+      var abierto = !detalle.hidden;
+      detalle.hidden = abierto;
+      masBtn.setAttribute('aria-expanded', String(!abierto));
+      masBtn.textContent = abierto ? 'Cómo funcionan los niveles' : 'Ocultar';
+    });
   }
 
   /* ═══ COMPLETAR PERFIL ═══ */
@@ -1349,5 +1376,6 @@
   });
 })();
 </script>
+<script src="analytics.js?v=1" defer></script>
 </body>
 </html>

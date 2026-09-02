@@ -117,8 +117,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=9"></script>
-<script src="ui.js?v=8"></script>
+  <script src="auth.js?v=10"></script>
+<script src="ui.js?v=12"></script>
 
   <style>
     /*
@@ -129,7 +129,7 @@
       2. Busca: "fresh fish market seafood raw"
          o "fish market ocean seafood"
       3. Descarga el video (gratis, sin crédito)
-      4. Guárdalo como: assets/hero.mp4
+      4. Guárdalo como: assets/hero-720.mp4 (y comprimilo: 900 kbps sobra)
          (crea la carpeta "assets" junto a index.html)
       El video se reproducirá automáticamente
       en bucle, silenciado, como fondo del hero.
@@ -253,7 +253,7 @@
     /* ── HERO ──────────────────────────────────── */
     #hero {
       position: relative;
-      min-height: 100vh;
+      min-height: 100vh; min-height: 100dvh;   /* dvh: en iOS el 100vh sobra por abajo */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1326,7 +1326,7 @@
 <!-- ═══════════════════════════════════════════════
      HERO con VIDEO
      ─────────────────────────────────────────────
-     Coloca tu video en: assets/hero.mp4
+     Coloca tu video en: assets/hero-720.mp4
      Busca en pexels.com/videos:
        "fresh fish market seafood"
        "raw seafood ice market"
@@ -1338,14 +1338,18 @@
 
   <div class="hero-video-wrap">
     <!-- VIDEO DE FONDO
-         Sin `src` y sin `autoplay` a proposito: asi el navegador NO descarga
-         nada. El fotograma de portada (52 KB) se ve al instante, y el video
-         (3 MB) lo engancha el JS del final SOLO en pantallas grandes y con
-         buena conexion. Antes se bajaba entero en cada visita, dos veces, y
-         hacia que la portada pesara 8 MB en un celular. -->
+         El video venia a 3 MB (1280x720 a 3.000 kbps), un bitrate de pelicula
+         para algo que se ve al 45% de brillo bajo tres degradados. Se volvio a
+         codificar a la misma resolucion con 900 kbps: 351 KB, 88% menos, y
+         lado a lado no se distingue del original.
+         (El original quedo en borradores/hero-original-3mb.mp4.)
+
+         Sigue sin `src` y sin `autoplay`: asi el navegador no descarga nada
+         hasta que el JS del final lo decide, ya con la pagina cargada. El
+         fotograma de portada (52 KB) se ve al instante mientras tanto. -->
     <video muted loop playsinline webkit-playsinline preload="none"
            poster="assets/hero-poster.jpg" id="hero-video"
-           data-src="assets/hero.mp4" aria-hidden="true"></video>
+           data-src="assets/hero-720.mp4" aria-hidden="true"></video>
     <div class="hero-video-overlay"></div>
     <div class="hero-fallback"></div>
   </div>
@@ -2329,17 +2333,19 @@ if ('serviceWorker' in navigator) {
 
 <script>
 /* ══ VIDEO DEL HERO — carga condicional ══════════════════════════
-   El video pesa 3 MB y es decoracion: se muestra al 45% de brillo, en
-   escala de grises parcial y bajo tres degradados. En un celular con datos
-   eso era la mitad del peso de la portada, para algo que casi no se ve.
+   Ahora pesa 351 KB, asi que tambien se carga en celular. Se engancha
+   despues del `load`, o sea cuando el texto, el logo y el catalogo ya
+   estan; nunca compite con lo que la persona vino a ver.
 
-   Se engancha solo si se cumplen las cuatro:
-     · pantalla ancha (en celular manda el fotograma)
-     · el sistema no pide menos movimiento
-     · el navegador no reporta conexion lenta ni "ahorro de datos"
-     · la pestaña esta visible
+   Se salta en tres casos, y en los tres queda el fotograma de 52 KB, que
+   es practicamente lo mismo que se ve:
+     · el navegador pide "ahorro de datos"
+     · reporta conexion 2G
+     · el sistema pide menos movimiento (mareos, epilepsia)
 
-   Si alguna falla, queda el poster de 52 KB, que es lo que se ve igual. */
+   Si el archivo falla al reproducirse —un iOS viejo que no traga este
+   formato, por ejemplo— se esconde el <video> y el poster sigue puesto,
+   sin cuadro negro ni error visible. */
 (function () {
   var v = document.getElementById('hero-video');
   if (!v || !v.dataset.src) return;
@@ -2354,7 +2360,11 @@ if ('serviceWorker' in navigator) {
   var pocoMovimiento = window.matchMedia &&
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  if (window.innerWidth < 900 || pocoMovimiento || !conexionOk()) return;
+  if (pocoMovimiento || !conexionOk()) return;
+
+  /* Si el video no se puede reproducir, se saca de la vista y manda el
+     poster. Sin esto quedaria un rectangulo negro tapando la portada. */
+  v.addEventListener('error', function () { v.style.display = 'none'; }, { once: true });
 
   function cargar() {
     if (v.src) return;
@@ -2433,5 +2443,6 @@ if ('serviceWorker' in navigator) {
   });
 })();
 </script>
+<script src="analytics.js?v=1" defer></script>
 </body>
 </html>

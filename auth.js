@@ -7,7 +7,7 @@
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al cambiar este archivo hay que subir el ?v= en TODOS los HTML
       que lo cargan, si no los clientes quedan con la versión vieja.
-      Versión actual: v9
+      Versión actual: v10
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -150,7 +150,15 @@
      Es lo que hacen las marcas de lujo — un emoji ahi abarata la pieza.
      Descarta numeros y palabras cortas: "1 kg de Filete de Corvina" -> "FC". */
   function monograma(texto) {
-    var palabras = String(texto || '').match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{3,}/g) || [];
+    var t = String(texto || '');
+
+    /* Un premio como "15% de descuento" no tiene inicial util: la "D" de
+       "descuento" no informa nada. El porcentaje SI, y se ve deliberado
+       en la misma serif que el monograma. */
+    var pct = t.match(/([0-9]{1,3}) *%/);
+    if (pct) return pct[1] + '%';
+
+    var palabras = t.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]{3,}/g) || [];
     if (!palabras.length) return '✦';
     return palabras.slice(0, 2).map(function (w) {
       return w.charAt(0).toUpperCase();

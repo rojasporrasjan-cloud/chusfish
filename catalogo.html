@@ -37,7 +37,7 @@
   <meta name="twitter:image" content="https://chusfish.com/facebook/portada_facebook.png">
 
   <!-- JSON-LD Structured Data -->
-  <script type="application/ld+json">
+  <script type="application/ld+json" id="ld-catalogo">
   {
     "@context": "https://schema.org",
     "@graph": [
@@ -94,8 +94,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=9"></script>
-<script src="ui.js?v=8"></script>
+  <script src="auth.js?v=10"></script>
+<script src="ui.js?v=12"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1164,14 +1164,50 @@
 
     /* ═══ PRODUCTOS DESTACADOS ═══ */
     .destacados-section { max-width:1180px; margin:0 auto; padding:0 2rem 1.5rem; }
-    .destacados-row { display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem; }
-    .dest-card { position:relative; background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--radius); overflow:hidden; display:flex; flex-direction:column; transition:transform .4s cubic-bezier(.2,.8,.2,1), box-shadow .4s, border-color .4s; }
+    .destacados-row {
+      display:flex; gap:0.75rem; overflow-x:auto; padding:0.2rem 0 0.9rem;
+      scroll-snap-type:x proximity; scrollbar-width:none; -webkit-overflow-scrolling:touch;
+    }
+    .destacados-row::-webkit-scrollbar { display:none; }
+    .dest-card {
+      position:relative; flex:0 0 auto; width:158px; scroll-snap-align:start;
+      background:#0e2038; border:1px solid var(--glass-border); border-radius:12px;
+      overflow:hidden; display:flex; flex-direction:column;
+      transition:transform .35s ease, border-color .35s ease;
+    }
     .dest-card:hover { transform:translateY(-4px); border-color:rgba(200,169,110,0.4); box-shadow:0 14px 36px rgba(0,0,0,0.45); }
     .dest-star { position:absolute; top:8px; left:8px; z-index:2; background:linear-gradient(135deg,var(--gold-dk),var(--gold)); color:var(--deep); font-size:0.55rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:0.22rem 0.55rem; border-radius:14px; }
-    .dest-img { width:100%; aspect-ratio:1/1; background:rgba(6,14,28,0.5); display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; }
+    .dest-img { width:100%; aspect-ratio:4/3; background:rgba(6,14,28,0.5); display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:pointer; }
     .dest-img img { width:100%; height:100%; object-fit:cover; transition:transform .6s; }
     .dest-card:hover .dest-img img { transform:scale(1.06); }
-    .dest-img-placeholder { color:var(--gold-dk); font-size:2.2rem; }
+    .dest-img-placeholder { color:var(--gold-dk); font-size:1.6rem; }
+
+    /* Contenido de la tarjeta compacta */
+    .dest-body { padding:0.6rem 0.65rem 0.7rem; display:flex; flex-direction:column; gap:0.3rem; flex:1; }
+    .dest-name {
+      font-family:'Cormorant Garamond',serif; font-size:0.9rem; color:var(--white);
+      line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
+    .dest-price { font-family:'Cormorant Garamond',serif; font-size:0.95rem; color:var(--gold); white-space:nowrap; }
+    .dest-price small { font-size:0.55rem; font-family:'Montserrat',sans-serif; color:var(--muted); }
+    .dest-add {
+      margin-top:auto; display:inline-flex; align-items:center; justify-content:center; gap:0.3rem;
+      font-family:'Montserrat',sans-serif; font-size:0.55rem; letter-spacing:0.1em;
+      text-transform:uppercase; font-weight:700; color:var(--deep);
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold));
+      padding:0.42rem 0.5rem; border-radius:12px; border:none; cursor:pointer;
+      transition:transform .25s, box-shadow .25s;
+    }
+    .dest-add:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(200,169,110,0.3); }
+    .dest-add:active { transform:translateY(0) scale(0.97); }
+    /* La estrella, chiquita en la esquina */
+    .dest-star {
+      position:absolute; top:0; left:0; z-index:2;
+      background:var(--gold); color:var(--deep);
+      font-size:0.48rem; letter-spacing:0.12em; text-transform:uppercase; font-weight:700;
+      padding:0.22rem 0.45rem;
+    }
     .dest-body { padding:0.8rem 0.9rem 1rem; display:flex; flex-direction:column; gap:0.5rem; flex:1; }
     .dest-name { font-family:'Cormorant Garamond',serif; font-size:1.05rem; color:var(--white); line-height:1.25; }
     .dest-price { font-family:'Cormorant Garamond',serif; font-size:1.3rem; color:var(--gold); }
@@ -1183,9 +1219,10 @@
     .dest-add:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(200,169,110,0.35); }
     @media(max-width:600px){
       .destacados-section { padding:0 0.8rem 1.2rem; }
-      .destacados-row { display:flex; overflow-x:auto; gap:0.8rem; padding-bottom:0.6rem; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
-      .destacados-row::-webkit-scrollbar { height:0; }
-      .dest-card { flex:0 0 62%; scroll-snap-align:start; }
+      /* Mismo ancho que las tarjetas de categoria, para que las dos tiras
+         se vean como una sola familia. */
+      .dest-card { width:132px; }
+      .dest-name { font-size:0.84rem; }
     }
 
 
@@ -2025,7 +2062,66 @@ const PRODUCTS_DEFAULT = [
 let PRODUCTS = [];
 // ui.js lo lee para buscar y para totalizar el carrito. `let` en el nivel
 // superior NO crea window.PRODUCTS, hay que publicarlo a mano.
-function publicarProductos(){ window.PRODUCTS = PRODUCTS; }
+function publicarProductos(){ window.PRODUCTS = PRODUCTS; publicarDatosSEO(); }
+
+/* ═══ DATOS DE PRODUCTO PARA GOOGLE ═══════════════════════════════
+   El bloque JSON-LD del <head> traia una lista escrita a mano: ocho
+   nombres genericos, sin precio, sin existencia, y todos apuntando a
+   la misma URL. Con eso Google no puede armar un resultado con precio
+   —que es justo lo que hace que la gente entre desde el buscador.
+
+   Aca se reescribe esa misma lista con los 87 productos de verdad:
+   precio en colones, si esta disponible, foto, y una URL propia
+   (catalogo.html?id=N) que la pagina ya sabe abrir en ese producto.
+
+   Se REESCRIBE en vez de agregar un bloque nuevo: dos ItemList en la
+   misma pagina se contradicen. Y si el JS fallara, queda la lista
+   original — nunca se queda sin datos. */
+function publicarDatosSEO(){
+  var el = document.getElementById("ld-catalogo");
+  if (!el || !PRODUCTS || !PRODUCTS.length) return;
+
+  var datos;
+  try { datos = JSON.parse(el.textContent); } catch (e) { return; }
+
+  var grafo = datos["@graph"] || [];
+  var lista = null;
+  for (var i = 0; i < grafo.length; i++) {
+    if (grafo[i]["@type"] === "ItemList") { lista = grafo[i]; break; }
+  }
+  if (!lista) return;
+
+  var BASE = "https://chusfish.com/catalogo.html?id=";
+  lista.numberOfItems = PRODUCTS.length;
+  lista.itemListElement = PRODUCTS.map(function (p, i) {
+    var agotado = p.available === false || (p.stock != null && p.stock <= 0);
+    var url = BASE + p.id;
+
+    var prod = { "@type": "Product", name: p.name, url: url };
+    if (p.img)  prod.image = p.img;
+    if (p.desc) prod.description = p.desc;
+
+    /* Sin precio no se declara oferta. Un Offer con price 0 le dice a
+       Google que el producto es gratis, que es peor que no decir nada. */
+    var precio = Number(p.price) || 0;
+    if (precio > 0) {
+      prod.offers = {
+        "@type": "Offer",
+        price: precio,
+        priceCurrency: "CRC",
+        url: url,
+        availability: agotado
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
+        seller: { "@id": "https://chusfish.com/#business" }
+      };
+    }
+
+    return { "@type": "ListItem", position: i + 1, item: prod };
+  });
+
+  el.textContent = JSON.stringify(datos);
+}
 
 /* ════════════════════════════════════════ */
 const CAT_ORDER = ['camarones-imp','camarones-nac','filetes-premium','filetes-trad','pescado-entero','picadura','mariscos','mariscadas','gourmet','marinados'];
@@ -2402,6 +2498,18 @@ function applyFilter() {
   const resultsBar  = document.querySelector('.results-bar');
   if (catalogWrap) catalogWrap.style.display = '';
   if (resultsBar)  resultsBar.style.display  = '';
+
+  /* Los destacados son una vitrina del catalogo COMPLETO. Con un filtro
+     puesto quedaban entre la fila de categorias y los productos, asi que al
+     tocar "Camarones" la pantalla se detenia sobre destacados de otras
+     categorias y parecia que el filtro no llevaba a ninguna parte.
+     Con un filtro activo se esconden; vuelven con "Todo". */
+  const hayFiltro = (activeCat && activeCat !== 'all') || !!searchQ;
+  ['destacados-section', 'destacados-sep'].forEach(function (id) {
+    const el = document.getElementById(id);
+    if (!el || !el.dataset.tieneContenido) return;
+    el.style.display = hayFiltro ? 'none' : '';
+  });
 
   const cards = document.querySelectorAll('.p-card');
   let visible = 0;
@@ -3249,6 +3357,8 @@ function pintarSeccionesDeConfig(cfg) {
     /* ═══ PRODUCTOS DESTACADOS ═══ */
     (function renderDestacados() {
       // Usa los destacados configurados en el admin; si no hay, mismo respaldo que la landing.
+      // Sin tope: Jesus elige cuantos quiera desde el panel y se
+      // deslizan en la tira. Antes el panel solo dejaba cuatro.
       const ids = (Array.isArray(cfg.featuredIds) && cfg.featuredIds.length) ? cfg.featuredIds : [11, 7, 59, 13];
       if (!ids.length) return;
       const featured = ids
@@ -3267,21 +3377,24 @@ function pintarSeccionesDeConfig(cfg) {
           : '<small>&#8353;</small>' + p.price.toLocaleString() + ' <small>' + p.unit + '</small>';
         const safeName = p.name.replace(/'/g, "\\'");
         return '<div class="dest-card">' +
-          '<span class="dest-star">&#11088; Destacado</span>' +
+          '<span class="dest-star">Destacado</span>' +
           '<div class="dest-img" onclick="openModal(' + p.id + ')">' + imgHtml + '</div>' +
           '<div class="dest-body">' +
             '<div class="dest-name">' + p.name + '</div>' +
             '<div class="dest-price">' + priceHtml + '</div>' +
-            '<div class="dest-actions">' +
-              '<button class="dest-more" onclick="openModal(' + p.id + ')">Ver más</button>' +
-              '<button class="dest-add" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id===' + p.id + '});if(p){addToCart(p,getMin(p.unit));showToast(\'' + safeName + ' agregado al carrito ✅\')}})()">+ Agregar</button>' +
-            '</div>' +
+            // Sin "Ver mas": tocar la foto ya abre la ficha, y en 158px de
+            // ancho no caben dos botones sin que se parta el texto.
+            '<button class="dest-add" onclick="(function(){var p=PRODUCTS.find(function(x){return x.id===' + p.id + '});if(p){addToCart(p,getMin(p.unit));showToast(\'' + safeName + ' agregado al carrito ✅\')}})()">+ Agregar</button>' +
           '</div>' +
         '</div>';
       }).join('');
-      document.getElementById('destacados-section').style.display = '';
+      // La marca deja que applyFilter sepa que esta seccion existe de
+      // verdad; si no, la mostraria vacia al volver a "Todo".
+      const sec = document.getElementById('destacados-section');
+      sec.dataset.tieneContenido = '1';
+      sec.style.display = '';
       const sep = document.getElementById('destacados-sep');
-      if (sep) sep.style.display = '';
+      if (sep) { sep.dataset.tieneContenido = '1'; sep.style.display = ''; }
     })();
 
     /* ═══ COMBOS Y PROMOCIONES ═══ */
@@ -4204,6 +4317,7 @@ window.addEventListener('appinstalled', () => {
   });
 })();
 </script>
+<script src="analytics.js?v=1" defer></script>
 </body>
 </html>
 
