@@ -1735,13 +1735,15 @@
               Banner de horario de cierre
             </div>
             <div class="config-field">
-              <div class="toggle-row">
-                <span class="toggle-label">Mostrar banner en el sitio</span>
-                <label class="toggle">
-                  <input type="checkbox" id="cfg-banner-enabled">
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
+              <label class="config-label">¿Qué muestra el banner?
+                <span class="help-tip" data-tip="Solo puede haber un banner a la vez. Elegir uno apaga el otro.">?</span>
+              </label>
+              <select class="config-input" id="cfg-banner-tipo">
+                <option value="nada">Nada — sin banner</option>
+                <option value="aviso">El aviso de abajo</option>
+                <option value="cupon">El cupón de bienvenida</option>
+              </select>
+              <div id="cfg-banner-ayuda" style="font-size:0.72rem;color:#7a95aa;margin-top:0.5rem;line-height:1.6"></div>
             </div>
             <div class="config-field">
               <label class="config-label">Mensaje del banner</label>
@@ -5318,10 +5320,14 @@ document.getElementById('cfg-save-featured').addEventListener('click', async () 
 });
 
 function renderConfig() {
-  const enabledEl = document.getElementById('cfg-banner-enabled');
-  const msgEl     = document.getElementById('cfg-banner-msg');
-  if (!enabledEl || !msgEl) return;
-  enabledEl.checked = !!appConfig.closingEnabled;
+  const tipoEl = document.getElementById('cfg-banner-tipo');
+  const msgEl  = document.getElementById('cfg-banner-msg');
+  if (!tipoEl || !msgEl) return;
+  if (document.activeElement !== tipoEl) {
+    tipoEl.value = appConfig.bannerTipo ||
+                   (appConfig.closingEnabled ? 'aviso' : 'nada');   // config vieja
+  }
+  ayudaBanner();
   msgEl.value = appConfig.closingMessage || '';
   const colorEl = document.getElementById('cfg-banner-color');
   if (colorEl) {
@@ -5409,7 +5415,8 @@ function getBannerColor() {
 
 function updateBannerPreview() {
   var msg     = (document.getElementById('cfg-banner-msg') || {}).value || '';
-  var enabled = (document.getElementById('cfg-banner-enabled') || {}).checked;
+  // La vista previa solo tiene sentido para el aviso; el cupon lo arma el sitio.
+  var enabled = ((document.getElementById('cfg-banner-tipo') || {}).value === 'aviso');
   var color   = getBannerColor();
   var wrap    = document.getElementById('adm-banner-live-preview');
   var track   = document.getElementById('adm-banner-live-track');
@@ -5507,7 +5514,10 @@ document.getElementById('zone-new-input').addEventListener('keydown', e => {
 });
 
 document.getElementById('cfg-banner-msg').addEventListener('input', updateBannerPreview);
-document.getElementById('cfg-banner-enabled').addEventListener('change', updateBannerPreview);
+document.getElementById('cfg-banner-tipo').addEventListener('change', function () {
+  ayudaBanner();
+  updateBannerPreview();
+});
 
 // Banner color picker + swatches
 (function() {
@@ -5526,7 +5536,12 @@ document.getElementById('cfg-banner-enabled').addEventListener('change', updateB
 })();
 
 document.getElementById('cfg-save-banner').addEventListener('click', async () => {
-  appConfig.closingEnabled    = document.getElementById('cfg-banner-enabled').checked;
+  const tipoBanner = document.getElementById('cfg-banner-tipo').value;
+  appConfig.bannerTipo        = tipoBanner;
+  /* closingEnabled se mantiene al dia porque el sitio y el contador de
+     cierre todavia lo miran. Derivarlo de bannerTipo evita tener dos
+     fuentes de verdad que se puedan contradecir. */
+  appConfig.closingEnabled    = (tipoBanner === 'aviso');
   appConfig.closingMessage    = document.getElementById('cfg-banner-msg').value.trim();
   var bcEl = document.getElementById('cfg-banner-color');
   if (bcEl) appConfig.bannerColor = bcEl.value || '#c8a96e';
@@ -7367,6 +7382,27 @@ async function awardPointsForOrder(orderId) {
 
 /* Un campo por nivel, sacados de los niveles que existan de verdad: si
    Jesus agrega un cuarto nivel, aparece solo. */
+/* Aviso segun lo elegido. El caso que importa es elegir "cupon" sin tener
+   ninguno marcado como de bienvenida: el banner no saldria y no habria
+   forma de saber por que. */
+function ayudaBanner() {
+  const sel = document.getElementById('cfg-banner-tipo');
+  const el  = document.getElementById('cfg-banner-ayuda');
+  if (!sel || !el) return;
+  const cod = appConfig.welcomeCoupon || '';
+
+  if (sel.value === 'cupon') {
+    el.innerHTML = cod
+      ? 'Va a mostrar el cupón <b style="color:#c8a96e">' + esc(cod) + '</b> a quien todavía no lo usó.'
+      : '<b style="color:#f39c12">No hay ningún cupón marcado como “Regalarlo al registrarse”.</b> ' +
+        'Creá uno en Cupones y marcalo, o el banner no va a salir.';
+  } else if (sel.value === 'aviso') {
+    el.textContent = 'Va a mostrar el mensaje que escribas abajo.';
+  } else {
+    el.textContent = 'El sitio no muestra ningún banner.';
+  }
+}
+
 function pintarCuponesDeNivel() {
   const caja = document.getElementById('tier-cupones');
   if (!caja) return;
@@ -7788,6 +7824,13 @@ function renderPremios() {
   if (en) en.checked = ptsEnabled();
   if (rt && document.activeElement !== rt) rt.value = ptsRate();
   if (wb && document.activeElement !== wb) wb.value = Number(appConfig.welcomeBonus) || 0;
+
+  const bt = document.getElementById('cfg-banner-tipo');
+  if (bt && document.activeElement !== bt) {
+    bt.value = appConfig.bannerTipo ||
+               (appConfig.closingEnabled ? 'aviso' : 'nada');   // config vieja
+    ayudaBanner();
+  }
 
   const tb = document.getElementById('pts-tier');
   if (tb && document.activeElement !== tb) tb.value = Number(appConfig.tierBonus) || 0;

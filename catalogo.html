@@ -3407,6 +3407,48 @@ if ('serviceWorker' in navigator) {
 
 <script>
 /* ═══ CONFIG: Banner y Zonas de entrega ═══ */
+/* Que texto va en el banner, si es que va alguno. Un solo lugar decide:
+   con dos ramas independientes se podrian pintar dos banners. */
+async function textoDelBanner(cfg) {
+  const tipo = cfg.bannerTipo || (cfg.closingEnabled ? 'aviso' : 'nada');
+
+  if (tipo === 'aviso') return cfg.closingMessage || null;
+  if (tipo !== 'cupon') return null;
+
+  const cod = cfg.welcomeCoupon || '';
+  if (!cod || !window.CF || !CF.db) return null;
+
+  try {
+    const d = await CF.db.collection('coupons').doc(cod).get();
+    if (!d.exists) return null;
+    const c = d.data();
+    if (c.active === false) return null;
+
+    const hoy = new Date();
+    if (c.validFrom  && c.validFrom.toDate  && c.validFrom.toDate()  > hoy) return null;
+    if (c.validUntil && c.validUntil.toDate && c.validUntil.toDate() < hoy) return null;
+
+    /* Si ya lo uso, no se le ofrece: es lo que separa un anuncio util de
+       uno que molesta. A quien no tiene sesion se le muestra igual, que
+       es justamente a quien queremos que se registre. */
+    if (CF.user) {
+      const usado = await CF.db.collection('coupons').doc(cod)
+        .collection('redemptions').doc(CF.user.uid).get().catch(function () { return null; });
+      if (usado && usado.exists) return null;
+    }
+
+    const valor = c.type === 'percent'
+      ? (Number(c.value) || 0) + '%'
+      : String.fromCharCode(8353) + (Number(c.value) || 0).toLocaleString('es-CR');
+    const minimo = Number(c.minOrder) > 0
+      ? ' en pedidos desde ' + String.fromCharCode(8353) + Number(c.minOrder).toLocaleString('es-CR')
+      : '';
+
+    return valor + ' de descuento con el código ' + cod + minimo +
+           '  ·  Creá tu cuenta y es tuyo';
+  } catch (e) { return null; }
+}
+
 function showBanner(msg) {
   var bannerColorEl = document.getElementById('closing-banner');
   if (arguments[1] && bannerColorEl) {
@@ -3448,9 +3490,10 @@ function pintarSeccionesDeConfig(cfg) {
       renderCatwall();
     }
 
-    if (cfg.closingEnabled && cfg.closingMessage) {
-      showBanner(cfg.closingMessage, cfg.bannerColor);
-    }
+    // Un solo sitio decide que va en el banner (o si no va nada).
+    textoDelBanner(cfg).then(function (txt) {
+      if (txt) showBanner(txt, cfg.bannerColor);
+    });
 
     startCountdown(cfg);
 
