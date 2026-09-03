@@ -781,11 +781,11 @@
       { i:'estrella', t:'Los puntos caen solos',
         s:'Un pedido de ' + CF.fmtColones(ejemplo) + ' te da <b>' +
           CF.fmtNum(Math.floor(ejemplo/100*tasa*(Number(t0.mult)||1))) +
-          ' puntos</b>. Se acreditan cuando te lo entregamos.' }
+          ' puntos</b>. Se acreditan apenas te confirmamos el pedido.' }
     ];
     if (bono > 0) {
       pasos.push({ i:'regalo', t:'Bono de bienvenida',
-        s:'Tu primer pedido entregado te suma <b>' + CF.fmtNum(bono) +
+        s:'Tu primer pedido confirmado te suma <b>' + CF.fmtNum(bono) +
           ' puntos</b> extra, de regalo.' });
     }
     pasos.push({ i:'subir', t:'Subís de nivel',
@@ -1129,7 +1129,7 @@
           ? '<div class="gan si">Te sumó '+CF.fmtNum(o.pointsEarned)+' puntos</div>'
           : '<div class="gan no">Este pedido no sumó puntos</div>';
       } else if (st !== 'cancelado' && estimado > 0) {
-        linea = '<div class="gan no">Te va a sumar unos '+CF.fmtNum(estimado)+' puntos al entregarse</div>';
+        linea = '<div class="gan no">Te va a sumar unos '+CF.fmtNum(estimado)+' puntos al confirmarse</div>';
       }
       return '<div class="card">'+
         '<div class="card-hd"><span class="card-date">'+CF.fmtDate(o.createdAt)+
@@ -1164,7 +1164,7 @@
     var box=$('#ledger-box');
     if(!docs.length){
       box.innerHTML='<div class="empty" style="padding:2.2rem 1rem"><span class="mark">✦</span>'+
-        '<p>Todavía no hay movimientos.<br>Tu primer pedido entregado te suma puntos.</p></div>';
+        '<p>Todavía no hay movimientos.<br>Tu primer pedido confirmado te suma puntos.</p></div>';
       return;
     }
     box.innerHTML=docs.map(function(m){

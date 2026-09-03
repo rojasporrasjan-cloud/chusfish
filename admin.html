@@ -2144,7 +2144,7 @@
             <div style="font-size:0.72rem;color:#7a95aa;margin-top:0.4rem" id="pts-example">&nbsp;</div>
           </div>
           <div class="config-field">
-            <label class="config-label">Bono de bienvenida (puntos al primer pedido entregado)</label>
+            <label class="config-label">Bono de bienvenida (puntos al primer pedido confirmado)</label>
             <input type="number" class="config-input" id="pts-welcome" min="0" step="1" value="0">
             <div style="font-size:0.72rem;color:#7a95aa;margin-top:0.4rem">
               Se da una sola vez, junto con los puntos de su primera compra. 0 = desactivado.
@@ -4594,7 +4594,12 @@ async function setOrderStatus(id, status) {
     if (status === 'confirmado') assignOrderInvoiceNumber(id);
     // Al cerrar la venta abrimos la factura: es el momento en que se conoce
     // el peso real empacado y hay que ajustar el monto antes de cobrar.
-    if (status === 'entregado') { awardPointsForOrder(id); openInvoice(id); }
+    /* Los puntos se mueven en cada cambio de estado, no solo al entregar.
+       Al re-acreditar solo se aplica la diferencia, asi que pasar por
+       confirmado -> en camino -> entregado no paga tres veces. */
+    if (ACREDITA_DESDE.indexOf(status) >= 0) await awardPointsForOrder(id);
+    if (status === 'cancelado') await revertirPuntosPedido(id);
+    if (status === 'entregado') openInvoice(id);
   } catch(e) { toast('Error: ' + e.message); }
 }
 
@@ -7173,15 +7178,28 @@ function pastillaPuntos(o) {
     : "";
   const nivel = p.tier && p.tier.mult > 1 ? " · nivel " + p.tier.name : "";
 
-  return '<span title="Se acreditan al marcar Entregado' + esc(detalle + nivel) + '" ' +
+  return '<span title="Se acreditan al marcar Confirmado' + esc(detalle + nivel) + '" ' +
     'style="' + base + 'rgba(200,169,110,0.35);background:rgba(200,169,110,0.09);color:#c8a96e">' +
-    '+' + p.total.toLocaleString("es-CR") + ' pts al entregar</span>';
+    '+' + p.total.toLocaleString("es-CR") + ' pts al confirmar</span>';
 }
 
 /* ── Acreditar puntos por un pedido ─────────────────────────────
    Idempotente: se puede llamar mil veces. Guarda en el pedido cuantos
    puntos ya dio (pointsEarned) y sobre que monto (pointsBase), asi que
    si corregis la factura solo aplica la DIFERENCIA. */
+/* Estados en los que el pedido ya cuenta para los puntos. */
+const ACREDITA_DESDE = ['confirmado', 'en_camino', 'entregado'];
+
+/* OJO al mirar la consola: al cambiar de estado suele aparecer un 400
+   'the stored version does not match the required base version'. NO es
+   un fallo. setOrderStatus escribe el estado y la transaccion de puntos
+   lee ese mismo documento un instante despues; Firestore ve la version
+   vieja, aborta y REINTENTA sola. El resultado queda correcto —se probo
+   confirmando, pasando por en_camino, cancelando y reactivando. Es el
+   precio de tener dos escrituras al mismo documento seguidas, y arreglarlo
+   obligaria a meter el cambio de estado dentro de la transaccion, que es
+   mas riesgo del que vale. */
+
 async function awardPointsForOrder(orderId) {
   if (!ptsEnabled()) return;
   try {
@@ -7192,7 +7210,18 @@ async function awardPointsForOrder(orderId) {
       const o = oSnap.data();
 
       if (!o.uid) return;                    // pedido de invitado, sin cuenta
-      if (o.status !== 'entregado') return;  // solo se premia lo entregado
+      /* Desde "confirmado" en adelante. Antes era solo "entregado", pero
+         Jesus queria que el cliente viera sus puntos apenas se le confirma
+         el pedido, no dias despues.
+
+         El monto de "confirmado" es el estimado del carrito; al facturar
+         con el peso real, esta misma funcion corre otra vez y aplica solo
+         la DIFERENCIA (el `delta` de abajo). O sea que el numero se ajusta
+         solo y nunca se paga dos veces.
+
+         Lo que esto abre es que un pedido acreditado se cancele despues.
+         Para eso existe revertirPuntosPedido(), que corre al cancelar. */
+      if (ACREDITA_DESDE.indexOf(o.status) < 0) return;
 
       const uRef  = USERS_REF.doc(o.uid);
       const uSnap = await tx.get(uRef);
@@ -7242,7 +7271,7 @@ async function awardPointsForOrder(orderId) {
           points:    delta,
           orderId:   orderId,
           reason:    already === 0
-                       ? 'Compra entregada · ' + fmt(Math.round(amount))
+                       ? 'Compra confirmada · ' + fmt(Math.round(amount))
                        : 'Ajuste por correccion de factura',
           createdAt: firebase.firestore.FieldValue.serverTimestamp(),
         });
@@ -7259,6 +7288,65 @@ async function awardPointsForOrder(orderId) {
   } catch (e) {
     console.error('[puntos]', e);
     toast('No se pudieron acreditar los puntos: ' + e.message);
+  }
+}
+
+/* ═══ DEVOLVER LOS PUNTOS DE UN PEDIDO CANCELADO ═════════════════
+   Necesario desde que se acredita al confirmar: sin esto, cualquiera
+   pide, se le confirma, se cancela, y se queda con los puntos. Repetido
+   diez veces son premios regalados.
+
+   Devuelve exactamente lo que ESE pedido dio —lo que quedo anotado en
+   pointsEarned y welcomeBonus—, no un calculo nuevo: si entre medio
+   cambio la tarifa o el nivel, recalcular quitaria de mas o de menos.
+
+   Y borra las marcas del pedido, para que si se reactiva vuelva a
+   acreditar limpio. */
+async function revertirPuntosPedido(orderId) {
+  if (!ptsEnabled()) return;
+  try {
+    await db.runTransaction(async (tx) => {
+      const oRef  = ORDERS_REF.doc(orderId);
+      const oSnap = await tx.get(oRef);
+      if (!oSnap.exists) return;
+      const o = oSnap.data();
+
+      if (!o.uid) return;
+      const dados = Number(o.pointsEarned) || 0;
+      const bono  = Number(o.welcomeBonus) || 0;
+      if (dados === 0 && bono === 0) return;   // nunca acredito: nada que devolver
+
+      const uRef  = USERS_REF.doc(o.uid);
+      const uSnap = await tx.get(uRef);
+      if (!uSnap.exists) return;
+      const u = uSnap.data();
+
+      const quitar      = dados + bono;
+      const newLifetime = Math.max(0, (Number(u.lifetimePoints) || 0) - quitar);
+      const patch = {
+        points:         Math.max(0, (Number(u.points) || 0) - quitar),
+        lifetimePoints: newLifetime,
+        tier:           cfTierOf(newLifetime).id
+      };
+      /* Si este pedido era el que habia dado el bono, se le devuelve el
+         derecho: que lo reciba con su proxima compra de verdad. */
+      if (bono > 0) patch.welcomeGiven = false;
+      tx.update(uRef, patch);
+
+      tx.set(uRef.collection('ledger').doc(), {
+        type:      'revert',
+        points:    -quitar,
+        orderId:   orderId,
+        reason:    'Pedido cancelado',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      const D = firebase.firestore.FieldValue.delete();
+      tx.update(oRef, { pointsEarned: D, pointsBase: D, welcomeBonus: D });
+    });
+  } catch (e) {
+    console.error('[puntos] reversion', e);
+    toast('No se pudieron devolver los puntos: ' + e.message);
   }
 }
 
