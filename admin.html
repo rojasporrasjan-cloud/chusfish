@@ -1485,6 +1485,13 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             <input class="orders-search" id="orders-search" placeholder="Buscar por nombre o teléfono..." autocomplete="off">
           </div>
+          <button class="export-btn" onclick="abrirNuevoPedido()"
+                  style="border-color:rgba(200,169,110,0.45);color:#c8a96e">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Cargar pedido
+          </button>
           <button class="export-btn" id="export-csv-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Exportar CSV
@@ -2757,6 +2764,125 @@
 <div id="toast"></div>
 
 <!-- ═══ EDITAR PEDIDO (DATOS CLIENTE) ══════════════════ -->
+<!-- ═══ PEDIDO A MANO ═══════════════════════════════════════════
+     Para los pedidos que entran por WhatsApp o por telefono. Sin esto,
+     esos pedidos no quedaban registrados en ningun lado y —lo mas
+     caro— no le sumaban puntos al cliente, porque los puntos exigen
+     que el pedido este ligado a una cuenta. -->
+<div id="nuevo-pedido-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-header">
+      <h3 id="np-titulo">Cargar pedido a mano</h3>
+      <button class="modal-close-btn" onclick="cerrarNuevoPedido()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="form-group">
+        <label class="form-label">Cliente</label>
+        <select class="form-select" id="np-cliente" onchange="npClienteElegido()"></select>
+        <p style="font-size:0.68rem;color:var(--muted);margin-top:0.4rem;line-height:1.5" id="np-ayuda-cliente">
+          Si elegís un cliente con cuenta, el pedido le suma puntos igual que si
+          hubiera pedido por la página.
+        </p>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input class="form-input" id="np-nombre" placeholder="Nombre del cliente">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono *</label>
+          <input class="form-input" id="np-telefono" type="tel" placeholder="8888-8888">
+        </div>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns:2fr 1fr">
+        <div class="form-group">
+          <label class="form-label">Dirección</label>
+          <input class="form-input" id="np-direccion" placeholder="Provincia, cantón, señas...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Zona</label>
+          <input class="form-input" id="np-zona" placeholder="Ej: Alajuela">
+        </div>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="form-group">
+          <label class="form-label">Forma de pago</label>
+          <select class="form-select" id="np-pago">
+            <option>SINPE Móvil</option>
+            <option>Efectivo</option>
+            <option>Transferencia</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de entrega</label>
+          <input class="form-input" id="np-fecha" placeholder="Ej: Jue 10 Sep">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Productos *</label>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:0.8rem">
+          <select class="form-select" id="np-producto" style="flex:1;min-width:180px"></select>
+          <input class="form-input" id="np-cant" type="number" step="0.25" min="0.25" value="1"
+                 style="width:5.5rem" placeholder="Cant.">
+          <button type="button" class="config-save-btn" onclick="npAgregarItem()"
+                  style="width:auto;flex:0 0 auto;background:transparent;
+                         border:1px solid rgba(200,169,110,0.45);color:#c8a96e">Agregar</button>
+        </div>
+        <div id="np-items"></div>
+      </div>
+
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="form-group">
+          <label class="form-label">Envío (₡)</label>
+          <input class="form-input" id="np-envio" type="number" min="0" value="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Total</label>
+          <div id="np-total" style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;color:var(--gold);padding:0.4rem 0">₡0</div>
+        </div>
+      </div>
+
+      <p id="np-aviso" style="font-size:0.72rem;color:var(--amber);display:none;margin:0"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarNuevoPedido()">Cancelar</button>
+      <button class="btn-save" id="np-guardar" onclick="guardarNuevoPedido()">Crear pedido</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ LIGAR UN PEDIDO A UNA CUENTA ═══════════════════════════
+     Para rescatar los pedidos que entraron sin sesion iniciada: sin
+     uid no suman puntos nunca, por mas que se marquen entregados. -->
+<div id="ligar-modal" class="modal-overlay">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <h3>Ligar el pedido a una cuenta</h3>
+      <button class="modal-close-btn" onclick="cerrarLigar()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ligar-order-id">
+      <p style="font-size:0.74rem;color:var(--muted);line-height:1.6;margin-bottom:1rem">
+        Este pedido no está ligado a ninguna cuenta, así que no le va a sumar
+        puntos a nadie. Elegí de quién es y se arregla.
+      </p>
+      <div class="form-group">
+        <label class="form-label">Cliente</label>
+        <select class="form-select" id="ligar-cliente"></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="cerrarLigar()">Cancelar</button>
+      <button class="btn-save" id="ligar-guardar" onclick="guardarLigar()">Ligar</button>
+    </div>
+  </div>
+</div>
+
 <div id="edit-order-modal" class="modal-overlay">
   <div class="modal-box" style="max-width:480px">
     <div class="modal-header">
@@ -4141,6 +4267,10 @@ function renderOrders() {
     const actions = [];
     const pastilla = pastillaPuntos(o);
     if (pastilla) actions.push(pastilla);
+    // Solo aparece donde hace falta: un pedido ya ligado no lo necesita.
+    if (!o.uid && o.status !== "cancelado") {
+      actions.push(`<button class="order-act-btn order-act-wa" style="color:#f39c12;border-color:rgba(243,156,18,0.35)" onclick="abrirLigar('${o.id}')">Ligar a cuenta</button>`);
+    }
     if (o.status === 'pendiente') actions.push(`<a class="order-act-btn order-act-confirm" href="${waConfirmLink}" target="_blank" onclick="setOrderStatus('${o.id}','confirmado')">✓ Confirmar + WA</a>`);
     if (o.status === 'confirmado') actions.push(`<button class="order-act-btn order-act-deliver" style="color:#9b59b6;border-color:rgba(142,68,173,0.3)" onclick="setOrderStatus('${o.id}','en_camino')">En camino</button>`);
     if (o.status === 'en_camino') actions.push(`<button class="order-act-btn order-act-deliver" onclick="setOrderStatus('${o.id}','entregado')">Entregado</button>`);
@@ -4193,6 +4323,214 @@ async function saveOrderNote(id, note) {
 }
 
 /* ── EDITAR DATOS DEL CLIENTE EN UN PEDIDO ─────────────── */
+/* ═══ CARGAR UN PEDIDO A MANO ════════════════════════════════════
+   La mayoria de los pedidos de Chus entran por WhatsApp. Antes esos
+   no quedaban en ningun lado: no aparecian en el historial, no contaban
+   para las ventas y —lo que mas duele— no le sumaban puntos al cliente,
+   porque acreditar exige que el pedido tenga uid.
+
+   Las reglas ya lo permitian: `allow create: if isAdmin() || (...)`.
+   Solo faltaba la pantalla. */
+let npItems = [];
+
+function abrirNuevoPedido() {
+  npItems = [];
+  llenarSelectClientes("np-cliente", true);
+  llenarSelectProductos("np-producto");
+  ["np-nombre","np-telefono","np-direccion","np-zona","np-fecha"].forEach(function (id) {
+    document.getElementById(id).value = "";
+  });
+  document.getElementById("np-envio").value = 0;
+  document.getElementById("np-envio").oninput = npPintarItems;
+  document.getElementById("np-cant").value = 1;
+  npAviso("");
+  npPintarItems();
+  document.getElementById("nuevo-pedido-modal").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function cerrarNuevoPedido() {
+  document.getElementById("nuevo-pedido-modal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+function npAviso(msg) {
+  const el = document.getElementById("np-aviso");
+  el.textContent = msg;
+  el.style.display = msg ? "block" : "none";
+}
+
+/* Un solo sitio arma las listas de clientes: las usan el pedido nuevo y
+   el de ligar, y tienen que ordenar y rotular igual. */
+function llenarSelectClientes(id, conOpcionSuelta) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const orden = cfUsers.slice().sort(function (a, b) {
+    return String(a.name || a.email || "").localeCompare(String(b.name || b.email || ""));
+  });
+  sel.innerHTML =
+    (conOpcionSuelta ? '<option value="">Sin cuenta — solo registrar el pedido</option>' : '<option value="">Elegí un cliente…</option>') +
+    orden.map(function (u) {
+      const et = esc(u.name || u.email || u.id) +
+        (u.phone ? " · " + esc(u.phone) : "") +
+        " · " + (Number(u.points) || 0).toLocaleString("es-CR") + " pts";
+      return '<option value="' + esc(u.id) + '">' + et + '</option>';
+    }).join("");
+}
+
+function llenarSelectProductos(id) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  sel.innerHTML = CAT_ORDER.map(function (cat) {
+    const enCat = (products || []).filter(function (p) { return p.cat === cat && p.price > 0; });
+    if (!enCat.length) return "";
+    return '<optgroup label="' + esc(CAT_NAMES[cat] || cat) + '">' +
+      enCat.map(function (p) {
+        return '<option value="' + p.id + '">' + esc(p.name) + ' — ' + fmt(p.price) + ' ' + esc(p.unit || "") + '</option>';
+      }).join("") + '</optgroup>';
+  }).join("");
+}
+
+/* Al elegir un cliente se copian sus datos, pero se dejan editables: el
+   pedido de hoy puede ir a otra direccion que la que tiene guardada. */
+function npClienteElegido() {
+  const uid = document.getElementById("np-cliente").value;
+  const ayuda = document.getElementById("np-ayuda-cliente");
+  if (!uid) {
+    ayuda.innerHTML = "Sin cuenta el pedido queda registrado igual, pero <b>no suma puntos</b>. " +
+      "Si el cliente ya tiene cuenta, elegilo de la lista.";
+    return;
+  }
+  const u = cfUsers.find(function (x) { return x.id === uid; });
+  if (!u) return;
+  if (u.name)    document.getElementById("np-nombre").value    = u.name;
+  if (u.phone)   document.getElementById("np-telefono").value  = u.phone;
+  if (u.address) document.getElementById("np-direccion").value = u.address;
+  if (u.zone)    document.getElementById("np-zona").value      = u.zone;
+  const t = cfTierOf(Number(u.lifetimePoints) || 0);
+  ayuda.innerHTML = "Nivel <b>" + esc(t.name) + "</b>. Los puntos se le acreditan " +
+    "cuando marqués el pedido, igual que uno de la página.";
+}
+
+function npAgregarItem() {
+  const id = parseInt(document.getElementById("np-producto").value, 10);
+  const cant = parseFloat(document.getElementById("np-cant").value);
+  const p = (products || []).find(function (x) { return x.id === id; });
+  if (!p) { npAviso("Elegí un producto."); return; }
+  if (!(cant > 0)) { npAviso("La cantidad tiene que ser mayor que cero."); return; }
+
+  // Si ya estaba, se suma la cantidad en vez de repetir el renglon.
+  const ya = npItems.find(function (x) { return x.id === p.id; });
+  if (ya) ya.qty += cant;
+  else npItems.push({ id: p.id, name: p.name, qty: cant, unit: p.unit || "", price: Number(p.price) || 0 });
+
+  document.getElementById("np-cant").value = 1;
+  npAviso("");
+  npPintarItems();
+}
+
+function npQuitarItem(i) { npItems.splice(i, 1); npPintarItems(); }
+
+function npCambiarCant(i, v) {
+  const c = parseFloat(v);
+  if (c > 0) npItems[i].qty = c;
+  npPintarItems();
+}
+
+function npPintarItems() {
+  const caja = document.getElementById("np-items");
+  if (!npItems.length) {
+    caja.innerHTML = '<p style="font-size:0.72rem;color:#7a95aa;margin:0">Todavía no agregaste nada.</p>';
+  } else {
+    caja.innerHTML = npItems.map(function (it, i) {
+      return '<div style="display:flex;align-items:center;gap:0.6rem;padding:0.45rem 0;border-bottom:1px solid var(--gb)">' +
+        '<span style="flex:1;font-size:0.78rem;color:#d4dde8">' + esc(it.name) + '</span>' +
+        '<input class="form-input" type="number" step="0.25" min="0.25" value="' + it.qty + '" ' +
+          'style="width:4.5rem;padding:0.3rem 0.5rem" onchange="npCambiarCant(' + i + ', this.value)">' +
+        '<span style="font-size:0.68rem;color:#7a95aa;width:2.5rem">' + esc(it.unit) + '</span>' +
+        '<span style="font-size:0.8rem;color:#c8a96e;width:5.5rem;text-align:right">' + fmt(Math.round(it.qty * it.price)) + '</span>' +
+        '<button type="button" onclick="npQuitarItem(' + i + ')" style="background:none;border:0;color:#ff9b8c;cursor:pointer;font-size:1rem;padding:0 0.2rem">&times;</button>' +
+      '</div>';
+    }).join("");
+  }
+  const envio = parseFloat(document.getElementById("np-envio").value) || 0;
+  const total = npItems.reduce(function (a, it) { return a + it.qty * it.price; }, 0) + envio;
+  document.getElementById("np-total").textContent = fmt(Math.round(total));
+}
+
+async function guardarNuevoPedido() {
+  const nombre = document.getElementById("np-nombre").value.trim();
+  const tel    = document.getElementById("np-telefono").value.trim();
+  if (!nombre) { npAviso("Poné el nombre del cliente."); return; }
+  if (!tel)    { npAviso("Poné el teléfono."); return; }
+  if (!npItems.length) { npAviso("Agregá al menos un producto."); return; }
+
+  const btn = document.getElementById("np-guardar");
+  btn.disabled = true; btn.textContent = "Creando…";
+  try {
+    await ORDERS_REF.add({
+      uid: document.getElementById("np-cliente").value || null,
+      customer: {
+        name: nombre, phone: tel,
+        address: document.getElementById("np-direccion").value.trim(),
+        zone:    document.getElementById("np-zona").value.trim() || null,
+        fecha:   document.getElementById("np-fecha").value.trim() || null,
+        payment: document.getElementById("np-pago").value
+      },
+      items: npItems.map(function (it) {
+        return { id: it.id, name: it.name, qty: it.qty, unit: it.unit, price: it.price };
+      }),
+      deliveryFee: parseFloat(document.getElementById("np-envio").value) || 0,
+      discount: null,
+      status: "pendiente",
+      // Queda la marca de que lo cargo el admin: util para el historial y
+      // para entender de donde salio cada pedido.
+      origen: "manual",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toast("Pedido creado");
+    cerrarNuevoPedido();
+  } catch (e) {
+    npAviso("No se pudo crear: " + (e.code || e.message));
+  } finally {
+    btn.disabled = false; btn.textContent = "Crear pedido";
+  }
+}
+
+/* ═══ LIGAR UN PEDIDO EXISTENTE A UNA CUENTA ═════════════════════ */
+function abrirLigar(id) {
+  document.getElementById("ligar-order-id").value = id;
+  llenarSelectClientes("ligar-cliente", false);
+  document.getElementById("ligar-modal").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function cerrarLigar() {
+  document.getElementById("ligar-modal").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+async function guardarLigar() {
+  const id  = document.getElementById("ligar-order-id").value;
+  const uid = document.getElementById("ligar-cliente").value;
+  if (!uid) { toast("Elegí un cliente"); return; }
+  const btn = document.getElementById("ligar-guardar");
+  btn.disabled = true; btn.textContent = "Ligando…";
+  try {
+    await ORDERS_REF.doc(id).update({ uid: uid });
+    /* Si el pedido YA estaba entregado, se acredita ahora: antes no pudo
+       porque no tenia dueño. awardPointsForOrder es idempotente, asi que
+       llamarlo de mas no duplica nada. */
+    await awardPointsForOrder(id);
+    toast("Pedido ligado a la cuenta");
+    cerrarLigar();
+  } catch (e) {
+    toast("No se pudo ligar: " + (e.code || e.message));
+  } finally {
+    btn.disabled = false; btn.textContent = "Ligar";
+  }
+}
+
 function openEditOrder(id) {
   const o = orders.find(x => x.id === id);
   if (!o) { toast('Pedido no encontrado'); return; }
