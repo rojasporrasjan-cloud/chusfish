@@ -213,6 +213,7 @@ async function main() {
   }
 
   /* Pedidos de ejemplo, incluido uno listo para probar la acreditacion */
+  await limpiar('coupons');
   await limpiar('orders');
   await limpiar('redemptions');
 

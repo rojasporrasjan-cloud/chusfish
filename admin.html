@@ -2150,6 +2150,24 @@
               Se da una sola vez, junto con los puntos de su primera compra. 0 = desactivado.
             </div>
           </div>
+          <div class="config-field">
+            <label class="config-label">Premio por subir de nivel (puntos)</label>
+            <input type="number" class="config-input" id="pts-tier" min="0" step="10" value="0">
+            <div style="font-size:0.72rem;color:#7a95aa;margin-top:0.4rem">
+              Se le dan una sola vez por cada nivel que alcance. Subir a Bronce no
+              cuenta: es donde arrancan todos. 0 = desactivado.
+            </div>
+          </div>
+
+          <div class="config-field">
+            <label class="config-label">Código de descuento al subir de nivel (₡)</label>
+            <div style="font-size:0.72rem;color:#7a95aa;margin-bottom:0.5rem;line-height:1.6">
+              Además de los puntos, se le crea un código propio con su nombre,
+              de un solo uso y válido 90 días. Dejá en 0 el nivel que no quieras premiar.
+            </div>
+            <div id="tier-cupones" style="display:flex;gap:0.6rem;flex-wrap:wrap"></div>
+          </div>
+
           <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.8rem">
             Los puntos se acreditan solos cuando marcas el pedido como <b>entregado</b>,
             y se calculan sobre el <b>total facturado</b> (el del peso real), no sobre el
@@ -7208,6 +7226,9 @@ const ACREDITA_DESDE = ['confirmado', 'en_camino', 'entregado'];
 
 async function awardPointsForOrder(orderId) {
   if (!ptsEnabled()) return;
+  /* Se sacan de la transaccion para usarlos despues: una transaccion
+     puede reintentarse, asi que no sirve hacer cosas con efecto adentro. */
+  let nivelParaCupon = null, uidParaCupon = null;
   try {
     await db.runTransaction(async (tx) => {
       const oRef  = ORDERS_REF.doc(orderId);
@@ -7235,7 +7256,18 @@ async function awardPointsForOrder(orderId) {
       const u = uSnap.data();
 
       const amount    = orderAmountForPoints(o);
-      const tier      = cfTierOf(u.lifetimePoints || 0);
+      /* El nivel del pedido se CONGELA en la primera acreditacion.
+
+         Sin esto pasa algo raro: si el pedido hace subir al cliente de
+         Bronce a Plata, la siguiente vez que se toca el pedido se
+         recalcula con el multiplicador de Plata y le suma la diferencia.
+         O sea que el pedido que te subio termina pagando a la tarifa que
+         el mismo te dio, y el numero se mueve solo al cambiar de estado.
+
+         Se guarda pointsTier y de ahi en adelante manda ese. */
+      const tier      = o.pointsTier
+        ? (cfTiers().find(function (t) { return t.id === o.pointsTier; }) || cfTierOf(u.lifetimePoints || 0))
+        : cfTierOf(u.lifetimePoints || 0);
       const should    = pointsForAmount(amount, tier);
       const already   = Number(o.pointsEarned) || 0;
       const delta     = should - already;
@@ -7251,16 +7283,49 @@ async function awardPointsForOrder(orderId) {
       }
 
       const newLifetime = Math.max(0, (Number(u.lifetimePoints)||0) + delta + bonus);
+
+      /* ═══ PREMIO POR SUBIR DE NIVEL ═════════════════════════════
+         Se compara el nivel de ANTES con el de despues. Va dentro de la
+         misma transaccion que los puntos: si se hiciera aparte, un fallo
+         a mitad dejaria al cliente con los puntos y sin el premio, o al
+         reves.
+
+         `nivelesPremiados` guarda cuales ya se cobraron. Sin esa lista,
+         alguien que sube a Plata, cancela el pedido y lo reactiva cobra
+         el premio dos veces. */
+      const tierNuevo   = cfTierOf(newLifetime);
+      const yaPremiados = Array.isArray(u.nivelesPremiados) ? u.nivelesPremiados.slice() : [];
+      const subio       = tierNuevo.id !== tier.id && yaPremiados.indexOf(tierNuevo.id) < 0;
+
+      // Bronce es donde todos arrancan: subir a el no es un logro.
+      const premiaNivel = subio && tierNuevo.id !== 'bronce';
+      const ptsNivel    = premiaNivel
+        ? Math.max(0, Math.round(Number(appConfig.tierBonus) || 0)) : 0;
       const patch = {
-        points:         Math.max(0, (Number(u.points)||0) + delta + bonus),
-        lifetimePoints: newLifetime,
-        tier:           cfTierOf(newLifetime).id,
+        points:         Math.max(0, (Number(u.points)||0) + delta + bonus + ptsNivel),
+        lifetimePoints: newLifetime + ptsNivel,
+        tier:           cfTierOf(newLifetime + ptsNivel).id,
         ordersCount:    (Number(u.ordersCount)||0) + (firstTime ? 1 : 0),
         totalSpent:     Math.max(0, (Number(u.totalSpent)||0) + (amount - (prevBase||0))),
         updatedAt:      firebase.firestore.FieldValue.serverTimestamp(),
       };
       if (bonus > 0) patch.welcomeGiven = true;
+      if (premiaNivel) {
+        yaPremiados.push(tierNuevo.id);
+        patch.nivelesPremiados = yaPremiados;
+      }
       tx.update(uRef, patch);
+
+      if (premiaNivel) { nivelParaCupon = tierNuevo; uidParaCupon = o.uid; }
+
+      if (ptsNivel > 0) {
+        tx.set(uRef.collection('ledger').doc(), {
+          type:      'adjust',
+          points:    ptsNivel,
+          reason:    'Subiste a nivel ' + tierNuevo.name,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      }
 
       if (bonus > 0) {
         tx.set(uRef.collection('ledger').doc(), {
@@ -7283,7 +7348,7 @@ async function awardPointsForOrder(orderId) {
         });
       }
 
-      const marcaPedido = { pointsEarned: should, pointsBase: amount };
+      const marcaPedido = { pointsEarned: should, pointsBase: amount, pointsTier: tier.id };
       /* El bono se anota EN EL PEDIDO tambien, no solo en el libro del
          cliente. Sin esto la lista prometia "+316 al entregar" y despues
          mostraba "+216 acreditados": la diferencia era el bono, que el
@@ -7291,9 +7356,85 @@ async function awardPointsForOrder(orderId) {
       if (bonus > 0) marcaPedido.welcomeBonus = bonus;
       tx.update(oRef, marcaPedido);
     });
+
+    // Fuera de la transaccion: ver el comentario de arriba.
+    if (nivelParaCupon) await crearCuponDeNivel(uidParaCupon, nivelParaCupon);
   } catch (e) {
     console.error('[puntos]', e);
     toast('No se pudieron acreditar los puntos: ' + e.message);
+  }
+}
+
+/* Un campo por nivel, sacados de los niveles que existan de verdad: si
+   Jesus agrega un cuarto nivel, aparece solo. */
+function pintarCuponesDeNivel() {
+  const caja = document.getElementById('tier-cupones');
+  if (!caja) return;
+  const montos = appConfig.tierCoupons || {};
+  const niveles = cfTiers().filter(function (t) { return t.id !== 'bronce'; });
+
+  if (!niveles.length) {
+    caja.innerHTML = '<p style="font-size:0.72rem;color:#7a95aa;margin:0">' +
+      'Definí los niveles más arriba para poder premiarlos.</p>';
+    return;
+  }
+
+  caja.innerHTML = niveles.map(function (t) {
+    return '<div style="flex:1;min-width:8rem">' +
+      '<label class="config-label" style="font-size:0.66rem">' + esc(t.name) + '</label>' +
+      '<input type="number" class="config-input" data-tier="' + esc(t.id) + '" ' +
+        'min="0" step="500" value="' + (Number(montos[t.id]) || 0) + '">' +
+    '</div>';
+  }).join('');
+}
+
+/* ═══ EL CODIGO DE DESCUENTO QUE SE GANA AL SUBIR ═══════════════
+   Se le arma un cupon propio, con su nombre en el codigo, para que no
+   lo pueda pasar a un amigo: el codigo lleva el uid recortado y ademas
+   queda con limite de un uso.
+
+   El monto lo pone Jesus por nivel en Configuracion. Si no puso nada
+   para ese nivel, no se crea cupon y el cliente igual se lleva los
+   puntos: el premio en plata es opcional. */
+async function crearCuponDeNivel(uid, tier) {
+  const montos = appConfig.tierCoupons || {};
+  const monto  = Math.max(0, Math.round(Number(montos[tier.id]) || 0));
+  if (!monto) return;
+
+  /* El codigo lleva 5 caracteres del uid: es de esa persona y solo de
+     ella. Sin eso, un codigo tipo PLATA2000 lo comparte el primero que
+     lo recibe y se lo usa media Alajuela. */
+  const codigo = (tier.name || tier.id).toUpperCase().replace(/[^A-Z0-9]/g, '') +
+                 String(uid).replace(/[^A-Za-z0-9]/g, '').slice(-5).toUpperCase();
+
+  try {
+    const ref = COUPONS_REF.doc(codigo);
+    if ((await ref.get()).exists) return;   // ya lo tenia: no se pisa
+
+    /* Vence en 90 dias. Un cupon sin fecha se queda ahi para siempre y
+       aparece de sorpresa en la contabilidad meses despues. */
+    const hasta = new Date();
+    hasta.setDate(hasta.getDate() + 90);
+
+    await ref.set({
+      type: 'amount', value: monto,
+      minOrder: 0, maxDiscount: 0,
+      usageLimit: 1, perUserLimit: 1,
+      validFrom: null, validUntil: hasta,
+      firstOrderOnly: false, active: true,
+      welcome: false,
+      // De donde salio, para que Jesus lo entienda al verlo en la lista.
+      origen: 'nivel-' + tier.id,
+      paraUid: uid,
+      usedCount: 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    /* Se le guarda al cliente cual es SU cupon de nivel. `cuponNivel` no
+       esta entre los campos protegidos, pero lo escribe el admin igual. */
+    await USERS_REF.doc(uid).update({ cuponNivel: codigo });
+  } catch (e) {
+    console.error('[nivel] no se pudo crear el cupon', e);
   }
 }
 
@@ -7348,7 +7489,7 @@ async function revertirPuntosPedido(orderId) {
       });
 
       const D = firebase.firestore.FieldValue.delete();
-      tx.update(oRef, { pointsEarned: D, pointsBase: D, welcomeBonus: D });
+      tx.update(oRef, { pointsEarned: D, pointsBase: D, welcomeBonus: D, pointsTier: D });
     });
   } catch (e) {
     console.error('[puntos] reversion', e);
@@ -7647,6 +7788,11 @@ function renderPremios() {
   if (en) en.checked = ptsEnabled();
   if (rt && document.activeElement !== rt) rt.value = ptsRate();
   if (wb && document.activeElement !== wb) wb.value = Number(appConfig.welcomeBonus) || 0;
+
+  const tb = document.getElementById('pts-tier');
+  if (tb && document.activeElement !== tb) tb.value = Number(appConfig.tierBonus) || 0;
+
+  pintarCuponesDeNivel();
   updatePtsExample();
   renderTierEditor();
 }
@@ -7668,13 +7814,26 @@ document.getElementById('pts-save').addEventListener('click', async function () 
   try {
     // Merge de solo estos dos campos: mandar appConfig entero podria pisar
     // el contador de facturas si hay otra pestana abierta con datos viejos.
-    const bono = Math.max(0, parseInt(document.getElementById('pts-welcome').value, 10) || 0);
+    const bono  = Math.max(0, parseInt(document.getElementById('pts-welcome').value, 10) || 0);
+    const bonoN = Math.max(0, parseInt(document.getElementById('pts-tier').value, 10) || 0);
+
+    // Los montos por nivel salen de los campos que pinto pintarCuponesDeNivel.
+    const cupones = {};
+    document.querySelectorAll('#tier-cupones input[data-tier]').forEach(function (i) {
+      const v = Math.max(0, parseInt(i.value, 10) || 0);
+      if (v > 0) cupones[i.getAttribute('data-tier')] = v;
+    });
+
     await CFG_REF.set({ pointsEnabled: document.getElementById('pts-enabled').checked,
                         pointsPer100:  r,
-                        welcomeBonus:  bono }, { merge: true });
+                        welcomeBonus:  bono,
+                        tierBonus:     bonoN,
+                        tierCoupons:   cupones }, { merge: true });
     appConfig.pointsEnabled = document.getElementById('pts-enabled').checked;
     appConfig.pointsPer100  = r;
     appConfig.welcomeBonus  = bono;
+    appConfig.tierBonus     = bonoN;
+    appConfig.tierCoupons   = cupones;
     toast('Reglas de puntos guardadas');
   } catch (e) { toast('Error: ' + e.message); }
   finally { this.disabled = false; }
