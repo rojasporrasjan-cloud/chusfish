@@ -707,6 +707,16 @@
     .order-act-confirm:hover { background:rgba(41,128,185,0.15); }
     .order-act-deliver { color:var(--green); border-color:rgba(39,174,96,0.3); }
     .order-act-deliver:hover { background:rgba(39,174,96,0.15); }
+    /* Mas apagado que Cancelar hasta que se pasa por encima: no queremos
+       que la vista invite a borrar, solo que se pueda cuando hace falta. */
+    .order-act-delete {
+      color: #7a95aa; border-color: rgba(122,149,170,0.25);
+      margin-left: auto;
+    }
+    .order-act-delete:hover {
+      color: #ff9b8c; border-color: rgba(231,76,60,0.5); background: rgba(231,76,60,0.08);
+    }
+
     .order-act-cancel  { color:var(--red);   border-color:rgba(231,76,60,0.3); }
     .order-act-cancel:hover  { background:rgba(231,76,60,0.1); }
     .order-act-wa { color:var(--gold); border-color:rgba(200,169,110,0.3); }
@@ -4305,6 +4315,10 @@ function renderOrders() {
     actions.push(`<a class="order-act-btn order-act-wa" href="${waDirectLink}" target="_blank">💬 WA</a>`);
     actions.push(`<button class="order-act-btn order-act-invoice" onclick="openInvoice('${o.id}')">🧾 Factura</button>`);
     actions.push(`<a class="order-act-btn order-act-wa" href="${waInvoiceLink}" target="_blank">📄 Texto WA</a>`);
+    /* Borrar va al final y separado del resto: es lo unico de esta fila
+       que no tiene vuelta atras. Cancelar deja el pedido a la vista; esto
+       lo hace desaparecer. */
+    actions.push(`<button class="order-act-btn order-act-delete" onclick="borrarPedido('${o.id}')">🗑 Eliminar</button>`);
     const noteVal = esc(o.note || '');
     const thumbsHtml = (o.items || []).map(i => {
       const p = products.find(x => x.name === i.name);
@@ -4627,6 +4641,46 @@ async function setOrderStatus(id, status) {
     if (status === 'cancelado') await revertirPuntosPedido(id);
     if (status === 'entregado') openInvoice(id);
   } catch(e) { toast('Error: ' + e.message); }
+}
+
+/* ═══ ELIMINAR UN PEDIDO ═════════════════════════════════════════
+   Cancelar deja el pedido en la lista, que es lo correcto para un pedido
+   real que se cayo: queda el rastro. Pero para las pruebas estorba, y no
+   habia forma de sacarlas.
+
+   Lo importante: si el pedido ya acredito puntos, se DEVUELVEN antes de
+   borrar. Si no, el cliente se queda con puntos de un pedido que ya no
+   existe y no hay manera de rastrear de donde salieron. */
+async function borrarPedido(id) {
+  const o = orders.find(x => x.id === id);
+  if (!o) { toast('Pedido no encontrado'); return; }
+
+  const quien = (o.customer && o.customer.name) || o.name || 'sin nombre';
+  const monto = fmt(Math.round(orderAmountForPoints(o)));
+  const pts   = Number(o.pointsEarned) || 0;
+
+  let aviso = 'Eliminar el pedido de ' + quien + ' (' + monto + ')?\n\n' +
+              'Esto NO se puede deshacer.';
+  if (pts > 0) {
+    aviso += '\n\nEse pedido le dio ' + pts.toLocaleString('es-CR') +
+             ' puntos: se le van a devolver antes de borrarlo.';
+  }
+  if (!confirm(aviso)) return;
+
+  try {
+    // Primero los puntos, despues el documento: si se borra antes, la
+    // reversion se queda sin el pedido del que sacar el monto.
+    if (pts > 0) await revertirPuntosPedido(id);
+    await ORDERS_REF.doc(id).delete();
+
+    const i = orders.findIndex(x => x.id === id);
+    if (i >= 0) orders.splice(i, 1);
+    updateOrdersBadge();
+    renderOrders();
+    toast('Pedido eliminado' + (pts > 0 ? ' y puntos devueltos' : ''));
+  } catch (e) {
+    toast('No se pudo eliminar: ' + (e.code || e.message));
+  }
 }
 
 /* ════════════════════════════════════════════
