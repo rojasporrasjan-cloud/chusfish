@@ -1021,6 +1021,24 @@
       border-top: 1px solid rgba(200,169,110,0.18);
     }
     .ofs-note { font-size: 0.62rem; color: var(--muted); margin-top: 0.5rem; line-height: 1.5; }
+
+    /* Los puntos que deja el pedido. Verde, no dorado: el dorado en esta
+       pantalla es el dinero, y confundirlos seria hacer creer que el
+       total baja. */
+    .ofs-pts {
+      margin-top: 0.7rem; padding: 0.65rem 0.8rem; border-radius: 10px;
+      font-size: 0.72rem; line-height: 1.6;
+      background: rgba(111,224,160,0.08); border: 1px solid rgba(111,224,160,0.28);
+      color: #a8e8c4;
+    }
+    .ofs-pts b { color: #6fe0a0; }
+    /* Sin sesion el mensaje es una llamada a la accion, no un premio:
+       cambia a ambar para que se lea como aviso. */
+    .ofs-pts.sin {
+      background: rgba(243,176,76,0.07); border-color: rgba(243,176,76,0.3); color: #e8c9a0;
+    }
+    .ofs-pts.sin b { color: #f3b04c; }
+    .ofs-pts a { color: var(--gold-lt); font-weight: 600; }
     .order-form-summary-title { display: none; }
     .order-form-summary-item { display: none; }
     .order-form-summary-total {
@@ -3882,6 +3900,37 @@ function renderOrderSummary() {
   }).join('');
 
   let totalsHtml = '';
+
+  /* ═══ LO QUE GANA CON ESTE PEDIDO ═══════════════════════════════
+     No estaba en ningun lado: la persona armaba el pedido sin saber que
+     le iba a sumar, y sin razon para iniciar sesion.
+
+     Cuando NO hay sesion es cuando mas sirve. Un pedido sin cuenta no
+     suma puntos nunca —ni aunque despues se registre— asi que este es
+     el ultimo momento util para avisarle. Ademas es lo que evita que
+     Jesus tenga que andar ligando pedidos huerfanos a mano. */
+  function renglonPuntos(montoConEnvio) {
+    if (!window.CF || typeof CF.pointsFor !== 'function') return '';
+    if (montoConEnvio <= 0) return '';
+
+    const hay  = !!CF.user;
+    const perf = CF.profile || {};
+    const pts  = CF.pointsFor(montoConEnvio, hay ? (Number(perf.lifetimePoints) || 0) : 0);
+    if (!pts) return '';   // programa apagado, o monto muy chico
+
+    if (hay) {
+      const t = CF.tierOf ? CF.tierOf(Number(perf.lifetimePoints) || 0) : null;
+      const extra = (t && Number(t.mult) > 1)
+        ? ' <span style="opacity:.75">· nivel ' + CF.esc(t.name) + '</span>' : '';
+      return '<div class="ofs-pts">Ganás <b>' + CF.fmtNum(pts) + ' puntos</b> con este pedido' +
+             extra + '</div>';
+    }
+
+    return '<div class="ofs-pts sin">Este pedido puede darte <b>' + CF.fmtNum(pts) +
+           ' puntos</b>.<br><a href="mi-cuenta.html">Entrá a tu cuenta</a> antes de enviarlo — ' +
+           'sin cuenta no se pueden sumar.</div>';
+  }
+
   if (total > 0) {
     const desc = (typeof cuponAplicado !== 'undefined' && cuponAplicado)
       ? Math.min(cuponAplicado.descuento, total) : 0;
@@ -3897,6 +3946,8 @@ function renderOrderSummary() {
     }
     totalsHtml += '<div class="ofs-row-total"><span>Total estimado</span><span>' + fmt(grandTotal) + '</span></div>';
     totalsHtml += '</div>';
+    // Despues del total, no antes: primero cuanto cuesta, despues que gana.
+    totalsHtml += renglonPuntos(grandTotal);
     totalsHtml += '<p class="ofs-note">* Monto de referencia. El total final puede variar según el peso y se confirma por WhatsApp.</p>';
   }
 
