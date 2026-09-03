@@ -5156,9 +5156,19 @@ async function saveInvoiceData() {
     });
     const o = orders.find(x => x.id === invoiceState.orderId);
     if (o) o.invoice = payload;
+    /* Facturar es confirmar. Si el pedido seguia en 'pendiente', se pasa a
+       'confirmado' — que es lo que dispara los puntos. Sin esto, quien va
+       directo a la factura no acredita nada y no hay pista de por que. */
+    if (o && o.status === 'pendiente') {
+      await ORDERS_REF.doc(invoiceState.orderId).update({ status: 'confirmado' });
+      o.status = 'confirmado';
+      updateOrdersBadge();
+      renderOrders();
+    }
+
     // Recalcular puntos con el monto REAL de la factura. awardPointsForOrder
     // es idempotente: si ya se habían dado, aplica solo la diferencia.
-    awardPointsForOrder(invoiceState.orderId);
+    await awardPointsForOrder(invoiceState.orderId);
     // El cupon se cuenta como usado recien acá: al facturar, no al pedir.
     if (invoiceState.cupon && t.discount > 0) {
       marcarCuponUsado(invoiceState.cupon, invoiceState.orderId, o && o.uid);
@@ -8730,6 +8740,38 @@ function copiarCupon(id) {
 }
 
 
+/* Si el pedido trae el codigo del cupon pero sin monto, se recalcula
+   leyendo el cupon. Le paso a Jesus: la factura decia "el cliente aplico
+   el cupon BIENVENIDO" con el campo de descuento vacio. */
+async function completarDescuentoDelCupon() {
+  if (!invoiceState || !invoiceState.cupon) return;
+  if (invNum(invoiceState.discount, 0) > 0) return;   // ya venia bien
+
+  try {
+    const d = await COUPONS_REF.doc(invoiceState.cupon).get();
+    if (!d.exists) return;
+    const c = d.data();
+
+    const sub = (invoiceState.items || []).reduce(function (a, it) {
+      return a + invNum(it.qty, 0) * invNum(it.price, 0);
+    }, 0);
+
+    let desc = c.type === 'percent'
+      ? Math.round(sub * (invNum(c.value, 0) / 100))
+      : invNum(c.value, 0);
+    if (c.type === 'percent' && invNum(c.maxDiscount, 0) > 0) {
+      desc = Math.min(desc, invNum(c.maxDiscount, 0));
+    }
+    desc = Math.min(desc, sub);        // nunca mas que el pedido
+    if (desc <= 0) return;
+
+    invoiceState.discount = desc;
+    const campo = document.getElementById('inv-discount');
+    if (campo) campo.value = desc;
+    renderInvoice();
+  } catch (e) { /* sin cupon legible, se deja como estaba */ }
+}
+
 /* ── El cupon en la factura ─────────────────────────────────────
    Se cuenta como usado al FACTURAR, no al pedir: si el pedido se cae,
    el cupon no se gasta. Idempotente por pedido, para que reabrir y
@@ -8748,6 +8790,9 @@ function renderAvisoCupon() {
   d.textContent = 'El cliente aplicó el cupón ' + invoiceState.cupon +
                   '. Se cuenta como usado al guardar esta factura.';
   campo.appendChild(d);
+
+  // Si vino sin monto, se completa solo.
+  completarDescuentoDelCupon();
 }
 
 async function marcarCuponUsado(codigo, orderId, uid) {

@@ -7,7 +7,7 @@
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al cambiar este archivo hay que subir el ?v= en TODOS los HTML
       que lo cargan, si no los clientes quedan con la versión vieja.
-      Versión actual: v10
+      Versión actual: v11
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -318,8 +318,9 @@
     var d = {
       name:  (extra && extra.name)  || user.displayName || '',
       email: user.email || '',
-      phone: (extra && extra.phone) || '',
-      address: '', zone: '',
+      phone:   (extra && extra.phone)   || '',
+      address: (extra && extra.address) || '',
+      zone:    (extra && extra.zone)    || '',
       points: 0, lifetimePoints: 0, tier: 'bronce',
       ordersCount: 0, totalSpent: 0,
       role: 'customer',
@@ -376,10 +377,35 @@
     if (!d.email && user.email)         patch.email    = user.email;
     if (!d.name  && user.displayName)   patch.name     = user.displayName;
     if (!d.photoURL && user.photoURL)   patch.photoURL = user.photoURL;
-    if (extra && extra.phone && !d.phone) patch.phone  = extra.phone;
+    if (extra && extra.phone   && !d.phone)   patch.phone   = extra.phone;
+    if (extra && extra.zone    && !d.zone)    patch.zone    = extra.zone;
+    if (extra && extra.address && !d.address) patch.address = extra.address;
     // OJO: nunca meter createdAt/points/tier acá — firestore.rules lo rechaza
     // (touchesProtectedUserFields) y el update entero falla.
     if (Object.keys(patch).length) await ref.update(patch);
+  }
+
+  /* Las zonas del registro salen de la configuracion, las mismas que usa
+     el formulario de pedido. Una lista fija aca se desincronizaria el dia
+     que Jesus agregue o quite una zona. */
+  async function llenarZonasDelRegistro() {
+    var sel = document.getElementById('cf-zona');
+    if (!sel || sel.dataset.listo) return;
+    try {
+      var cfg = await cfgPromise;
+      var zonas = (cfg && cfg.zones) || [];
+      if (!zonas.length) { document.getElementById('cf-fzona').style.display = 'none'; return; }
+      sel.innerHTML = '<option value="">Elegí tu zona…</option>' +
+        zonas.map(function (z) {
+          var nombre = typeof z === 'string' ? z : (z.name || z.zona || '');
+          return nombre ? '<option value="' + esc(nombre) + '">' + esc(nombre) + '</option>' : '';
+        }).join('');
+      sel.dataset.listo = '1';
+    } catch (e) {
+      // Sin zonas no se le pide nada: mejor eso que un desplegable vacio.
+      var f = document.getElementById('cf-fzona');
+      if (f) f.style.display = 'none';
+    }
   }
 
   /* ═══ ACCIONES DE AUTENTICACIÓN ══════════════════════════════ */
@@ -403,8 +429,8 @@
     return cred.user;
   }
 
-  async function signUpEmail(email, pass, name, phone) {
-    pendingExtra = { name: name, phone: phone };
+  async function signUpEmail(email, pass, name, phone, zone, address) {
+    pendingExtra = { name: name, phone: phone, zone: zone, address: address };
     var cred;
     try {
       cred = await auth.createUserWithEmailAndPassword(email, pass);
@@ -415,7 +441,8 @@
     // llama antes, la creacion del perfil se cae con permission-denied.
     // Ademas el nombre real vive en users/{uid}.name, no en displayName.
     try {
-      await ensureProfile(cred.user, { name: name, phone: phone });
+      await ensureProfile(cred.user, { name: name, phone: phone,
+                                       zone: zone, address: address });
     } finally { pendingExtra = null; }
 
     if (name) {
@@ -622,6 +649,15 @@
             '<label for="cf-phone">Teléfono (WhatsApp)</label>' +
             '<input id="cf-phone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="8888 8888">' +
           '</div>' +
+          '<div class="cf-f" id="cf-fzona" style="display:none">' +
+            '<label for="cf-zona">Zona de entrega <span style="opacity:.6">(opcional)</span></label>' +
+            '<select id="cf-zona"><option value="">Elegí tu zona…</option></select>' +
+          '</div>' +
+          '<div class="cf-f" id="cf-fdir" style="display:none">' +
+            '<label for="cf-dir">Dirección <span style="opacity:.6">(opcional)</span></label>' +
+            '<input id="cf-dir" type="text" autocomplete="street-address" ' +
+              'placeholder="Señas para la entrega">' +
+          '</div>' +
           '<div class="cf-f" id="cf-femail">' +
             '<label for="cf-email">Correo</label>' +
             '<input id="cf-email" type="email" autocomplete="email" placeholder="tucorreo@gmail.com">' +
@@ -685,6 +721,9 @@
 
     document.getElementById('cf-fname').style.display  = isUp ? '' : 'none';
     document.getElementById('cf-fphone').style.display = (isUp || isPhone) ? '' : 'none';
+    document.getElementById('cf-fzona').style.display  = isUp ? '' : 'none';
+    document.getElementById('cf-fdir').style.display   = isUp ? '' : 'none';
+    if (isUp) llenarZonasDelRegistro();
     document.getElementById('cf-femail').style.display = isPhone ? 'none' : '';
     document.getElementById('cf-fpass').style.display  = (isReset || isPhone) ? 'none' : '';
     document.getElementById('cf-google').style.display = (isReset || isPhone) ? 'none' : '';
@@ -809,7 +848,10 @@
         await resetPassword(email);
         setMsg('Listo. Revisá tu correo (y la carpeta de spam) para el enlace.', 'ok');
       } else if (modalMode === 'up') {
-        var nu = await signUpEmail(email, pass, name, normPhone(phone));
+        var zonaEl = document.getElementById('cf-zona');
+        var dirEl  = document.getElementById('cf-dir');
+        var nu = await signUpEmail(email, pass, name, normPhone(phone),
+          zonaEl ? zonaEl.value : '', dirEl ? dirEl.value.trim() : '');
         finish(nu);
       } else {
         var u = await signInEmail(email, pass);
