@@ -329,6 +329,85 @@
     background-size:220% 100%;animation:sk 1.6s infinite linear}
   @keyframes sk{0%{background-position:220% 0}100%{background-position:-220% 0}}
 
+  /* ═══ CUPONES DEL CLIENTE ═══════════════════════════════════════
+     El codigo tiene que verse como algo que se toca, no como texto
+     suelto: recuadro, monoespaciada y espaciado entre letras, que es
+     como la gente reconoce un codigo. Y grande, porque en el celular
+     lo van a querer copiar o leer en voz alta. */
+  .cupon-card{
+    margin-top:1.7rem;padding:1.1rem 1.2rem;border-radius:16px;
+    background:linear-gradient(150deg,rgba(111,224,160,.13),rgba(111,224,160,.04));
+    border:1px solid rgba(111,224,160,.34);
+  }
+  .cupon-eyebrow{
+    display:block;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;
+    color:#6fe0a0;font-weight:700;margin-bottom:.5rem;
+  }
+  .cupon-titulo{
+    display:block;font-family:"Cormorant Garamond",Georgia,serif;
+    font-size:1.45rem;color:var(--white);line-height:1.2;margin-bottom:.15rem;
+  }
+  .cupon-detalle{display:block;font-size:.72rem;color:var(--muted);line-height:1.6}
+  .cupon-codigo{
+    display:flex;align-items:center;gap:.6rem;margin-top:.9rem;
+    padding:.6rem .8rem;border-radius:10px;
+    background:rgba(4,11,22,.55);border:1px dashed rgba(111,224,160,.45);
+  }
+  .cupon-codigo code{
+    flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;
+    font-size:1rem;letter-spacing:.14em;color:#6fe0a0;font-weight:600;
+    -webkit-user-select:all;user-select:all;word-break:break-all;
+  }
+  .cupon-copiar{
+    flex-shrink:0;background:rgba(111,224,160,.14);border:1px solid rgba(111,224,160,.4);
+    color:#6fe0a0;border-radius:8px;padding:.35rem .7rem;cursor:pointer;
+    font-family:inherit;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;
+    font-weight:700;transition:background .2s var(--ease);
+  }
+  .cupon-copiar:hover{background:rgba(111,224,160,.24)}
+
+  /* ═══ EL REGALO, AL TERMINAR DE REGISTRARSE ═════════════════════
+     Aparece una sola vez, encima de todo. Si esto fuera solo una
+     tarjeta mas en el perfil, nadie se enteraria de que le regalaron
+     algo — que es justo el momento que engancha. */
+  .regalo-ov{
+    position:fixed;inset:0;z-index:800;display:grid;place-items:center;
+    padding:1.5rem;background:rgba(3,8,16,.86);
+    opacity:0;pointer-events:none;transition:opacity .4s var(--ease);
+  }
+  .regalo-ov.on{opacity:1;pointer-events:auto}
+  .regalo{
+    max-width:23rem;width:100%;text-align:center;padding:2rem 1.6rem 1.6rem;
+    border-radius:22px;background:linear-gradient(160deg,#0f2740,#071324);
+    border:1px solid rgba(111,224,160,.4);
+    box-shadow:0 30px 80px rgba(0,0,0,.6);
+    transform:translateY(18px) scale(.96);
+    transition:transform .45s cubic-bezier(.2,.9,.3,1.2);
+  }
+  .regalo-ov.on .regalo{transform:translateY(0) scale(1)}
+  .regalo-ico{
+    width:56px;height:56px;margin:0 auto .9rem;border-radius:50%;
+    display:grid;place-items:center;background:rgba(111,224,160,.14);
+    border:1px solid rgba(111,224,160,.4);
+  }
+  .regalo-ico svg{width:26px;height:26px;fill:none;stroke:#6fe0a0;stroke-width:1.6;
+    stroke-linecap:round;stroke-linejoin:round}
+  .regalo h3{
+    font-family:"Cormorant Garamond",Georgia,serif;font-weight:400;
+    font-size:1.75rem;color:var(--white);margin:0 0 .3rem;line-height:1.2;
+  }
+  .regalo p{font-size:.78rem;color:var(--muted);line-height:1.65;margin:0}
+  .regalo .cupon-codigo{margin-top:1.2rem}
+  .regalo-btn{
+    width:100%;margin-top:1.2rem;padding:.8rem;border-radius:12px;border:0;
+    background:linear-gradient(135deg,var(--gold-dk,#9a7a48),var(--gold,#c8a96e));
+    color:#060e1c;font-family:inherit;font-size:.68rem;font-weight:700;
+    letter-spacing:.16em;text-transform:uppercase;cursor:pointer;
+  }
+  @media(prefers-reduced-motion:reduce){
+    .regalo{transition:none}
+  }
+
   /* Atajo al panel de administración. Se distingue a proposito del resto
      de la pantalla: no es una accion de cliente, y confundirla seria
      mandar a alguien a un sitio donde no tiene nada que hacer. */
@@ -620,6 +699,10 @@
       </div>
     </div>
 
+    <!-- Los cupones que tiene disponibles. Nace vacio: lo llena
+         pintarMisCupones() solo si de verdad hay alguno usable. -->
+    <div id="cupones-box"></div>
+
     <div id="fill-box"></div>
 
     <div class="stats">
@@ -711,6 +794,27 @@
     </div>
 
   </section>
+</div>
+
+<!-- El regalo de bienvenida. Se muestra una sola vez, cuando la persona
+     acaba de crear su cuenta. -->
+<div class="regalo-ov" id="regalo-ov" role="dialog" aria-modal="true" aria-labelledby="regalo-t">
+  <div class="regalo">
+    <div class="regalo-ico" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <rect x="3" y="9" width="18" height="11" rx="1"/>
+        <path d="M3 13h18M12 9v11"/>
+        <path d="M12 9S9.5 4 7.5 5.5 9 9 12 9zM12 9s2.5-5 4.5-3.5S15 9 12 9z"/>
+      </svg>
+    </div>
+    <h3 id="regalo-t">Te damos la bienvenida</h3>
+    <p id="regalo-txt"></p>
+    <div class="cupon-codigo">
+      <code id="regalo-cod"></code>
+      <button type="button" class="cupon-copiar" onclick="copiarCupon(this)">Copiar</button>
+    </div>
+    <button type="button" class="regalo-btn" onclick="cerrarRegalo()">Empezar a comprar</button>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -1357,6 +1461,126 @@
     }
   }
 
+  /* ═══ EL CUPON DE BIENVENIDA ═════════════════════════════════════
+     Jesus marca un cupon como "regalarlo al registrarse" y su codigo
+     queda en chusfish/config, que es de lectura publica. El cliente lo
+     lee de ahi y despues pide ESE cupon por su codigo —que las reglas
+     permiten (`allow get: if true`)— sin poder listar los demas.
+
+     No hace falta copiarle el cupon a cada cliente ni tocar las reglas:
+     el cupon ya sabe cuidarse solo con firstOrderOnly, perUserLimit y
+     sus fechas. */
+  var cuponBienvenida = null;
+
+  async function cargarCuponBienvenida(){
+    try {
+      var cfg = await CF.cfgReady;
+      var cod = (cfg && cfg.welcomeCoupon) || "";
+      if (!cod) return null;
+      var d = await CF.db.collection("coupons").doc(cod).get();
+      if (!d.exists) return null;
+      var c = d.data();
+      if (c.active === false) return null;
+
+      // Fechas: un cupon vencido no se le muestra a nadie.
+      var hoy = new Date();
+      if (c.validFrom  && c.validFrom.toDate  && c.validFrom.toDate()  > hoy) return null;
+      if (c.validUntil && c.validUntil.toDate && c.validUntil.toDate() < hoy) return null;
+
+      c.code = cod;
+      return c;
+    } catch (e) { return null; }
+  }
+
+  /* Ya lo uso? Se mira su propio registro de uso, que las reglas le
+     dejan leer. Si ya lo gasto no tiene sentido seguir mostrandoselo. */
+  async function cuponYaUsado(codigo, uid){
+    try {
+      var d = await CF.db.collection("coupons").doc(codigo)
+                .collection("redemptions").doc(uid).get();
+      return d.exists;
+    } catch (e) { return false; }
+  }
+
+  /* CF expone fmtNum (separador de miles) pero no un formateador de plata,
+     asi que el simbolo se pone aca. */
+  function plata(v){ return String.fromCharCode(8353) + CF.fmtNum(Math.round(Number(v) || 0)); }
+
+  function textoCupon(c){
+    var valor = c.type === "percent"
+      ? (Number(c.value) || 0) + "% de descuento"
+      : plata(c.value) + " de descuento";
+    var extra = [];
+    if (c.minOrder > 0) extra.push("en pedidos desde " + plata(c.minOrder));
+    if (c.firstOrderOnly) extra.push("en tu primer pedido");
+    return { valor: valor, extra: extra.join(", ") };
+  }
+
+  async function pintarMisCupones(uid){
+    var caja = document.getElementById("cupones-box");
+    if (!caja) return;
+    caja.innerHTML = "";
+
+    var c = cuponBienvenida || (cuponBienvenida = await cargarCuponBienvenida());
+    if (!c) return;
+    if (await cuponYaUsado(c.code, uid)) return;
+
+    var t = textoCupon(c);
+    caja.innerHTML =
+      '<div class="cupon-card">' +
+        '<span class="cupon-eyebrow">Tu cupón</span>' +
+        '<span class="cupon-titulo">' + CF.esc(t.valor) + '</span>' +
+        (t.extra ? '<span class="cupon-detalle">Válido ' + CF.esc(t.extra) + '.</span>' : "") +
+        '<span class="cupon-detalle">Escribilo al finalizar tu pedido.</span>' +
+        '<div class="cupon-codigo"><code>' + CF.esc(c.code) + '</code>' +
+          '<button type="button" class="cupon-copiar" onclick="copiarCupon(this)">Copiar</button></div>' +
+      '</div>';
+  }
+
+  /* El regalo se muestra UNA vez por cuenta. La marca va en el propio
+     navegador y no en Firestore: si se pierde, lo peor que pasa es que
+     alguien vea la felicitacion dos veces. Guardarlo en el perfil
+     obligaria a escribir en users/ desde el cliente por una animacion. */
+  async function mostrarRegaloSiToca(uid){
+    var clave = "chusfish_regalo_" + uid;
+    try { if (localStorage.getItem(clave)) return; } catch (e) {}
+
+    var c = cuponBienvenida || (cuponBienvenida = await cargarCuponBienvenida());
+    if (!c) return;
+    if (await cuponYaUsado(c.code, uid)) return;
+
+    var t = textoCupon(c);
+    document.getElementById("regalo-txt").innerHTML =
+      "Tu cuenta quedó lista. Te regalamos <b style=\"color:#6fe0a0\">" +
+      CF.esc(t.valor) + "</b>" + (t.extra ? " " + CF.esc(t.extra) : "") + ".";
+    document.getElementById("regalo-cod").textContent = c.code;
+    document.getElementById("regalo-ov").classList.add("on");
+    try { localStorage.setItem(clave, "1"); } catch (e) {}
+  }
+
+  function cerrarRegalo(){
+    document.getElementById("regalo-ov").classList.remove("on");
+  }
+  window.cerrarRegalo = cerrarRegalo;
+
+  window.copiarCupon = function (btn){
+    var cod = btn.parentElement.querySelector("code");
+    if (!cod) return;
+    var txt = cod.textContent;
+    function ok(){ var a = btn.textContent; btn.textContent = "Copiado"; 
+      setTimeout(function(){ btn.textContent = a; }, 1600); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(ok).catch(function(){ seleccionar(cod); });
+    } else seleccionar(cod);
+    /* Sin portapapeles —pasa en navegadores viejos y sin https— al menos
+       se deja el codigo seleccionado para copiarlo a mano. */
+    function seleccionar(el){
+      var r = document.createRange(); r.selectNodeContents(el);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      ok();
+    }
+  };
+
   function quitarCargando(){
     var c = document.getElementById('cargando');
     if (c) c.remove();
@@ -1425,6 +1649,12 @@
     $('#app').classList.add('show');
     pintarHero(user, profile);
     revisarSiEsAdmin(user.uid);
+    pintarMisCupones(user.uid);
+
+    /* El regalo solo para quien acaba de registrarse: sin pedidos y con
+       la cuenta recien creada. Asi no le salta a alguien de hace meses
+       la primera vez que abre esto. */
+    if (profile && !(Number(profile.ordersCount) > 0)) mostrarRegaloSiToca(user.uid);
     llenarForm(user, profile);
     loadZones();
     if(wired!==user.uid){

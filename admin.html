@@ -2322,6 +2322,12 @@
               <label class="toggle"><input type="checkbox" id="cup-first"><span class="toggle-slider"></span></label>
             </div>
             <div class="toggle-row" style="margin-top:0.6rem">
+              <span class="toggle-label">Regalarlo al registrarse
+                <span class="help-tip" data-tip="El cliente lo recibe apenas termina de crear su cuenta: se le muestra en pantalla y le queda guardado en su perfil. Solo puede haber uno a la vez.">?</span>
+              </span>
+              <label class="toggle"><input type="checkbox" id="cup-welcome"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row" style="margin-top:0.6rem">
               <span class="toggle-label">Activo</span>
               <label class="toggle"><input type="checkbox" id="cup-active" checked><span class="toggle-slider"></span></label>
             </div>
@@ -8207,6 +8213,7 @@ function cupForm() {
     from:    document.getElementById('cup-from'),
     until:   document.getElementById('cup-until'),
     first:   document.getElementById('cup-first'),
+    welcome: document.getElementById('cup-welcome'),
     active:  document.getElementById('cup-active'),
   };
 }
@@ -8249,7 +8256,7 @@ function resetCuponForm() {
   f.limit.value = '-1'; f.peruser.value = '1';
   f.from.value = ''; f.until.value = '';
   f.type.value = 'percent';
-  f.first.checked = false; f.active.checked = true;
+  f.first.checked = false; f.active.checked = true; f.welcome.checked = false;
   f.code.disabled = false;
   editandoCupon = null;
   document.getElementById('cup-form-title').textContent = 'Nuevo cupon';
@@ -8274,6 +8281,7 @@ function editCupon(id) {
   f.type.value = c.type || 'percent';
   f.value.value = c.value || '';
   f.min.value = c.minOrder || 0;
+  f.welcome.checked = (appConfig.welcomeCoupon === (c.code || c.id));
   f.max.value = c.maxDiscount || 0;
   f.limit.value = (typeof c.usageLimit === 'number' ? c.usageLimit : -1);
   f.peruser.value = (typeof c.perUserLimit === 'number' ? c.perUserLimit : 1);
@@ -8320,8 +8328,15 @@ document.getElementById('cup-save').addEventListener('click', async function () 
     validUntil:   hasta,
     firstOrderOnly: f.first.checked,
     active:       f.active.checked,
+    welcome:      f.welcome.checked,
     updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
   };
+
+  /* Se lee la casilla ANTES de cualquier await. Guardar el cupon cede el
+     turno, el listener de cupones repinta el formulario y lo deja limpio
+     — con la casilla ya desmarcada. Leerla despues daba siempre false y
+     el codigo nunca llegaba a la configuracion. */
+  const esBienvenida = f.welcome.checked;
 
   this.disabled = true;
   try {
@@ -8334,6 +8349,18 @@ document.getElementById('cup-save').addEventListener('click', async function () 
       await COUPONS_REF.doc(codigo).set(datos);
       toast('Cupon ' + codigo + ' creado');
     }
+    /* El codigo del cupon de bienvenida vive en la configuracion, que es
+       de lectura publica. Asi el cliente lo encuentra sin poder listar el
+       resto de los cupones. Solo puede haber UNO: elegir otro reemplaza
+       al anterior, y desmarcarlo lo quita. */
+    if (esBienvenida) {
+      await CFG_REF.set({ welcomeCoupon: codigo }, { merge: true });
+      appConfig.welcomeCoupon = codigo;
+    } else if (appConfig.welcomeCoupon === codigo) {
+      await CFG_REF.set({ welcomeCoupon: '' }, { merge: true });
+      appConfig.welcomeCoupon = '';
+    }
+
     resetCuponForm();
   } catch (e) { toast('Error: ' + e.message); }
   finally { this.disabled = false; }
