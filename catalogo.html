@@ -1523,6 +1523,28 @@
     .coupon-row button:hover { background:rgba(200,169,110,0.1); }
     .coupon-row button:disabled { opacity:0.5; cursor:default; }
     #of-coupon-msg { font-size:0.73rem; margin-top:0.5rem; line-height:1.55; }
+
+    /* El cupon que ya tiene guardado. Se ofrece, no se aplica solo: si el
+       descuento apareciera sin que la persona lo pida, no entiende de
+       donde salio el numero — y si el cupon no era el mejor que tenia,
+       le gastamos el bueno sin preguntarle. */
+    .cupon-mio {
+      display:flex; align-items:center; gap:0.7rem; flex-wrap:wrap;
+      margin-top:0.7rem; padding:0.7rem 0.85rem; border-radius:12px;
+      background:rgba(111,224,160,0.07); border:1px solid rgba(111,224,160,0.3);
+    }
+    .cupon-mio-txt { flex:1; min-width:9rem; font-size:0.72rem; line-height:1.5; color:#a8e8c4; }
+    .cupon-mio-txt b { display:block; color:#6fe0a0; font-size:0.8rem; }
+    .cupon-mio-txt small { display:block; color:var(--muted); font-size:0.66rem; margin-top:0.1rem; }
+    .cupon-mio-btn {
+      flex-shrink:0; padding:0.45rem 0.9rem; border-radius:20px; cursor:pointer;
+      background:linear-gradient(135deg,#3f9c6d,#6fe0a0); border:0; color:#04120a;
+      font-family:inherit; font-size:0.62rem; font-weight:700;
+      letter-spacing:0.12em; text-transform:uppercase;
+      transition:transform .2s, box-shadow .2s;
+    }
+    .cupon-mio-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(111,224,160,0.28); }
+    .cupon-mio-btn:disabled { opacity:.55; cursor:default; transform:none; box-shadow:none; }
     #of-coupon-msg.ok  { color:#6fe0a0; }
     #of-coupon-msg.err { color:#ff9b8c; }
 
@@ -3355,6 +3377,9 @@ if ('serviceWorker' in navigator) {
             <button type="button" id="of-coupon-btn">Aplicar</button>
           </div>
           <div id="of-coupon-msg"></div>
+          <!-- Si el cliente tiene un cupon guardado, aparece aca para
+               aplicarlo de un toque. Nace vacio. -->
+          <div id="of-cupon-mio"></div>
         </div>
         <div class="order-field">
           <label>Método de pago</label>
@@ -3807,6 +3832,70 @@ function mensajeCupon(txt, tipo) {
   el.textContent = txt || '';
 }
 
+/* ═══ EL CUPON QUE YA TIENE, A UN TOQUE ══════════════════════════
+   Antes habia que acordarse del codigo y escribirlo. El cliente lo
+   tenia en su perfil, en otra pantalla, asi que en la practica muchos
+   no lo iban a usar.
+
+   Se OFRECE, no se aplica solo: si el descuento apareciera sin que la
+   persona lo pida, no entiende de donde salio el numero. */
+async function mostrarCuponPropio() {
+  const caja = document.getElementById("of-cupon-mio");
+  if (!caja) return;
+  caja.innerHTML = "";
+
+  if (cuponAplicado) return;                 // ya hay uno puesto
+  if (!window.CF || !CF.user || !CF.db) return;
+
+  try {
+    const cfg = await CF.cfgReady;
+    const cod = (cfg && cfg.welcomeCoupon) || "";
+    if (!cod) return;
+
+    const d = await CF.db.collection("coupons").doc(cod).get();
+    if (!d.exists) return;
+    const c = d.data();
+    if (c.active === false) return;
+
+    const hoy = new Date();
+    if (c.validFrom  && c.validFrom.toDate  && c.validFrom.toDate()  > hoy) return;
+    if (c.validUntil && c.validUntil.toDate && c.validUntil.toDate() < hoy) return;
+
+    // Ya lo gasto? Se mira su propio registro de uso, que puede leer.
+    const usado = await CF.db.collection("coupons").doc(cod)
+      .collection("redemptions").doc(CF.user.uid).get().catch(() => null);
+    if (usado && usado.exists) return;
+
+    const total = cart.reduce((s2, i) => s2 + (i.product.price || 0) * i.qty, 0);
+    const minimo = Number(c.minOrder) || 0;
+    const alcanza = total >= minimo;
+
+    const valor = c.type === "percent"
+      ? (Number(c.value) || 0) + "% de descuento"
+      : fmt(Number(c.value) || 0) + " de descuento";
+
+    /* Si no llega al minimo se muestra igual, diciendo cuanto le falta:
+       esconderlo seria perder la oportunidad de que agregue algo mas. */
+    const falta = alcanza ? "" :
+      "Te faltan " + fmt(minimo - total) + " para poder usarlo.";
+
+    caja.innerHTML =
+      '<div class="cupon-mio">' +
+        '<span class="cupon-mio-txt"><b>Tenés ' + valor + '</b>' +
+          '<small>' + (falta || ("Código " + cod)) + '</small></span>' +
+        '<button type="button" class="cupon-mio-btn" onclick="usarCuponPropio(\'' + cod + '\')"' +
+          (alcanza ? "" : " disabled") + '>Usar</button>' +
+      '</div>';
+  } catch (e) { /* sin cupon, sin ruido */ }
+}
+
+function usarCuponPropio(cod) {
+  const inp = document.getElementById("of-coupon");
+  if (!inp) return;
+  inp.value = cod;
+  aplicarCupon();
+}
+
 function limpiarCupon() {
   cuponAplicado = null;
   const inp = document.getElementById('of-coupon');
@@ -3815,6 +3904,7 @@ function limpiarCupon() {
   if (btn) { btn.disabled = false; btn.textContent = 'Aplicar'; }
   mensajeCupon('');
   renderOrderSummary();
+  mostrarCuponPropio();     // vuelve a ofrecerse al quitar el que habia
 }
 
 async function aplicarCupon() {
@@ -3865,6 +3955,7 @@ async function aplicarCupon() {
   btn.textContent = 'Quitar';
   mensajeCupon('Código aplicado: ' + fmt(r.descuento) + ' de descuento.', 'ok');
   renderOrderSummary();
+  mostrarCuponPropio();     // ya esta puesto: el ofrecimiento se retira
 }
 
 document.getElementById('of-coupon-btn').addEventListener('click', aplicarCupon);
