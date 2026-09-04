@@ -552,17 +552,18 @@
   }
 
   /* ═══ Estado del cliente ═══ */
-  /* Saldo REALMENTE disponible: los puntos menos lo que ya pidió y Jesús
-     todavía no resolvió. Las reglas de Firestore comparan cada canje contra
-     el saldo completo, así que con 1.250 puntos se podían pedir tres premios
-     de 600: los tres decían "Listo, es tuyo" y después el panel rechazaba
-     los que no alcanzaban. Prometer algo que se va a caer es peor que
-     no dejarlo pedir. */
+  /* Desde que el canje APARTA los puntos en el momento de pedirlo, el saldo
+     del perfil ya viene neto: lo comprometido salio de ahi. Restarle otra vez
+     los pendientes lo cobraba dos veces — con 750 puntos y un premio de 500
+     decia "te faltan 250".
+
+     La variable pendientes se sigue usando, pero solo para AVISAR cuanto hay
+     esperando a que Jesus lo resuelva. */
   var saldo   = function(){
     if (!CF.user) return null;
-    return Math.max(0, ((CF.profile && CF.profile.points) || 0) - pendientes);
+    return Math.max(0, (CF.profile && CF.profile.points) || 0);
   };
-  var saldoTotal = function(){ return CF.user ? ((CF.profile && CF.profile.points)||0) : null; };
+  var saldoTotal = saldo;
   var stock   = function(r){ return (typeof r.stock==='number' && r.stock>=0) ? r.stock : Infinity; };
   var activos = function(){ return rewards.filter(function(r){ return r.active!==false; }); };
   var agotado = function(r){ return stock(r)<=0; };
@@ -599,7 +600,7 @@
       .sort(function(a,b){ return (a.cost||0)-(b.cost||0); })[0];
     var reservado = pendientes > 0
       ? '<br><span style="opacity:.8">'+CF.fmtNum(pendientes)+
-        ' están reservados en canjes que Jesús está revisando</span>'
+        ' ya salieron de tu saldo y esperan que Jesús los revise</span>'
       : '';
     $('#purse-meta').innerHTML = n
       ? 'Te alcanza para <b>'+n+(n===1?' premio':' premios')+'</b>'+
@@ -854,23 +855,34 @@
     btn.disabled=true; btn.textContent='Enviando…';
     try{
       var pf=CF.profile||{};
-      await db.collection('redemptions').add({
+      /* Los puntos se apartan AHORA, no cuando Jesus apruebe. Antes
+         quedaban disponibles hasta la aprobacion y se podian pedir
+         varios premios con el mismo saldo. Si el canje se rechaza,
+         Jesus se los devuelve. */
+      var costo = Number(r.cost) || 0;
+      var saldo = Number((CF.profile || {}).points) || 0;
+      if (saldo < costo) { throw new Error('No te alcanzan los puntos.'); }
+
+      var lote = db.batch();
+      lote.update(db.collection('users').doc(CF.user.uid), { points: saldo - costo });
+      lote.set(db.collection('redemptions').doc(), {
         uid:CF.user.uid,
         userName:pf.name||CF.user.displayName||'',
         userPhone:pf.phone||'',
         userEmail:pf.email||CF.user.email||'',
         rewardId:r.id, rewardName:r.name||'',
-        cost:Number(r.cost)||0,
+        cost:costo,
         status:'solicitado',
         createdAt:firebase.firestore.FieldValue.serverTimestamp()
       });
+      await lote.commit();
       $('#sheet-scroll').innerHTML=
         '<div class="label">Canje solicitado</div>'+
         '<h2 class="sheet-n">Listo, es tuyo.</h2>'+
         '<p class="sheet-d">Reservamos tu <strong style="color:var(--text)">'+CF.esc(r.name)+'</strong>. '+
         'Jesús lo revisa y te lo lleva con tu siguiente pedido.<br><br>'+
         'Podés seguir el estado desde <strong style="color:var(--text)">Mi cuenta → Mis premios</strong>. '+
-        'Los puntos se descuentan cuando quede aprobado.</p>';
+        'Los puntos ya salieron de tu saldo; si Jesús no puede darte el premio, te los devuelve.</p>';
       $('#sheet-foot').innerHTML=
         '<a class="btn" href="mi-cuenta.html">Ver mis premios</a>'+
         '<button class="btn line" id="c-seguir">Seguir viendo</button>';

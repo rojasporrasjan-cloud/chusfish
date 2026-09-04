@@ -8239,9 +8239,9 @@ document.querySelectorAll('.rd-filter').forEach(btn => {
   });
 });
 
-/* Aprobar = el unico momento en que se descuentan puntos por un canje.
-   Va en transaccion porque el cliente pudo haber pedido dos canjes seguidos
-   antes de que mires el panel: el segundo tiene que fallar, no dejar saldo negativo. */
+/* Aprobar YA NO descuenta: los puntos se apartaron cuando el cliente pidio
+   el canje. Aca solo se deja el asiento en su libro y se marca aprobado.
+   Si se descontara de nuevo, se le cobraria dos veces el mismo premio. */
 async function approveRedeem(id) {
   try {
     await db.runTransaction(async (tx) => {
@@ -8258,7 +8258,6 @@ async function approveRedeem(id) {
 
       const cost = Number(r.cost) || 0;
       const bal  = Number(u.points) || 0;
-      if (bal < cost) throw new Error('Al cliente solo le quedan ' + bal + ' puntos');
 
       // Todas las lecturas de la transaccion van ANTES de cualquier escritura.
       let rwSnap = null;
@@ -8266,8 +8265,8 @@ async function approveRedeem(id) {
 
       // Canjear NO baja lifetimePoints: el nivel se gana con lo comprado,
       // no se pierde por usar los puntos.
+      // Los puntos ya se apartaron al pedir el canje: no se vuelven a bajar.
       tx.update(uRef, {
-        points:    bal - cost,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
       });
       tx.set(uRef.collection('ledger').doc(), {
@@ -8287,7 +8286,7 @@ async function approveRedeem(id) {
         if (typeof st === 'number' && st > 0) tx.update(rwSnap.ref, { stock: st - 1 });
       }
     });
-    toast('Canje aprobado y puntos descontados');
+    toast('Canje aprobado');
   } catch (e) { toast('Error: ' + e.message); }
 }
 
@@ -8295,11 +8294,33 @@ async function rejectRedeem(id) {
   const note = prompt('Motivo del rechazo (lo ve el cliente):', 'Premio no disponible por ahora');
   if (note === null) return;
   try {
+    /* Rechazar DEVUELVE los puntos: se apartaron al pedir el canje, asi
+       que si el premio no se entrega tienen que volver al cliente. */
+    const rs = await REDEEM_REF.doc(id).get();
+    const r  = rs.exists ? rs.data() : null;
+
     await REDEEM_REF.doc(id).update({
       status: 'rechazado', adminNote: note,
       resolvedAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
-    toast('Canje rechazado (no se descontaron puntos)');
+
+    let devueltos = 0;
+    if (r && r.uid && Number(r.cost) > 0 && r.status === 'solicitado') {
+      devueltos = Number(r.cost);
+      const uRef = USERS_REF.doc(r.uid);
+      await db.runTransaction(async (tx) => {
+        const us = await tx.get(uRef);
+        if (!us.exists) return;
+        tx.update(uRef, { points: (Number(us.data().points) || 0) + devueltos });
+        tx.set(uRef.collection('ledger').doc(), {
+          type: 'redeem-cancel', points: devueltos, redemptionId: id,
+          reason: 'Canje rechazado: ' + (r.rewardName || 'premio'),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+    }
+    toast(devueltos ? 'Canje rechazado · ' + devueltos + ' puntos devueltos'
+                    : 'Canje rechazado');
   } catch (e) { toast('Error: ' + e.message); }
 }
 

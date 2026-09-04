@@ -40,6 +40,18 @@ service cloud.firestore {
     // Si el cliente pudiera escribir 'points' se regala los premios solo.
     // Ojo con `resource`: en un create es null y `resource.data` revienta
     // la regla entera (no devuelve false, tira error de evaluacion).
+    /* Reservar puntos para un canje: el cliente se los baja el mismo.
+       Solo `points`, solo hacia ABAJO y nunca por debajo de cero.
+       lifetimePoints no se toca: el nivel se gana con lo comprado y no
+       se pierde por canjear. */
+    function soloReservaPuntos() {
+      return resource != null
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['points'])
+          && request.resource.data.points is int
+          && request.resource.data.points >= 0
+          && request.resource.data.points < resource.data.points;
+    }
+
     function touchesProtectedUserFields() {
       return resource != null
           && request.resource.data.diff(resource.data).affectedKeys()
@@ -164,7 +176,8 @@ service cloud.firestore {
       // El cliente edita su perfil (nombre, telefono, direcciones, favoritos)
       // pero no sus puntos, tier ni rol.
       allow update: if isAdmin()
-                    || (isOwner(uid) && !touchesProtectedUserFields());
+                    || (isOwner(uid) && !touchesProtectedUserFields())
+                    || (isOwner(uid) && soloReservaPuntos());
       allow delete: if isAdmin();
 
       // Libro mayor de puntos - auditoria. Nunca se suman puntos sin asiento.
