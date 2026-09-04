@@ -64,3 +64,17 @@ nunca supera el histórico, el nivel cuadra con los puntos.
 **Correr siempre con semilla recién puesta y a solas.** `probar-reglas.js`
 escribe puntos a propósito, así que si va antes deja a Carlos descuadrado y
 la auditoría marca un falso positivo.
+
+## probar-cupon-un-solo-uso.js — que el cupón no se use dos veces
+
+```
+npm run seed && node herramientas/probar-cupon-un-solo-uso.js
+```
+
+Recorre lo que hace un cliente de verdad: se registra, ve su cupón, pide con
+él, intenta usarlo otra vez (ofrecido **y escrito a mano**), Jesús confirma, y
+vuelve a intentarlo ya sin ser primera compra.
+
+**Corré cada herramienta A SOLAS y con semilla recién puesta.** `npm run seed`
+NO limpia la colección `coupons`, así que las reservas de una corrida anterior
+hacen fallar a la siguiente con un falso positivo.

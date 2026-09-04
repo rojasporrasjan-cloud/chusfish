@@ -94,7 +94,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=15"></script>
+  <script src="auth.js?v=16"></script>
 <script src="ui.js?v=17"></script>
 
   <style>
@@ -4498,13 +4498,54 @@ const TOPE_GUARDADO = 8000;   // ms
    si esta para no volver a ofrecerlo. */
 async function apartarCupon(codigo, uid) {
   try {
-    await db_cat.collection('coupons').doc(codigo)
+    /* Con tope de tiempo, como el pedido: enseguida se navega a WhatsApp y
+       eso mata las escrituras a medias. Si no alcanza, se encola. */
+    const escribir = db_cat.collection('coupons').doc(codigo)
       .collection('redemptions').doc(uid)
       .set({ status: 'apartado', at: new Date().toISOString() });
+    const tope = new Promise(function (res) { setTimeout(function () { res('tarde'); }, 5000); });
+    const r = await Promise.race([escribir.then(function () { return 'ok'; }), tope]);
+    if (r !== 'ok') encolarCupon(codigo, uid);
   } catch (e) {
-    // Si falla, el cupon sigue disponible: es preferible a perder el pedido.
+    /* Si falla, el cupon quedaria reusable: se encola y se reintenta al
+       volver a entrar. Sin esto, perder esta escritura es regalar el
+       descuento de nuevo. */
+    encolarCupon(codigo, uid);
     console.error('[cupon] no se pudo apartar', e && e.code);
   }
+}
+
+const CUPONES_PENDIENTES = 'chusfish_cupones_pendientes';
+
+function encolarCupon(codigo, uid) {
+  try {
+    const cola = JSON.parse(localStorage.getItem(CUPONES_PENDIENTES) || '[]');
+    if (!cola.some(function (c) { return c.codigo === codigo && c.uid === uid; })) {
+      cola.push({ codigo: codigo, uid: uid, cuando: Date.now() });
+    }
+    localStorage.setItem(CUPONES_PENDIENTES, JSON.stringify(cola.slice(-10)));
+  } catch (e) {}
+}
+
+async function reintentarCuponesPendientes() {
+  let cola;
+  try { cola = JSON.parse(localStorage.getItem(CUPONES_PENDIENTES) || '[]'); }
+  catch (e) { return; }
+  if (!cola.length) return;
+
+  const quedan = [];
+  for (const c of cola) {
+    if (Date.now() - (c.cuando || 0) > 7 * 24 * 3600 * 1000) continue;
+    try {
+      await db_cat.collection('coupons').doc(c.codigo)
+        .collection('redemptions').doc(c.uid)
+        .set({ status: 'apartado', at: new Date().toISOString() });
+    } catch (e) { quedan.push(c); }
+  }
+  try {
+    if (quedan.length) localStorage.setItem(CUPONES_PENDIENTES, JSON.stringify(quedan));
+    else localStorage.removeItem(CUPONES_PENDIENTES);
+  } catch (e) {}
 }
 
 async function guardarPedido(datos) {
@@ -4554,7 +4595,10 @@ async function reintentarPedidosPendientes() {
 
 // Al volver a entrar, se reintenta lo que quedo colgado. Sin prisa: va
 // despues del load para no competir con lo que la persona vino a ver.
-window.addEventListener('load', function () { setTimeout(reintentarPedidosPendientes, 3000); });
+window.addEventListener('load', function () {
+  setTimeout(reintentarPedidosPendientes, 3000);
+  setTimeout(reintentarCuponesPendientes, 3500);
+});
 
 /* La pantalla de carga se maneja arriba, junto a initCatalog(). */
 </script>
