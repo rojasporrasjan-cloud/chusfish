@@ -94,8 +94,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=11"></script>
-<script src="ui.js?v=15"></script>
+  <script src="auth.js?v=12"></script>
+<script src="ui.js?v=16"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -120,7 +120,7 @@
     html { scroll-behavior: smooth; }
     /* ═══ PRELOADER ═══ */
     .preloader {
-      position: fixed; inset: 0; z-index: 9999;
+      position: fixed; inset: 0; z-index: 240;   /* debajo de la barra (250) */
       background: linear-gradient(135deg, #0d2137 0%, #060e1c 100%);
       display: flex; align-items: center; justify-content: center;
       transition: opacity 0.8s ease, visibility 0.8s;

@@ -10,7 +10,7 @@
 
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al tocar este archivo hay que subir el ?v= en TODOS los HTML.
-      Versión actual: v15
+      Versión actual: v16
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -627,7 +627,17 @@
 
   cargarCategorias();
 
-  if (document.readyState === 'loading')
-    document.addEventListener('DOMContentLoaded', montar);
-  else montar();
+  /* Antes esperaba a DOMContentLoaded. En catalogo.html eso son 4.760
+     lineas de HTML y JS en linea: con CPU lenta —un telefono de gama
+     media— la barra tardaba 6,7 segundos en aparecer y la pagina quedaba
+     sin menu todo ese rato. La gente hacia scroll, la barra salia, y
+     parecia que aparecia AL desplazar.
+
+     ui.js se carga en la linea 98, asi que se monta apenas EXISTE el
+     body, sin esperar a que termine de leerse el resto del documento. */
+  function arrancar() {
+    if (document.body) { montar(); return; }
+    requestAnimationFrame(arrancar);
+  }
+  arrancar();
 })();

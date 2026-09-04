@@ -7,7 +7,7 @@
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al cambiar este archivo hay que subir el ?v= en TODOS los HTML
       que lo cargan, si no los clientes quedan con la versión vieja.
-      Versión actual: v11
+      Versión actual: v12
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -211,6 +211,16 @@
   function errMsg(e) {
     if (!e) return 'Algo salió mal.';
     if (ERR[e.code] !== undefined) return ERR[e.code];
+
+    /* Codigo que no esta en la tabla. Antes se soltaba el texto crudo de
+       Firebase —"Firebase: Error (auth/...)"— que a un cliente no le dice
+       nada y a nosotros nos deja sin pista cuando lo reporta de palabra.
+       Ahora va un mensaje entendible CON el codigo al final: la persona
+       puede leerlo por telefono y se sabe al toque que paso. */
+    if (e.code) {
+      return 'No pudimos completar la operación. Probá de nuevo o escribinos ' +
+             'por WhatsApp. (' + e.code + ')';
+    }
     return e.message || 'Algo salió mal.';
   }
 
@@ -388,6 +398,57 @@
   /* Las zonas del registro salen de la configuracion, las mismas que usa
      el formulario de pedido. Una lista fija aca se desincronizaria el dia
      que Jesus agregue o quite una zona. */
+  var zonasCargadas = [];
+
+  /* Sin tildes y en minusculas: en Costa Rica nadie escribe "Desamparados"
+     con la busqueda perfecta, y "san jose" tiene que encontrar "San José". */
+  function sinTildes(t) {
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+
+  function pintarZonas(filtro) {
+    var lista = document.getElementById('cf-zona-lista');
+    if (!lista) return;
+    var q = sinTildes(filtro);
+    var hay = zonasCargadas.filter(function (z) { return !q || sinTildes(z).indexOf(q) >= 0; });
+    var actual = (document.getElementById('cf-zona') || {}).value || '';
+
+    if (!hay.length) {
+      lista.innerHTML = '<div class="cf-znada">No encontramos esa zona. ' +
+        'Escribila en la dirección y la coordinamos por WhatsApp.</div>';
+      return;
+    }
+    lista.innerHTML = hay.map(function (z) {
+      return '<div class="cf-zop' + (z === actual ? ' marcada' : '') + '" data-z="' +
+             esc(z) + '">' + esc(z) + '</div>';
+    }).join('');
+  }
+
+  function abrirZonas(abrir) {
+    var pop = document.getElementById('cf-zona-pop');
+    var btn = document.getElementById('cf-zona-btn');
+    if (!pop || !btn) return;
+    pop.hidden = !abrir;
+    btn.classList.toggle('abierto', !!abrir);
+    if (abrir) {
+      pintarZonas('');
+      var q = document.getElementById('cf-zona-q');
+      if (q) { q.value = ''; }
+      /* No se le pone el foco a proposito: en el celular abriria el teclado
+         encima de la lista y taparia justo lo que se acaba de mostrar. */
+    }
+  }
+
+  function elegirZona(z) {
+    var h = document.getElementById('cf-zona');
+    var t = document.getElementById('cf-zona-txt');
+    var b = document.getElementById('cf-zona-btn');
+    if (h) h.value = z || '';
+    if (t) t.textContent = z || 'Elegí tu zona…';
+    if (b) b.classList.toggle('cf-vacio', !z);
+    abrirZonas(false);
+  }
+
   async function llenarZonasDelRegistro() {
     var sel = document.getElementById('cf-zona');
     if (!sel || sel.dataset.listo) return;
@@ -395,12 +456,28 @@
       var cfg = await cfgPromise;
       var zonas = (cfg && cfg.zones) || [];
       if (!zonas.length) { document.getElementById('cf-fzona').style.display = 'none'; return; }
-      sel.innerHTML = '<option value="">Elegí tu zona…</option>' +
-        zonas.map(function (z) {
-          var nombre = typeof z === 'string' ? z : (z.name || z.zona || '');
-          return nombre ? '<option value="' + esc(nombre) + '">' + esc(nombre) + '</option>' : '';
-        }).join('');
+      zonasCargadas = zonas.map(function (z) {
+        return typeof z === 'string' ? z : (z.name || z.zona || '');
+      }).filter(Boolean);
+      if (!zonasCargadas.length) { document.getElementById('cf-fzona').style.display = 'none'; return; }
       sel.dataset.listo = '1';
+
+      // Los eventos se enganchan una sola vez, cuando ya hay zonas.
+      var btn = document.getElementById('cf-zona-btn');
+      var q   = document.getElementById('cf-zona-q');
+      var lst = document.getElementById('cf-zona-lista');
+      if (btn && !btn.dataset.listo) {
+        btn.dataset.listo = '1';
+        btn.classList.add('cf-vacio');
+        btn.addEventListener('click', function () {
+          abrirZonas(document.getElementById('cf-zona-pop').hidden);
+        });
+        if (q) q.addEventListener('input', function () { pintarZonas(this.value); });
+        if (lst) lst.addEventListener('click', function (e) {
+          var op = e.target.closest('.cf-zop');
+          if (op) elegirZona(op.getAttribute('data-z'));
+        });
+      }
     } catch (e) {
       // Sin zonas no se le pide nada: mejor eso que un desplegable vacio.
       var f = document.getElementById('cf-fzona');
@@ -596,6 +673,31 @@
     + 'outline:none;transition:.2s}'
     + '.cf-f input:focus{border-color:rgba(200,169,110,.6);background:rgba(6,14,28,.95)}'
     + '.cf-f input.cf-bad{border-color:#e05c4a}'
+
+    /* Selector de zona: mismo aspecto que un campo, para que la fila no
+       se vea rota. El <select> nativo no se puede pintar por dentro. */
+    + '.cf-zsel{width:100%;padding:.7rem .85rem;border-radius:9px;display:flex;'
+    + 'align-items:center;justify-content:space-between;gap:.5rem;cursor:pointer;'
+    + 'background:rgba(6,14,28,.75);border:1px solid rgba(200,169,110,.2);'
+    + 'color:#f0f4f8;font-family:inherit;font-size:.85rem;text-align:left;transition:.2s}'
+    + '.cf-zsel:hover{border-color:rgba(200,169,110,.45)}'
+    + '.cf-zsel.cf-vacio span{color:#7a95aa}'
+    + '.cf-zsel svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:#c8a96e;'
+    + 'stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}'
+    + '.cf-zsel.abierto svg{transform:rotate(180deg)}'
+
+    + '.cf-zpop{margin-top:.4rem;border-radius:10px;overflow:hidden;'
+    + 'background:#0a1526;border:1px solid rgba(200,169,110,.28)}'
+    + '.cf-zq{width:100%;padding:.6rem .8rem;border:0;border-bottom:1px solid rgba(200,169,110,.16);'
+    + 'background:rgba(6,14,28,.6);color:#f0f4f8;font-family:inherit;font-size:.82rem;outline:none}'
+    /* Alto tope y desplazamiento propio: con 18 zonas, sin esto el modal
+       crece hasta salirse de la pantalla. */
+    + '.cf-zlista{max-height:190px;overflow-y:auto;-webkit-overflow-scrolling:touch}'
+    + '.cf-zop{padding:.6rem .85rem;cursor:pointer;font-size:.82rem;color:#d4dde8;'
+    + 'border-bottom:1px solid rgba(255,255,255,.04)}'
+    + '.cf-zop:last-child{border-bottom:0}'
+    + '.cf-zop:hover,.cf-zop.marcada{background:rgba(200,169,110,.14);color:#f0f4f8}'
+    + '.cf-znada{padding:.75rem .85rem;font-size:.78rem;color:#7a95aa}'
     + '.cf-go{width:100%;padding:.82rem;margin-top:.5rem;border:0;border-radius:10px;cursor:pointer;'
     + 'background:linear-gradient(135deg,#c8a96e,#9a7a48);color:#060e1c;font-family:inherit;'
     + 'font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;transition:.2s}'
@@ -651,7 +753,16 @@
           '</div>' +
           '<div class="cf-f" id="cf-fzona" style="display:none">' +
             '<label for="cf-zona">Zona de entrega <span style="opacity:.6">(opcional)</span></label>' +
-            '<select id="cf-zona"><option value="">Elegí tu zona…</option></select>' +
+            '<button type="button" id="cf-zona-btn" class="cf-zsel">' +
+              '<span id="cf-zona-txt">Elegí tu zona…</span>' +
+              '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>' +
+            '</button>' +
+            '<input type="hidden" id="cf-zona">' +
+            '<div id="cf-zona-pop" class="cf-zpop" hidden>' +
+              '<input type="text" id="cf-zona-q" class="cf-zq" placeholder="Buscá tu zona…" ' +
+                'autocomplete="off" spellcheck="false">' +
+              '<div id="cf-zona-lista" class="cf-zlista"></div>' +
+            '</div>' +
           '</div>' +
           '<div class="cf-f" id="cf-fdir" style="display:none">' +
             '<label for="cf-dir">Dirección <span style="opacity:.6">(opcional)</span></label>' +
@@ -752,11 +863,36 @@
     setMsg('');
   }
 
+  /* Cuanto se habia bajado la pagina antes de abrir. Hay que devolverla
+     a su sitio al cerrar: bloquear con position:fixed la manda arriba. */
+  var scrollGuardado = 0;
+
+  function bloquearFondo() {
+    scrollGuardado = window.pageYOffset || document.documentElement.scrollTop || 0;
+    var b = document.body;
+    b.style.position = 'fixed';
+    b.style.top = (-scrollGuardado) + 'px';
+    b.style.left = '0';
+    b.style.right = '0';
+    b.style.width = '100%';
+  }
+
+  function soltarFondo() {
+    var b = document.body;
+    b.style.position = '';
+    b.style.top = '';
+    b.style.left = '';
+    b.style.right = '';
+    b.style.width = '';
+    window.scrollTo(0, scrollGuardado);
+  }
+
   function openModal(mode, cb) {
     buildModal();
     onSuccess = cb || null;
     setMode(mode || 'in');
     modalEl.classList.add('open');
+    bloquearFondo();
     setTimeout(function () {
       var f = document.getElementById(
         modalMode === 'up' ? 'cf-name' : modalMode === 'phone' ? 'cf-phone' : 'cf-email');
@@ -765,6 +901,7 @@
   }
   function closeModal() {
     if (modalEl) modalEl.classList.remove('open');
+    soltarFondo();
     setMsg('');
 
     /* El paso "solo falta tu teléfono" ya ocurre CON la sesión abierta: es
