@@ -41,7 +41,8 @@
   body{
     background:var(--deep); color:var(--text);
     font-family:'Montserrat',system-ui,sans-serif; font-size:15px; line-height:1.6;
-    padding-top:var(--nav-h); min-height:100vh; min-height:100dvh;   /* dvh: en iOS el 100vh sobra por abajo */ overflow-x:hidden;
+    padding-top:var(--nav-h); min-height:100vh; min-height:100dvh;   /* dvh: en iOS el 100vh sobra por abajo */ overflow-x: hidden;   /* respaldo para navegadores viejos */
+      overflow-x: clip;     /* clip no crea contenedor: no rompe position:fixed en Android */
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   }
   a{color:inherit;text-decoration:none}
@@ -819,8 +820,8 @@
 
 <div id="toast"></div>
 
-<script src="auth.js?v=12"></script>
-<script src="ui.js?v=16"></script>
+<script src="auth.js?v=13"></script>
+<script src="ui.js?v=17"></script>
 <script>
 (function(){
   'use strict';
@@ -1488,6 +1489,31 @@
       if (c.validUntil && c.validUntil.toDate && c.validUntil.toDate() < hoy) return null;
 
       c.code = cod;
+
+      /* La MISMA validacion que hace el carrito al aplicarlo: tope de usos,
+         usos por cliente y "solo primera compra". Antes el perfil solo
+         miraba si existia el documento de uso, asi que a una cuenta que ya
+         habia comprado le seguia apareciendo el cupon y el carrito se lo
+         rechazaba. Prometer algo que despues no se puede usar es peor que
+         no mostrarlo.
+
+         Se le pasa subtotal = minimo del cupon a proposito: aca no hay
+         carrito, y el minimo se comunica aparte ("Valido en pedidos desde
+         ₡X"). */
+      if (CF.validarCupon) {
+        var perfil = CF.profile || {};
+        var v = CF.validarCupon(c, {
+          usosDelCliente:  0,
+          esPrimeraCompra: (Number(perfil.ordersCount) || 0) === 0,
+          // El validador tambien calcula el descuento y rechaza si da 0.
+          // Con subtotal 0 un cupon de monto fijo daba 0 y se descartaba
+          // un cupon perfectamente valido. Se usa un subtotal que no
+          // falsee la elegibilidad: el minimo, o el propio valor.
+          subtotal:        Math.max(Number(c.minOrder) || 0, Number(c.value) || 0, 1)
+        });
+        if (!v.ok) return null;
+      }
+
       return c;
     } catch (e) { return null; }
   }

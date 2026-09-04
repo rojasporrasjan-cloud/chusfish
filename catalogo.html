@@ -94,8 +94,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=12"></script>
-<script src="ui.js?v=16"></script>
+  <script src="auth.js?v=13"></script>
+<script src="ui.js?v=17"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -158,7 +158,8 @@
       font-family: 'Montserrat', sans-serif;
       background: var(--deep);
       color: var(--text);
-      overflow-x: hidden;
+      overflow-x: hidden;   /* respaldo para navegadores viejos */
+      overflow-x: clip;     /* clip no crea contenedor: no rompe position:fixed en Android */
     }
     ::selection { background: var(--gold-dk); color: #fff; }
     ::-webkit-scrollbar { width: 6px; }
@@ -3918,6 +3919,21 @@ async function mostrarCuponPropio() {
 
     const total = cart.reduce((s2, i) => s2 + (i.product.price || 0) * i.qty, 0);
     const minimo = Number(c.minOrder) || 0;
+
+    /* Se valida ANTES de ofrecerlo, con las mismas reglas que al aplicar:
+       vigencia, tope de usos y "solo primera compra". Sin esto se ofrecia
+       un cupon que despues el propio carrito rechazaba. */
+    if (CF.validarCupon) {
+      const perfil = CF.profile || {};
+      const v = CF.validarCupon(c, {
+        usosDelCliente:  0,
+        esPrimeraCompra: (Number(perfil.ordersCount) || 0) === 0,
+        // No puede ser 0: el validador rechaza si el descuento da 0.
+        subtotal:        Math.max(total, minimo, Number(c.value) || 0, 1)
+      });
+      if (!v.ok) return;
+    }
+
     const alcanza = total >= minimo;
 
     const valor = c.type === "percent"

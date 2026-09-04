@@ -57,7 +57,8 @@
   body{
     background:var(--deep); color:var(--text);
     font-family:'Montserrat',system-ui,sans-serif; font-size:15px; line-height:1.6;
-    padding-top:var(--nav-h); min-height:100vh; min-height:100dvh;   /* dvh: en iOS el 100vh sobra por abajo */ overflow-x:hidden;
+    padding-top:var(--nav-h); min-height:100vh; min-height:100dvh;   /* dvh: en iOS el 100vh sobra por abajo */ overflow-x: hidden;   /* respaldo para navegadores viejos */
+      overflow-x: clip;     /* clip no crea contenedor: no rompe position:fixed en Android */
     -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
   }
   body.locked{overflow:hidden}
@@ -536,8 +537,8 @@
 
 <div class="note" id="note"></div>
 
-<script src="auth.js?v=12"></script>
-<script src="ui.js?v=16"></script>
+<script src="auth.js?v=13"></script>
+<script src="ui.js?v=17"></script>
 <script>
 (function(){
   'use strict';

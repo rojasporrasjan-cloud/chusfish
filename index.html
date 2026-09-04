@@ -117,8 +117,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=12"></script>
-<script src="ui.js?v=16"></script>
+  <script src="auth.js?v=13"></script>
+<script src="ui.js?v=17"></script>
 
   <style>
     /*
@@ -159,7 +159,8 @@
       font-family: 'Montserrat', sans-serif;
       background-color: var(--deep);
       color: var(--text);
-      overflow-x: hidden;
+      overflow-x: hidden;   /* respaldo para navegadores viejos */
+      overflow-x: clip;     /* clip no crea contenedor: no rompe position:fixed en Android */
       line-height: 1.7;
     }
     ::selection { background: var(--gold-dk); color: #fff; }
