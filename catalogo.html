@@ -94,7 +94,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=14"></script>
+  <script src="auth.js?v=15"></script>
 <script src="ui.js?v=17"></script>
 
   <style>
@@ -1523,6 +1523,55 @@
     }
     .coupon-row button:hover { background:rgba(200,169,110,0.1); }
     .coupon-row button:disabled { opacity:0.5; cursor:default; }
+    /* ═══ AVISO DE PROMOCION AL ENTRAR AL CATALOGO ═══
+       Se muestra UNA vez por persona y por promocion. Si se cierra o se
+       usa, no vuelve: un aviso que reaparece en cada visita deja de
+       leerse y pasa a molestar. */
+    .promo-ov {
+      position:fixed; inset:0; z-index:9000; display:none;
+      align-items:center; justify-content:center; padding:1.2rem;
+      background:rgba(3,8,16,0.82);
+    }
+    .promo-ov.open { display:flex; animation:promo-fade .25s ease; }
+    @keyframes promo-fade { from { opacity:0 } to { opacity:1 } }
+    .promo-box {
+      width:100%; max-width:340px; border-radius:18px; overflow:hidden;
+      background:linear-gradient(160deg,#0d2137,#060e1c);
+      border:1px solid rgba(200,169,110,0.4);
+      box-shadow:0 24px 60px rgba(0,0,0,0.6);
+      animation:promo-in .32s cubic-bezier(.2,.8,.2,1);
+    }
+    @keyframes promo-in { from { transform:translateY(18px) scale(.96); opacity:0 } to { transform:none; opacity:1 } }
+    .promo-img { width:100%; aspect-ratio:16/10; object-fit:cover; display:block; }
+    .promo-body { padding:1.2rem 1.3rem 1.4rem; text-align:center; }
+    .promo-eyebrow {
+      font-size:0.58rem; letter-spacing:0.22em; text-transform:uppercase;
+      color:var(--gold-dk); font-weight:700;
+    }
+    .promo-tit {
+      font-family:'Cormorant Garamond',serif; font-size:1.6rem; line-height:1.15;
+      color:var(--white); margin:0.35rem 0 0.5rem;
+    }
+    .promo-tit em { font-style:italic; color:var(--gold); }
+    .promo-txt { font-size:0.76rem; color:var(--muted); line-height:1.6; margin-bottom:1rem; }
+    .promo-cod {
+      display:inline-block; font-family:ui-monospace,Menlo,monospace;
+      font-size:0.9rem; letter-spacing:0.12em; color:var(--gold-lt);
+      background:rgba(200,169,110,0.12); border:1px dashed rgba(200,169,110,0.45);
+      border-radius:9px; padding:0.4rem 0.9rem; margin-bottom:1rem;
+    }
+    .promo-btn {
+      width:100%; padding:0.8rem; border:0; border-radius:12px; cursor:pointer;
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold)); color:var(--deep);
+      font-family:inherit; font-size:0.68rem; font-weight:700;
+      letter-spacing:0.14em; text-transform:uppercase;
+    }
+    .promo-no {
+      display:block; width:100%; margin-top:0.6rem; background:none; border:0;
+      color:var(--muted); font-family:inherit; font-size:0.7rem; cursor:pointer;
+      text-decoration:underline; text-underline-offset:3px;
+    }
+
     #of-coupon-msg { font-size:0.73rem; margin-top:0.5rem; line-height:1.55; }
 
     /* El cupon que ya tiene guardado. Se ofrece, no se aplica solo: si el
@@ -1917,6 +1966,9 @@
 </div>
 
 <!-- TOAST -->
+<!-- Aviso de promocion al entrar. Se llena por JS. -->
+<div class="promo-ov" id="promo-ov"><div class="promo-box"></div></div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -3869,6 +3921,15 @@ function subtotalCarrito() {
   return cart.reduce((s, i) => s + (i.product.price || 0) * i.qty, 0);
 }
 
+/* Las lineas del pedido, para los cupones atados a productos: el validador
+   necesita saber cuanto vale CADA producto, no solo el total. */
+function lineasCarrito() {
+  return cart.map(i => ({
+    id: i.product.id,
+    total: (i.product.price || 0) * i.qty
+  }));
+}
+
 function mensajeCupon(txt, tipo) {
   const el = document.getElementById('of-coupon-msg');
   if (!el) return;
@@ -3929,7 +3990,9 @@ async function mostrarCuponPropio() {
         usosDelCliente:  0,
         esPrimeraCompra: (Number(perfil.ordersCount) || 0) === 0,
         // No puede ser 0: el validador rechaza si el descuento da 0.
-        subtotal:        Math.max(total, minimo, Number(c.value) || 0, 1)
+        subtotal:        Math.max(total, minimo, Number(c.value) || 0, 1),
+        // Con cupon atado a productos, la base sale de estas lineas.
+        lineas:          lineasCarrito()
       });
       if (!v.ok) return;
     }
@@ -4002,6 +4065,9 @@ async function aplicarCupon() {
 
   const r = await CF.buscarCupon(codigo, {
     subtotal: subtotalCarrito(),
+    // Sin esto, un cupon atado a productos no encuentra su base y se
+    // rechaza con "solo para productos especificos".
+    lineas: lineasCarrito(),
     esPrimeraCompra: esPrimera,
     usosDelCliente: usos,
   });
@@ -4031,7 +4097,19 @@ document.getElementById('of-coupon').addEventListener('keydown', function (e) {
 
 function openCartOrderForm() {
   if (!cart || cart.length === 0) return;
-  limpiarCupon();            // cada pedido arranca sin cupon puesto
+ limpiarCupon();            // cada pedido arranca sin cupon puesto
+
+  /* Si la persona toco "Lo quiero" en el aviso de promocion, el codigo
+     quedo guardado: se aplica solo. Pedirle que lo copie a mano es donde
+     se pierde la gente. */
+  try {
+    const pend = sessionStorage.getItem("chusfish_cupon_pendiente");
+    if (pend) {
+      const inp = document.getElementById("of-coupon");
+      if (inp) { inp.value = pend; setTimeout(aplicarCupon, 400); }
+      sessionStorage.removeItem("chusfish_cupon_pendiente");
+    }
+  } catch (e) {}
   renderOrderSummary();
   prepararYAbrirFormulario();
 }
@@ -4314,6 +4392,95 @@ document.getElementById('order-form').addEventListener('submit', async function(
 
   window.location.href = waLink;
 });
+
+/* ═══ AVISO DE PROMOCION AL ENTRAR ═══════════════════════════════
+   Jesus marca un cupon como "avisar en el catalogo" y sale una vez, con
+   la foto del producto al que aplica. El boton lo deja guardado para el
+   pedido, asi que no hay que copiar ni recordar el codigo.
+
+   Se muestra UNA vez por persona y por promocion: la marca lleva el
+   codigo, asi que si Jesus arma otra promocion la gente si la ve. Un
+   aviso que reaparece en cada visita deja de leerse y pasa a molestar. */
+const PROMO_VISTA = 'chusfish_promo_';
+
+async function mostrarPromoDelCatalogo() {
+  try {
+    const cfg = await (window.CF ? CF.cfgReady : Promise.resolve(null));
+    const cod = (cfg && cfg.promoCoupon) || '';
+    if (!cod) return;
+
+    try { if (localStorage.getItem(PROMO_VISTA + cod)) return; } catch (e) {}
+
+    const d = await db_cat.collection('coupons').doc(cod).get();
+    if (!d.exists) return;
+    const c = d.data();
+    if (c.active === false) return;
+
+    const hoy = new Date();
+    if (c.validFrom  && c.validFrom.toDate  && c.validFrom.toDate()  > hoy) return;
+    if (c.validUntil && c.validUntil.toDate && c.validUntil.toDate() < hoy) return;
+
+    // La foto y el nombre salen del producto al que aplica, si es de uno solo.
+    const ids = Array.isArray(c.productIds) ? c.productIds : [];
+    const prod = ids.length === 1 ? (PRODUCTS || []).find(p => p.id === ids[0]) : null;
+
+    const valor = c.type === 'percent'
+      ? (Number(c.value) || 0) + '%'
+      : fmt(Number(c.value) || 0);
+
+    const sobre = prod ? ' en ' + prod.name
+                : ids.length ? ' en productos seleccionados'
+                : ' en tu pedido';
+
+    const minimo = Number(c.minOrder) || 0;
+    const cond = minimo > 0 ? 'Desde ' + fmt(minimo) + ' de compra.' : 'Sin monto mínimo.';
+
+    const ov = document.getElementById('promo-ov');
+    ov.querySelector('.promo-box').innerHTML =
+      (prod && prod.img ? '<img class="promo-img" src="' + prod.img + '" alt="">' : '') +
+      '<div class="promo-body">' +
+        '<div class="promo-eyebrow">Promoción</div>' +
+        '<h3 class="promo-tit">' + valor + ' <em>de descuento</em></h3>' +
+        '<p class="promo-txt">' + escaparTexto(sobre.trim().replace(/^en /, 'En ')) +
+          '. ' + cond + '</p>' +
+        '<div class="promo-cod">' + escaparTexto(cod) + '</div>' +
+        '<button type="button" class="promo-btn" id="promo-usar">Lo quiero</button>' +
+        '<button type="button" class="promo-no" id="promo-no">Ahora no</button>' +
+      '</div>';
+
+    const cerrar = () => {
+      ov.classList.remove('open');
+      try { localStorage.setItem(PROMO_VISTA + cod, '1'); } catch (e) {}
+    };
+
+    ov.querySelector('#promo-no').addEventListener('click', cerrar);
+    ov.addEventListener('click', e => { if (e.target === ov) cerrar(); });
+    ov.querySelector('#promo-usar').addEventListener('click', () => {
+      cerrar();
+      /* Se deja guardado para el pedido: al abrir el formulario se aplica
+         solo. Copiar un codigo a mano es donde se pierde la gente. */
+      try { sessionStorage.setItem('chusfish_cupon_pendiente', cod); } catch (e) {}
+      if (prod) { filtrarPorPromo(prod); }
+      showToast('Código ' + cod + ' guardado para tu pedido ✅');
+    });
+
+    ov.classList.add('open');
+  } catch (e) { /* sin promo, sin ruido */ }
+}
+
+/* Lleva al producto de la promo, que es lo que la persona quiere ver. */
+function filtrarPorPromo(prod) {
+  const card = document.querySelector('[data-id="' + prod.id + '"]');
+  if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function escaparTexto(t) {
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Despues del load: primero lo que la persona vino a ver.
+window.addEventListener('load', function () { setTimeout(mostrarPromoDelCatalogo, 1200); });
 
 /* ═══ GUARDAR EL PEDIDO, SIN PERDERLO ════════════════════════════
    Un pedido que llega a WhatsApp pero no a la base es peor que uno que

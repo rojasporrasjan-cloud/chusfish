@@ -2358,9 +2358,26 @@
               <label class="toggle"><input type="checkbox" id="cup-welcome"><span class="toggle-slider"></span></label>
             </div>
             <div class="toggle-row" style="margin-top:0.6rem">
+              <span class="toggle-label">Avisar al entrar al catálogo
+                <span class="help-tip" data-tip="Sale una vez por persona, con la foto del producto si el cupón es de uno solo. El botón deja el código guardado para su pedido. Solo puede haber uno a la vez.">?</span>
+              </span>
+              <label class="toggle"><input type="checkbox" id="cup-promo"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="toggle-row" style="margin-top:0.6rem">
               <span class="toggle-label">Activo</span>
               <label class="toggle"><input type="checkbox" id="cup-active" checked><span class="toggle-slider"></span></label>
             </div>
+          </div>
+
+          <div class="config-field">
+            <label class="config-label">Solo para estos productos
+              <span class="help-tip" data-tip="Dejalo vacío y el descuento aplica al pedido entero. Si elegís productos, el descuento se calcula SOLO sobre lo que valen esas líneas — útil para vaciar algo que se está pegando.">?</span>
+            </label>
+            <div id="cup-prods" style="display:flex;flex-wrap:wrap;gap:0.5rem;margin:0.4rem 0 0.6rem"></div>
+            <button type="button" class="config-save-btn" id="cup-prods-abrir"
+              style="background:transparent;border:1px solid rgba(200,169,110,0.4);color:#c8a96e">
+              Elegir productos
+            </button>
           </div>
 
           <div id="cup-preview" style="font-size:0.75rem;color:#c8a96e;margin-bottom:0.9rem;line-height:1.6"></div>
@@ -7169,6 +7186,7 @@ function applyCatalogImgSelection() {
   if (!_catalogImgTarget) return;
   if (_catalogImgTarget === 'reward-full') { aplicarProductoPremio(); return; }
   if (_catalogImgTarget === 'featured') { renderFeatElegidos(); closeCatalogImgPicker(); return; }
+  if (_catalogImgTarget === 'cupon') { renderCupProds(); actualizarPreviewCupon(); closeCatalogImgPicker(); return; }
   const selectedImgs = [];
   document.querySelectorAll('#catalog-img-grid .catalog-img-item.selected').forEach(function(el) {
     const imgUrl = el.getAttribute('data-img');
@@ -8581,6 +8599,87 @@ function renderCupones() {
   actualizarPreviewCupon();
 }
 
+/* ═══ CUPON ATADO A PRODUCTOS ════════════════════════════════════
+   Para cuando un producto se esta pegando: en vez de rebajar el pedido
+   entero, el descuento se calcula solo sobre las lineas de ese producto.
+   Vacio = aplica a todo, como siempre. */
+let cupProds = [];
+
+function renderCupProds() {
+  const caja = document.getElementById('cup-prods');
+  if (!caja) return;
+
+  if (!cupProds.length) {
+    caja.innerHTML = '<p style="font-size:0.72rem;color:#7a95aa;margin:0">' +
+      'Ninguno: el descuento aplica al pedido completo.</p>';
+    return;
+  }
+
+  caja.innerHTML = cupProds.map(function (id, i) {
+    const p = (products || []).find(function (x) { return x.id === id; });
+    const nombre = p ? esc(p.name) : ('Producto ' + id + ' (ya no existe)');
+    const foto = p && p.img
+      ? '<img src="' + esc(p.img) + '" alt="" style="width:28px;height:28px;object-fit:cover;border-radius:6px;flex-shrink:0">'
+      : '';
+    return '<div style="display:flex;align-items:center;gap:0.45rem;padding:0.3rem 0.5rem;' +
+      'background:rgba(6,14,28,0.6);border:1px solid rgba(200,169,110,0.18);border-radius:9px">' +
+      foto +
+      '<span style="font-size:0.72rem;color:#d4dde8;max-width:150px;overflow:hidden;' +
+        'text-overflow:ellipsis;white-space:nowrap">' + nombre + '</span>' +
+      '<button type="button" onclick="quitarCupProd(' + i + ')" title="Quitar" ' +
+        'style="background:none;border:0;color:#ff9b8c;cursor:pointer;font-size:1rem;padding:0 0.15rem">&times;</button>' +
+      '</div>';
+  }).join('');
+}
+
+function quitarCupProd(i) { cupProds.splice(i, 1); renderCupProds(); actualizarPreviewCupon(); }
+
+/* Reusa el mismo selector con fotos de los destacados y los premios. */
+function abrirSelectorCupProds() {
+  _catalogImgTarget = 'cupon';
+  const cont = document.getElementById('catalog-img-grid');
+  document.querySelector('.catalog-img-modal-header h4').textContent =
+    'Productos a los que aplica el cupón';
+
+  let html = '';
+  CAT_ORDER.forEach(function (cat) {
+    const enCat = (products || []).filter(function (p) { return p.cat === cat; });
+    if (!enCat.length) return;
+    html += '<div class="catalog-img-section">' +
+      '<div class="catalog-img-section-title">' + (CAT_NAMES[cat] || cat) + '</div>' +
+      '<div class="catalog-img-row">' +
+      enCat.map(function (p) {
+        const elegido = cupProds.indexOf(p.id) >= 0 ? ' selected' : '';
+        const precio = p.price ? fmt(p.price) + ' ' + esc(p.unit || '') : 'sin precio';
+        return '<div class="catalog-img-item con-precio' + elegido + '" data-pid="' + p.id + '" ' +
+          'onclick="alternarCupProd(this)" title="' + esc(p.name) + '">' +
+          (p.img ? '<img src="' + esc(p.img) + '" alt="" loading="lazy">'
+                 : '<div style="height:100%;display:grid;place-items:center;color:#7a95aa">—</div>') +
+          '<div class="catalog-img-item-name">' + esc(p.name) +
+            '<span class="cip-precio">' + precio + '</span></div>' +
+          '</div>';
+      }).join('') +
+      '</div></div>';
+  });
+
+  cont.innerHTML = html || '<p style="color:#7a95aa;padding:1rem">No hay productos.</p>';
+  document.getElementById('catalog-img-overlay').classList.add('open');
+}
+
+/* El listener va JUNTO a la funcion: estaba en otro bloque <script> y por
+   eso daba "abrirSelectorCupProds is not defined" al cargar el panel. */
+document.addEventListener("DOMContentLoaded", function () {
+  const b = document.getElementById("cup-prods-abrir");
+  if (b) b.addEventListener("click", abrirSelectorCupProds);
+});
+
+function alternarCupProd(el) {
+  const id = parseInt(el.getAttribute('data-pid'), 10);
+  const i = cupProds.indexOf(id);
+  if (i >= 0) { cupProds.splice(i, 1); el.classList.remove('selected'); }
+  else { cupProds.push(id); el.classList.add('selected'); }
+}
+
 function cupForm() {
   return {
     code:    document.getElementById('cup-code'),
@@ -8594,6 +8693,7 @@ function cupForm() {
     until:   document.getElementById('cup-until'),
     first:   document.getElementById('cup-first'),
     welcome: document.getElementById('cup-welcome'),
+    promo:   document.getElementById('cup-promo'),
     active:  document.getElementById('cup-active'),
   };
 }
@@ -8662,6 +8762,9 @@ function editCupon(id) {
   f.value.value = c.value || '';
   f.min.value = c.minOrder || 0;
   f.welcome.checked = (appConfig.welcomeCoupon === (c.code || c.id));
+  if (f.promo) f.promo.checked = (appConfig.promoCoupon === (c.code || c.id));
+  cupProds = Array.isArray(c.productIds) ? c.productIds.slice() : [];
+  renderCupProds();
   f.max.value = c.maxDiscount || 0;
   f.limit.value = (typeof c.usageLimit === 'number' ? c.usageLimit : -1);
   f.peruser.value = (typeof c.perUserLimit === 'number' ? c.perUserLimit : 1);
@@ -8709,6 +8812,9 @@ document.getElementById('cup-save').addEventListener('click', async function () 
     firstOrderOnly: f.first.checked,
     active:       f.active.checked,
     welcome:      f.welcome.checked,
+    productIds:   cupProds.slice(),
+    promo:        !!(f.promo && f.promo.checked),
+    updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
     updatedAt:    firebase.firestore.FieldValue.serverTimestamp(),
   };
 
@@ -8739,6 +8845,18 @@ document.getElementById('cup-save').addEventListener('click', async function () 
     } else if (appConfig.welcomeCoupon === codigo) {
       await CFG_REF.set({ welcomeCoupon: '' }, { merge: true });
       appConfig.welcomeCoupon = '';
+    }
+
+    /* El aviso del catalogo funciona igual: su codigo vive en la
+       configuracion, que es de lectura publica, y solo puede haber UNO.
+       Elegir otro reemplaza al anterior; desmarcarlo lo quita. */
+    const esPromo = f.promo && f.promo.checked;
+    if (esPromo) {
+      await CFG_REF.set({ promoCoupon: codigo }, { merge: true });
+      appConfig.promoCoupon = codigo;
+    } else if (appConfig.promoCoupon === codigo) {
+      await CFG_REF.set({ promoCoupon: '' }, { merge: true });
+      appConfig.promoCoupon = '';
     }
 
     resetCuponForm();

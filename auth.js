@@ -7,7 +7,7 @@
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al cambiar este archivo hay que subir el ?v= en TODOS los HTML
       que lo cargan, si no los clientes quedan con la versión vieja.
-      Versión actual: v14
+      Versión actual: v15
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -267,19 +267,40 @@
       return no('Este código aplica desde ' + fmtColones(minimo) + '.');
     }
 
+    /* Base sobre la que se calcula el descuento. Sin productos atados es
+       el pedido entero; con ellos, solo lo que valen esas lineas. */
+    var ids = Array.isArray(cup.productIds) ? cup.productIds : [];
+    var base = subtotal;
+    var soloProductos = false;
+
+    if (ids.length) {
+      soloProductos = true;
+      var lineas = Array.isArray(ctx.lineas) ? ctx.lineas : [];
+      base = lineas.reduce(function (s, l) {
+        return ids.indexOf(l.id) >= 0 ? s + (Number(l.total) || 0) : s;
+      }, 0);
+      if (base <= 0) {
+        return no('Este código es solo para productos específicos. Agregá alguno al pedido.');
+      }
+    }
+
     var desc = 0;
     if (cup.type === 'percent') {
-      desc = subtotal * (Number(cup.value) || 0) / 100;
+      desc = base * (Number(cup.value) || 0) / 100;
       var tope = Number(cup.maxDiscount) || 0;
       if (tope > 0) desc = Math.min(desc, tope);
     } else {
       desc = Number(cup.value) || 0;
     }
-    // Nunca puede dejar el total en negativo.
-    desc = Math.max(0, Math.min(Math.round(desc), subtotal));
+    /* Nunca puede dejar el total en negativo. Con cupon de producto el
+       techo es lo que valen ESAS lineas, no el pedido: si no, un monto
+       fijo de ₡10.000 sobre un camaron de ₡6.000 se comeria ₡4.000 del
+       resto del pedido. */
+    desc = Math.max(0, Math.min(Math.round(desc), soloProductos ? Math.round(base) : subtotal));
     if (desc <= 0) return no('Ese código no aplica a este pedido.');
 
-    return { ok: true, motivo: '', descuento: desc };
+    return { ok: true, motivo: '', descuento: desc,
+             soloProductos: soloProductos, base: Math.round(base) };
   }
 
   // Busca el cupon y lo valida. `allow get: if true` en las reglas permite
