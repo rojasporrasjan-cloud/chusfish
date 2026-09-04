@@ -191,8 +191,13 @@ service cloud.firestore {
       // en el modal de factura, asi que el canje lo registra el.
       // El cliente lee el suyo para saber si ya lo uso; escribir, solo admin.
       match /redemptions/{uid} {
-        allow read:  if isOwner(uid) || isAdmin();
-        allow write: if isAdmin();
+        allow read:   if isOwner(uid) || isAdmin();
+        // Apartarlo para uno mismo al hacer el pedido. Solo se limita,
+        // no se gana nada, asi que no hay incentivo para abusar.
+        allow create: if isOwner(uid);
+        // Confirmarlo o devolverlo es del admin. Si el cliente pudiera
+        // borrarlo, volveria a usar el mismo cupon cuantas veces quiera.
+        allow update, delete: if isAdmin();
       }
 
       // Marca de "este pedido ya conto para el cupon". Evita que reabrir y

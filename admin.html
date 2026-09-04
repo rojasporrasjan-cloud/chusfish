@@ -4639,6 +4639,14 @@ async function setOrderStatus(id, status) {
        confirmado -> en camino -> entregado no paga tres veces. */
     if (ACREDITA_DESDE.indexOf(status) >= 0) await awardPointsForOrder(id);
     if (status === 'cancelado') await revertirPuntosPedido(id);
+
+    /* El cupon sigue la suerte del pedido: al confirmarlo se consume de
+       verdad, y al cancelarlo se le devuelve al cliente. Antes solo se
+       contaba al guardar la factura, asi que un pedido cancelado se
+       quedaba con el cupon gastado y uno confirmado sin facturar lo
+       dejaba libre para siempre. */
+    if (status === 'confirmado') await confirmarCuponDelPedido(id);
+    if (status === 'cancelado')  await devolverCuponDelPedido(id);
     if (status === 'entregado') openInvoice(id);
   } catch(e) { toast('Error: ' + e.message); }
 }
@@ -4671,6 +4679,9 @@ async function borrarPedido(id) {
     // Primero los puntos, despues el documento: si se borra antes, la
     // reversion se queda sin el pedido del que sacar el monto.
     if (pts > 0) await revertirPuntosPedido(id);
+    // Borrar un pedido tambien libera su cupon: si no, el cliente lo
+    // pierde por un pedido que ya no existe.
+    await devolverCuponDelPedido(id);
     await ORDERS_REF.doc(id).delete();
 
     const i = orders.findIndex(x => x.id === id);
@@ -8847,6 +8858,39 @@ function renderAvisoCupon() {
 
   // Si vino sin monto, se completa solo.
   completarDescuentoDelCupon();
+}
+
+/* El pedido se acepta: el cupon queda gastado de verdad. */
+async function confirmarCuponDelPedido(orderId) {
+  const o = orders.find(x => x.id === orderId);
+  const cod = o && o.discount && o.discount.code;
+  if (!cod) return;
+  await marcarCuponUsado(cod, orderId, o.uid || null);
+}
+
+/* El pedido se cae: el cliente recupera su cupon. Se borra la marca
+   por pedido y la del cliente, y se descuenta del contador. */
+async function devolverCuponDelPedido(orderId) {
+  const o = orders.find(x => x.id === orderId);
+  const cod = o && o.discount && o.discount.code;
+  if (!cod) return;
+  try {
+    const cRef = COUPONS_REF.doc(cod);
+    const marca = await cRef.collection('orders').doc(orderId).get();
+
+    await cRef.collection('orders').doc(orderId).delete().catch(function () {});
+    if (o.uid) await cRef.collection('redemptions').doc(o.uid).delete().catch(function () {});
+
+    // Solo se descuenta si de verdad se habia contado.
+    if (marca.exists) {
+      const c = await cRef.get();
+      const u = Number((c.data() || {}).usedCount) || 0;
+      if (u > 0) await cRef.update({ usedCount: u - 1 });
+    }
+    toast('Cupón ' + cod + ' devuelto al cliente');
+  } catch (e) {
+    toast('No se pudo devolver el cupón: ' + (e.code || e.message));
+  }
 }
 
 async function marcarCuponUsado(codigo, orderId, uid) {

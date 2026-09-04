@@ -3888,7 +3888,14 @@ async function mostrarCuponPropio() {
   caja.innerHTML = "";
 
   if (cuponAplicado) return;                 // ya hay uno puesto
-  if (!window.CF || !CF.user || !CF.db) return;
+  if (!window.CF || !CF.db) return;
+
+  /* Se ESPERA a que la sesion termine de cargar. Antes se salia de una si
+     CF.user todavia estaba vacio, y no reintentaba: en un telefono lento el
+     formulario se abre antes de que Firebase restaure la sesion, y al
+     cliente no se le ofrecia su cupon. Parecia que no tenia ninguno. */
+  try { await CF.ready; } catch (e) {}
+  if (!CF.user) return;                      // de verdad no hay sesion
 
   try {
     const cfg = await CF.cfgReady;
@@ -4260,6 +4267,15 @@ document.getElementById('order-form').addEventListener('submit', async function(
 
   const guardado = await guardarPedido(datosPedido);
 
+  /* Se aparta el cupon apenas se hace el pedido, no al facturar. Antes
+     se marcaba al guardar la factura: si Jesus no la abria, el mismo
+     cupon servia una y otra vez. Ahora queda bloqueado de una, y es
+     Jesus quien lo confirma al aceptar el pedido o lo devuelve al
+     cancelarlo. */
+  if (guardado && cuponAplicado && cfUid) {
+    await apartarCupon(cuponAplicado.codigo, cfUid);
+  }
+
   if (guardado) {
     if (window.fbq) {
       const orderTotal = itemsForOrder.reduce((s2, i) => s2 + (i.price || 0) * i.qty, 0);
@@ -4293,6 +4309,20 @@ document.getElementById('order-form').addEventListener('submit', async function(
    para reintentarlo. */
 const PEDIDOS_PENDIENTES = 'chusfish_pedidos_pendientes';
 const TOPE_GUARDADO = 8000;   // ms
+
+/* Deja constancia de que este cliente ya uso este cupon. Lo unico que
+   hace el documento es existir: tanto el carrito como el perfil miran
+   si esta para no volver a ofrecerlo. */
+async function apartarCupon(codigo, uid) {
+  try {
+    await db_cat.collection('coupons').doc(codigo)
+      .collection('redemptions').doc(uid)
+      .set({ status: 'apartado', at: new Date().toISOString() });
+  } catch (e) {
+    // Si falla, el cupon sigue disponible: es preferible a perder el pedido.
+    console.error('[cupon] no se pudo apartar', e && e.code);
+  }
+}
 
 async function guardarPedido(datos) {
   try {
