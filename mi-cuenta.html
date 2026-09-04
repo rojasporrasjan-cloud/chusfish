@@ -820,7 +820,7 @@
 
 <div id="toast"></div>
 
-<script src="auth.js?v=13"></script>
+<script src="auth.js?v=14"></script>
 <script src="ui.js?v=17"></script>
 <script>
 (function(){
@@ -1497,19 +1497,25 @@
          rechazaba. Prometer algo que despues no se puede usar es peor que
          no mostrarlo.
 
-         Se le pasa subtotal = minimo del cupon a proposito: aca no hay
-         carrito, y el minimo se comunica aparte ("Valido en pedidos desde
-         ₡X"). */
+         AQUI NO SE COMPRUEBA EL MONTO. No hay carrito, asi que se pasa un
+         subtotal de referencia deliberadamente alto.
+
+         Por que: validarCupon() calcula el descuento y rechaza si da 0. Con
+         un cupon de PORCENTAJE eso es una trampa — 5% de un subtotal chico
+         redondea a 0 y el cupon "desaparecia" del perfil aunque en el
+         carrito funcionara perfecto. Paso en produccion con el cupon de
+         bienvenida (5%, sin minimo): la clienta se registraba y no lo veia.
+
+         El minimo real se le comunica aparte ("Valido en pedidos desde ₡X")
+         y el monto lo valida el carrito, que si conoce el pedido. */
       if (CF.validarCupon) {
         var perfil = CF.profile || {};
+        // Alto de sobra para que ningun porcentaje razonable de 0.
+        var REFERENCIA = 100000;
         var v = CF.validarCupon(c, {
           usosDelCliente:  0,
           esPrimeraCompra: (Number(perfil.ordersCount) || 0) === 0,
-          // El validador tambien calcula el descuento y rechaza si da 0.
-          // Con subtotal 0 un cupon de monto fijo daba 0 y se descartaba
-          // un cupon perfectamente valido. Se usa un subtotal que no
-          // falsee la elegibilidad: el minimo, o el propio valor.
-          subtotal:        Math.max(Number(c.minOrder) || 0, Number(c.value) || 0, 1)
+          subtotal:        Math.max(Number(c.minOrder) || 0, REFERENCIA)
         });
         if (!v.ok) return null;
       }

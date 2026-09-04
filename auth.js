@@ -7,7 +7,7 @@
    ⚠️ netlify.toml cachea /*.js como immutable por 1 AÑO.
       Al cambiar este archivo hay que subir el ?v= en TODOS los HTML
       que lo cargan, si no los clientes quedan con la versión vieja.
-      Versión actual: v13
+      Versión actual: v14
    ══════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';

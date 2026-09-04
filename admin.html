@@ -8987,6 +8987,70 @@ function abrirFicha(uid) {
     }, e => console.error('[ficha canjes]', e));
 }
 
+/* ═══ ELIMINAR LA CUENTA DE UN CLIENTE ═══════════════════════════
+   Hace falta para limpiar cuentas de prueba y duplicados. Es la accion
+   mas destructiva del panel, asi que lleva tres frenos:
+
+   1. NO se borra si tiene pedidos. Un pedido apunta al cliente por uid;
+      borrando la cuenta, esos pedidos quedan huerfanos y el historial de
+      ventas deja de cuadrar. Primero hay que borrar o desligar sus
+      pedidos, y el aviso dice cuantos son.
+   2. Hay que escribir ELIMINAR. Un confirm() se acepta sin leer.
+   3. Se borra tambien su libro de puntos y sus canjes, que si no quedan
+      colgados en la base para siempre.
+
+   Lo que NO se puede borrar desde aca es la cuenta de Firebase Auth: eso
+   necesita permisos de servidor. Se avisa para que se haga en la consola
+   si de verdad hace falta; mientras tanto la persona podria volver a
+   entrar y se le crearia un perfil nuevo y vacio. */
+async function borrarCliente() {
+  const u = cfUsers.find(x => x.id === fichaUid);
+  if (!u) { toast('Cliente no encontrado'); return; }
+
+  const suyos = orders.filter(o => o.uid === u.id);
+  if (suyos.length) {
+    alert('No se puede eliminar a ' + (u.name || u.email || 'este cliente') +
+          ': tiene ' + suyos.length + (suyos.length === 1 ? ' pedido' : ' pedidos') + '.\n\n' +
+          'Si los borras, el historial de ventas deja de cuadrar. Elimina primero ' +
+          'sus pedidos desde la seccion Pedidos, o dejá la cuenta como está.');
+    return;
+  }
+
+  const quien = u.name || u.email || u.id;
+  const r = prompt('Vas a ELIMINAR la cuenta de ' + quien + '.\n\n' +
+    'Se borran su perfil, sus puntos (' + (Number(u.points) || 0) + ') y su historial.\n' +
+    'Esto NO se puede deshacer.\n\n' +
+    'Escribí ELIMINAR para confirmar:');
+  if (r === null) return;
+  if (String(r).trim().toUpperCase() !== 'ELIMINAR') { toast('Cancelado'); return; }
+
+  try {
+    const uRef = USERS_REF.doc(u.id);
+
+    // Las subcolecciones NO se van con el documento: hay que barrerlas.
+    const libro = await uRef.collection('ledger').get();
+    for (const d of libro.docs) await d.ref.delete();
+
+    const canjes = await REDEEM_REF.where('uid', '==', u.id).get();
+    for (const d of canjes.docs) await d.ref.delete();
+
+    await uRef.delete();
+
+    const i = cfUsers.findIndex(x => x.id === u.id);
+    if (i >= 0) cfUsers.splice(i, 1);
+    cerrarFicha();
+    renderClientes();
+    toast('Cuenta de ' + quien + ' eliminada');
+
+    alert('Listo. Ojo: la cuenta de acceso (correo y contraseña) sigue ' +
+          'existiendo en Firebase.\n\nSi esa persona vuelve a entrar, se le ' +
+          'crea un perfil nuevo y vacío. Para borrarla del todo, andá a ' +
+          'Firebase → Authentication y eliminá ' + (u.email || 'su correo') + '.');
+  } catch (e) {
+    toast('No se pudo eliminar: ' + (e.code || e.message));
+  }
+}
+
 /* Editar los datos del cliente, dentro de la ficha que ya esta abierta.
    Antes, si alguien escribia mal la direccion, habia que pedirle que entrara
    a corregirla el.
@@ -9109,7 +9173,9 @@ function renderFicha() {
     '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,1)">+ Dar puntos</button>' +
     '<button class="order-act-btn" onclick="promptAdjust(&quot;' + esc(u.id) + '&quot;,-1)">- Quitar puntos</button>' +
     '<button class="order-act-btn" onclick="editarDatosCliente()">Editar datos</button>' +
-    (tel ? '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' + esc(tel) + '">WhatsApp</a>' : '');
+    (tel ? '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' + esc(tel) + '">WhatsApp</a>' : '') +
+    // Va al final y separado: es lo unico de esta fila sin vuelta atras.
+    '<button class="order-act-btn order-act-delete" onclick="borrarCliente()">🗑 Eliminar cuenta</button>';
 
   // Los pedidos ya estan cargados en memoria: no hace falta otra consulta.
   const suyos = orders.filter(o => o.uid === fichaUid).sort((a, b) => {
