@@ -47,3 +47,20 @@ esa cuenta, no comprueba que el correo sea tuyo), crear el documento de otro
 UID, y modificar o borrar el de un admin que ya existe.
 
 Deja el emulador como estaba al terminar.
+
+## auditar-puntos-y-descuentos.js — la aritmética de la plata
+
+```
+npm run seed && node herramientas/auditar-puntos-y-descuentos.js
+```
+
+Comprueba los NÚMEROS, no que "funcione": que la fórmula de puntos dé lo
+mismo en el sitio y en el panel (36 combinaciones de monto × nivel), los
+casos borde de los descuentos (porcentaje, tope, mínimo, vencido, valor
+negativo), que el descuento se reste antes de dar puntos, que el libro de
+cada cliente cuadre con su saldo, y los invariantes: nada negativo, el saldo
+nunca supera el histórico, el nivel cuadra con los puntos.
+
+**Correr siempre con semilla recién puesta y a solas.** `probar-reglas.js`
+escribe puntos a propósito, así que si va antes deja a Carlos descuadrado y
+la auditoría marca un falso positivo.

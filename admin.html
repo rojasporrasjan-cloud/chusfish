@@ -7224,12 +7224,23 @@ function pointsForAmount(amount, tier) {
 }
 
 /* Total del pedido para efectos de puntos: si hay factura, manda la factura
-   (es el peso real cobrado); si no, el estimado del carrito. */
+   (es el peso real cobrado); si no, el estimado del carrito.
+
+   El DESCUENTO se resta en los dos caminos. La factura ya lo hacia
+   (subtotal + envio - descuento), pero el estimado no: se daban puntos por
+   plata que el cliente nunca pago. Con un cupon de ₡20.000 sobre un pedido
+   de ₡50.000, cobrabas ₡30.000 y le acreditabas 500 puntos en vez de 300.
+
+   Importaba poco cuando los puntos se daban al ENTREGAR, porque para
+   entonces ya existia la factura. Desde que se acreditan al CONFIRMAR, el
+   estimado es el camino habitual. */
 function orderAmountForPoints(o) {
   if (o.invoice && typeof o.invoice.total === 'number') return o.invoice.total;
   if (!o.items || !o.items.length) return 0;
   const items = o.items.reduce((s,i) => s + (parseFloat(i.price)||0) * (parseFloat(i.qty)||1), 0);
-  return items + (parseFloat(o.deliveryFee) || 0);
+  const envio = parseFloat(o.deliveryFee) || 0;
+  const desc  = (o.discount && Number(o.discount.amount)) || 0;
+  return Math.max(0, items + envio - desc);
 }
 
 /* ═══ CUANTOS PUNTOS VA A DAR ESTE PEDIDO ═══════════════════════
@@ -8202,7 +8213,12 @@ function renderCanjes() {
       acts = '<button class="order-act-btn order-act-confirm" onclick="approveRedeem(&quot;' + esc(r.id) + '&quot;)">Aprobar y descontar</button>' +
              '<button class="order-act-btn order-act-cancel" onclick="rejectRedeem(&quot;' + esc(r.id) + '&quot;)">Rechazar</button>';
     } else if (st === 'aprobado') {
-      acts = '<button class="order-act-btn order-act-deliver" onclick="markRedeemDelivered(&quot;' + esc(r.id) + '&quot;)">Marcar entregado</button>';
+      acts = '<button class="order-act-btn order-act-deliver" onclick="markRedeemDelivered(&quot;' + esc(r.id) + '&quot;)">Marcar entregado</button>' +
+             '<button class="order-act-btn order-act-delete" onclick="devolverCanje(&quot;' + esc(r.id) + '&quot;)">↩ Devolver puntos</button>';
+    } else if (st === 'entregado') {
+      /* Tambien se puede devolver despues de entregado: a veces el premio
+         sale malo, o se entrega uno equivocado, y hay que dar marcha atras. */
+      acts = '<button class="order-act-btn order-act-delete" onclick="devolverCanje(&quot;' + esc(r.id) + '&quot;)">↩ Devolver puntos</button>';
     }
     if (r.userPhone) {
       acts += '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' +
@@ -8322,6 +8338,72 @@ async function rejectRedeem(id) {
     toast(devueltos ? 'Canje rechazado · ' + devueltos + ' puntos devueltos'
                     : 'Canje rechazado');
   } catch (e) { toast('Error: ' + e.message); }
+}
+
+/* ═══ DEVOLVER UN CANJE YA RESUELTO ══════════════════════════════
+   Rechazar solo servia para los canjes SIN resolver. Si el premio ya
+   estaba aprobado o entregado y habia que dar marcha atras —salio malo,
+   se entrego el equivocado, el cliente se arrepintio— no habia forma de
+   devolverle los puntos sin metersele a la base a mano.
+
+   Devuelve exactamente lo que costo el canje, deja el asiento en el libro
+   del cliente y marca el canje como devuelto. La marca importa: sin ella
+   se podria apretar dos veces y regalar el doble. */
+async function devolverCanje(id) {
+  try {
+    const rs = await REDEEM_REF.doc(id).get();
+    if (!rs.exists) { toast('Canje no encontrado'); return; }
+    const r = rs.data();
+
+    if (r.status === 'devuelto' || r.status === 'rechazado') {
+      toast('Ese canje ya estaba devuelto'); return;
+    }
+    const costo = Number(r.cost) || 0;
+    if (costo <= 0) { toast('Ese canje no tiene puntos que devolver'); return; }
+
+    const quien = r.userName || r.userEmail || 'el cliente';
+    const nota = prompt('Devolver ' + costo.toLocaleString('es-CR') + ' puntos a ' + quien +
+      ' por «' + (r.rewardName || 'el premio') + '».\n\n' +
+      'Motivo (lo ve el cliente):', 'El premio no estaba disponible');
+    if (nota === null) return;
+
+    await db.runTransaction(async (tx) => {
+      const rRef = REDEEM_REF.doc(id);
+      const snap = await tx.get(rRef);
+      // Se revalida DENTRO de la transaccion: entre el prompt y el commit
+      // alguien pudo devolverlo desde otra pestaña.
+      if (!snap.exists) throw new Error('El canje ya no existe');
+      const d = snap.data();
+      if (d.status === 'devuelto' || d.status === 'rechazado') {
+        throw new Error('Ese canje ya estaba devuelto');
+      }
+
+      if (d.uid) {
+        const uRef = USERS_REF.doc(d.uid);
+        const us = await tx.get(uRef);
+        if (us.exists) {
+          tx.update(uRef, {
+            points: (Number(us.data().points) || 0) + costo,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+          tx.set(uRef.collection('ledger').doc(), {
+            type: 'redeem-return', points: costo, redemptionId: id,
+            reason: 'Canje devuelto: ' + (d.rewardName || 'premio'),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      }
+
+      tx.update(rRef, {
+        status: 'devuelto', adminNote: nota,
+        returnedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+    });
+
+    toast(costo.toLocaleString('es-CR') + ' puntos devueltos a ' + quien);
+  } catch (e) {
+    toast('No se pudo devolver: ' + (e.message || e.code));
+  }
 }
 
 async function markRedeemDelivered(id) {
