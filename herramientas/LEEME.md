@@ -26,8 +26,19 @@ npm run dev     # en otra terminal, y dejarlo
 npm run probar  # las once, cada una con semilla nueva
 ```
 
-`npm run probar` siembra antes de cada prueba y sale con código 1 si alguna
-falla, así que sirve tal cual antes de subir. Tarda unos 15 minutos.
+Siembra antes de cada prueba y sale con código 1 si alguna falla, así que
+sirve tal cual antes de subir. Tarda unos 10 minutos.
+
+**Ojo en un clon nuevo:** `package.json` está en `.gitignore` (esto es un
+sitio estático; el npm es solo herramienta local), así que los `npm run`
+no existen recién clonado. Los scripts sí están en el repo y se corren
+directo:
+
+```
+node probar-todo.js          # = npm run probar
+node seed-emulador.js        # = npm run seed
+node dev-server.js           # = npm run dev
+```
 
 **Por qué siembra entre cada una:** varias se pisan. Una deja al cliente
 con otro saldo, otra escribe puntos a propósito, y `npm run seed` **no
