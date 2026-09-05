@@ -803,7 +803,9 @@
         <h3 class="sec-h">Cómo funcionan tus puntos</h3>
         <div class="pasos">
           <div class="paso"><em>I</em><p>Hacé tu pedido con la cuenta iniciada.</p></div>
-          <div class="paso"><em>II</em><p>Al entregarse, los puntos se suman solos según el monto facturado.</p></div>
+          <!-- Decia "al entregarse": quedo de cuando los puntos se daban al
+               entregar. Hoy caen al confirmar. -->
+          <div class="paso"><em>II</em><p>Apenas Jesús confirma el pedido, los puntos se suman solos.</p></div>
           <div class="paso"><em>III</em><p>Los cambiás por producto en La Reserva. Canjear no te baja de nivel.</p></div>
         </div>
       </div>
@@ -1490,10 +1492,18 @@
     }
     box.innerHTML=docs.map(function(r){
       var st=r.status||'solicitado';
+      /* El texto de rechazo decia "Tus puntos no se descontaron", que era
+         cierto cuando los puntos salian al aprobar. Hoy salen al pedir el
+         canje, asi que lo que pasa es lo contrario: se descontaron y se
+         devolvieron. Y como Jesus siempre escribe un motivo, el motivo
+         tapaba el aviso y el cliente nunca se enteraba de que los tenia de
+         vuelta. Ahora van los dos: el motivo y la devolucion. */
+      var devuelto = 'Te devolvimos tus '+CF.fmtNum(r.cost)+' puntos.';
       var txt = st==='solicitado' ? 'Jesús lo está revisando. Te lo entregamos con tu próximo pedido.'
               : st==='aprobado'   ? 'Aprobado. Se entrega con tu próximo pedido.'
               : st==='entregado'  ? 'Entregado. ¡Que lo disfrutés!'
-              : (r.adminNote ? CF.esc(r.adminNote) : 'No se pudo aprobar. Tus puntos no se descontaron.');
+              : (r.adminNote ? CF.esc(r.adminNote)+' '+devuelto
+                             : 'No se pudo entregar. '+devuelto);
       return '<div class="card"><div class="card-hd">'+
         '<span class="card-date">'+CF.fmtDate(r.createdAt)+'</span>'+
         '<span class="pill '+CF.esc(st)+'">'+CF.esc(st)+'</span></div>'+

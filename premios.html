@@ -512,10 +512,12 @@
     <div class="steps">
       <div class="step"><em>I</em><b>Pedí</b>
         <p>Hacé tu pedido de siempre, con tu cuenta iniciada.</p></div>
+      <!-- Decia "al entregarse": quedo de cuando los puntos se daban al
+           entregar. Hoy caen al confirmar. -->
       <div class="step"><em>II</em><b>Acumulá</b>
-        <p>Al entregarse, los puntos caen solos según el monto facturado.</p></div>
+        <p>Apenas Jesús confirma el pedido, los puntos caen solos.</p></div>
       <div class="step"><em>III</em><b>Elegí</b>
-        <p>Abrí el premio que querés y confirmá el canje.</p></div>
+        <p>Abrí el premio que querés y confirmá el canje. Los puntos salen ahí mismo.</p></div>
       <div class="step"><em>IV</em><b>Recibí</b>
         <p>Jesús lo aprueba y te lo lleva con tu siguiente pedido.</p></div>
     </div>
@@ -806,9 +808,16 @@
           (quedan!==Infinity && !fuera
             ? 'Las existencias se descuentan cuando el canje queda aprobado.'
             : 'Podés canjearlo cuando tengas los puntos.')+'</div>')+
+        /* Decia que los puntos se descontaban SOLO al aprobar el canje, y es
+           al reves: salen al confirmarlo, en el mismo lote que crea el canje
+           (ver canjear()). La promesa vieja quedo de cuando era asi; al
+           cambiarlo para que nadie pidiera varios premios con el mismo
+           saldo, este texto no se actualizo. Alguien leia esto, confirmaba,
+           y le bajaba el saldo enseguida. */
         fact('Sobre los puntos',
-          '<div>Los puntos se descuentan <strong style="color:var(--text)">solo cuando Jesús aprueba el canje</strong>, '+
-          'no al solicitarlo. Si por alguna razón no se puede aprobar, tu saldo queda intacto.<br><br>'+
+          '<div>Los puntos salen de tu saldo <strong style="color:var(--text)">al confirmar el canje</strong>, '+
+          'no cuando Jesús lo aprueba. Así el premio te queda apartado de una.<br><br>'+
+          'Si por alguna razón no se puede entregar, Jesús te los devuelve completos.<br><br>'+
           'Canjear no te baja de nivel: el nivel se gana con los puntos acumulados de por vida.</div>')+
       '</div>';
 

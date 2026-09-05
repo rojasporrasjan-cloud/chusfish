@@ -92,6 +92,21 @@ explicación desplegable, la guía moviéndose sola al confirmar el pedido, la
 clienta que ya recorrió todo (la guía se encoge a una línea) y el visitante
 sin sesión— y comprueba que la puerta explique La Reserva de punta a punta.
 
+## probar-cancelar-pedido.js — que cancelar lo deshaga TODO
+
+```
+npm run seed && node herramientas/probar-cancelar-pedido.js
+```
+
+Cancelar tiene que revertir cuatro cosas, no una: los puntos, los
+acumulados (el nivel), `ordersCount` y `totalSpent`, más liberar el cupón.
+
+El fallo que motivó esta prueba: se devolvían los puntos y se liberaba el
+cupón, pero `ordersCount` quedaba en 1. Con eso el cliente dejaba de ser
+"primera compra", así que **el cupón que la cancelación acababa de
+liberar no se podía usar**. Por eso la prueba no se conforma con ver el
+cupón libre: lo aplica de verdad en un pedido nuevo.
+
 ## probar-datos-en-perfil.js — que el pedido deje los datos guardados
 
 ```

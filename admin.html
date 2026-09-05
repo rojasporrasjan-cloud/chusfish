@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -2181,10 +2181,15 @@
           </div>
 
           <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.8rem">
-            Los puntos se acreditan solos cuando marcas el pedido como <b>entregado</b>,
-            y se calculan sobre el <b>total facturado</b> (el del peso real), no sobre el
-            estimado del carrito. Si despues corregis la factura, los puntos se ajustan solos.
-            Los pedidos hechos sin cuenta no suman puntos.
+            <!-- Decia "cuando marcas el pedido como entregado". Se cambio a
+                 confirmado hace tiempo y este texto no se actualizo: Jesus
+                 podia creer que un pedido confirmado todavia no habia dado
+                 puntos, cuando ya los dio. -->
+            Los puntos se acreditan solos apenas marcas el pedido como <b>confirmado</b>,
+            para que el cliente los vea enseguida. Se calculan sobre el estimado del
+            carrito y, al facturar con el <b>peso real</b>, se ajustan solos a la
+            diferencia (nunca se pagan dos veces). Si cancelas el pedido se devuelven,
+            junto con el cupon. Los pedidos hechos sin cuenta no suman puntos.
           </div>
           <button class="config-save-btn" id="pts-save">Guardar reglas</button>
         </div>
@@ -7601,7 +7606,12 @@ async function revertirPuntosPedido(orderId) {
       if (!o.uid) return;
       const dados = Number(o.pointsEarned) || 0;
       const bono  = Number(o.welcomeBonus) || 0;
-      if (dados === 0 && bono === 0) return;   // nunca acredito: nada que devolver
+      /* `pointsBase` es la marca de que este pedido CONTO: la pone
+         awardPointsForOrder junto con el +1 de ordersCount. Se mira aparte
+         de los puntos porque un pedido chico puede acreditar 0 puntos y aun
+         asi haber contado como pedido y como gasto. */
+      const conto = typeof o.pointsBase === 'number';
+      if (dados === 0 && bono === 0 && !conto) return;   // nunca conto: nada que devolver
 
       const uRef  = USERS_REF.doc(o.uid);
       const uSnap = await tx.get(uRef);
@@ -7615,6 +7625,19 @@ async function revertirPuntosPedido(orderId) {
         lifetimePoints: newLifetime,
         tier:           cfTierOf(newLifetime).id
       };
+      /* ═══ Y EL PEDIDO TAMBIEN SE DESCUENTA ═══════════════════════
+         Faltaba: se devolvian los puntos pero ordersCount y totalSpent
+         quedaban inflados. Lo caro no era la estadistica, era esto: con
+         ordersCount en 1 el cliente deja de ser "primera compra", asi que
+         el cupon de bienvenida que la cancelacion acababa de LIBERAR ya no
+         se podia usar — se lo devolviamos con una mano y se lo
+         bloqueabamos con la otra. Ademas Jesus lo veia como "ya compro"
+         en el filtro de clientes y la guia del perfil le daba por hecho
+         un pedido que se cayo. */
+      if (conto) {
+        patch.ordersCount = Math.max(0, (Number(u.ordersCount) || 0) - 1);
+        patch.totalSpent  = Math.max(0, (Number(u.totalSpent) || 0) - Number(o.pointsBase));
+      }
       /* Si este pedido era el que habia dado el bono, se le devuelve el
          derecho: que lo reciba con su proxima compra de verdad. */
       if (bono > 0) patch.welcomeGiven = false;
