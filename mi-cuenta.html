@@ -490,6 +490,57 @@
   .nivel-bar i{display:block;height:100%;background:var(--gold-dk);width:0;
     transition:width 1.1s var(--ease)}
 
+  /* ═══ GUIA DE PRIMEROS PASOS ═══
+     Cinco pasos con estado. Mientras falte alguno se ve entera y el paso
+     actual lleva su boton; cuando estan todos, queda una sola linea con
+     el "¿Cómo funciona?" y deja de estorbar. */
+  .guia{
+    margin-top:1.6rem;padding:1.2rem 1.3rem;border-radius:16px;
+    background:linear-gradient(150deg,rgba(200,169,110,.10),rgba(200,169,110,.03));
+    border:1px solid rgba(200,169,110,.28);
+  }
+  .guia-h{display:flex;align-items:baseline;justify-content:space-between;gap:.6rem;margin-bottom:.7rem}
+  .guia-h span{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dk);font-weight:700}
+  .guia-h b{font-family:'Cormorant Garamond',serif;font-size:1rem;color:var(--gold-lt);font-weight:400}
+
+  .guia-barra{height:4px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden;margin-bottom:1.1rem}
+  .guia-barra i{display:block;height:100%;border-radius:2px;
+    background:linear-gradient(90deg,var(--gold-dk),var(--gold));transition:width .5s var(--ease)}
+
+  .guia-paso{display:flex;gap:.75rem;padding:.5rem 0;align-items:flex-start}
+  .guia-ico{
+    flex-shrink:0;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+    font-size:.68rem;font-weight:700;border:1px solid rgba(255,255,255,.14);color:var(--muted);
+  }
+  .guia-paso.ok .guia-ico{background:rgba(111,224,160,.16);border-color:rgba(111,224,160,.5);color:#6fe0a0}
+  .guia-paso.ahora .guia-ico{background:rgba(200,169,110,.18);border-color:var(--gold);color:var(--gold-lt)}
+  .guia-txt{flex:1;min-width:0}
+  /* display:block en los dos: dos <span> sueltos dentro de un flex se
+     pegan en la misma linea. Ya paso varias veces en este proyecto. */
+  .guia-txt b{display:block;font-size:.8rem;color:var(--text);font-weight:600;line-height:1.35}
+  .guia-txt small{display:block;font-size:.7rem;color:var(--muted);line-height:1.55;margin-top:.1rem}
+  .guia-paso.ok .guia-txt b{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(122,149,170,.5)}
+  .guia-paso.ahora .guia-txt b{color:var(--white)}
+  .guia-btn{
+    display:inline-block;margin-top:.5rem;padding:.42rem .9rem;border-radius:20px;
+    background:linear-gradient(135deg,var(--gold-dk),var(--gold));color:var(--deep);
+    text-decoration:none;font-size:.6rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+  }
+
+  .guia-mas{
+    display:block;width:100%;margin-top:1rem;background:none;border:0;padding:.3rem 0;cursor:pointer;
+    font-family:inherit;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold);text-decoration:underline;text-underline-offset:4px;text-align:left;
+  }
+  .guia-det{margin-top:.9rem;animation:fade .4s var(--ease)}
+  .guia-det h4{font-size:.72rem;color:var(--gold-lt);margin:.9rem 0 .25rem;font-weight:600}
+  .guia-det h4:first-child{margin-top:0}
+  .guia-det p{font-size:.73rem;color:var(--muted);line-height:1.65;margin:0}
+  .guia-det b{color:var(--text)}
+
+  /* Ya recorrio todo: solo queda el enlace, sin marco ni barra. */
+  .guia.lista{background:none;border:0;padding:0;margin-top:1.2rem}
+
   /* Abrir/cerrar el detalle de niveles. Cerrado por defecto: lo que cambia
      de una visita a otra es la barra de avance, no la explicacion. */
   .nivel-mas{
@@ -706,6 +757,11 @@
 
     <div id="fill-box"></div>
 
+    <!-- Guia de primeros pasos. Se llena por JS y se encoge sola cuando
+         la persona ya recorrio todo: quien ya sabe usarlo no necesita
+         que le ocupe media pantalla. -->
+    <div id="guia-box"></div>
+
     <div class="stats">
       <div class="stat"><div class="stat-n" id="s-orders">0</div><div class="stat-l">Pedidos</div></div>
       <div class="stat"><div class="stat-n" id="s-spent">₡0</div><div class="stat-l">Total comprado</div></div>
@@ -895,6 +951,13 @@
     }
     pasos.push({ i:'subir', t:'Subís de nivel',
       s:'Mientras más acumulás, más puntos te da cada compra. Canjear no te baja de nivel.' });
+    /* La puerta contaba como se GANAN los puntos y se saltaba lo que la gente
+       de verdad pregunta: que pasa cuando canjeo. Sin esto, "La Reserva" es
+       un nombre bonito sin nada detras. */
+    pasos.push({ i:'ticket', t:'Los cambiás en La Reserva',
+      s:'Elegís el premio y lo pedís. Los puntos salen de tu saldo en ese '+
+        'momento y Jesús te lo lleva con tu siguiente pedido. Si no puede, '+
+        'te los devuelve.' });
 
     $('#gate-ganar').innerHTML = pasos.map(function(p){
       return '<div class="gl"><span class="gl-i">'+ICO[p.i]+'</span><span class="gl-b">'+
@@ -992,6 +1055,7 @@
     pintarMeta(pts);
     pintarNiveles(lp, t);
     pintarPerfil(p);
+    pintarGuia(p);
   }
 
   /* Cada opcion del menu dice su estado. Es lo que hace que se entienda
@@ -1169,6 +1233,128 @@
     { k:'zone',     label:'tu zona' },
     { k:'birthday', label:'tu cumpleaños' }
   ];
+  /* ═══ GUIA DE PRIMEROS PASOS ═══════════════════════════════════
+     Contesta las dos preguntas que se hace alguien recien registrado:
+     "¿y ahora qué?" y "¿cómo funciona esto?".
+
+     Los pasos no son decorativos: cada uno se marca con datos reales del
+     perfil, y el primero que falta es el que lleva el boton. Cuando estan
+     todos, la guia se encoge a una linea — quien ya sabe usarlo no
+     necesita que le ocupe media pantalla cada vez que entra. */
+  var yaCanjeo = false;
+
+  function pintarGuia(p){
+    var box=$('#guia-box'); if(!box) return;
+    p = p || {};
+
+    var tieneDatos  = !!(p.phone && p.address);
+    var tienePedido = (Number(p.ordersCount)||0) > 0;
+    var tienePuntos = (Number(p.lifetimePoints)||0) > 0;
+
+    /* Que le falta, con nombre. "Completá tus datos" a secas obliga a entrar
+       a mirar; "Falta tu teléfono" ya dice todo desde afuera. */
+    var faltan = [];
+    if(!p.phone)   faltan.push('tu teléfono');
+    if(!p.address) faltan.push('tu dirección');
+    var dFaltan = faltan.length===2 ? 'Faltan tu teléfono y tu dirección. Sin ellos no podemos coordinar la entrega.'
+                : faltan.length===1 ? 'Falta '+faltan[0]+'. Sin eso no podemos coordinar la entrega.'
+                : 'Con tu teléfono y dirección guardados, el próximo pedido viene lleno.';
+
+    // El premio mas barato que hay, para decir una cifra de verdad.
+    var barato = rewards.filter(function(r){ return r.active!==false && (Number(r.cost)||0)>0; })
+      .sort(function(a,b){ return (a.cost||0)-(b.cost||0); })[0];
+
+    var pasos=[
+      { ok:true, t:'Creaste tu cuenta',
+        d:'Ya podés juntar puntos con cada compra.' },
+      { ok:tieneDatos, t:'Completá tus datos', d:dFaltan,
+        btn:{ txt:'Completar', href:'#', mi:'datos' } },
+      { ok:tienePedido, t:'Hacé tu primer pedido',
+        d:'Pedís por la página y te llega por WhatsApp, como siempre.',
+        btn:{ txt:'Ver catálogo', href:'catalogo.html' } },
+      { ok:tienePuntos, t:'Recibí tus puntos',
+        d:'Se acreditan cuando Jesús confirma tu pedido.' },
+      { ok:yaCanjeo, t:'Canjeá en La Reserva',
+        d: barato ? ('Desde '+CF.fmtNum(barato.cost)+' puntos ya podés llevarte algo.')
+                  : 'Cambiás tus puntos por producto de verdad.',
+        btn:{ txt:'Ver La Reserva', href:'premios.html' } }
+    ];
+
+    var hechos = pasos.filter(function(x){ return x.ok; }).length;
+    var completa = hechos === pasos.length;
+    var iAhora = pasos.findIndex ? pasos.findIndex(function(x){ return !x.ok; }) : -1;
+
+    var detalle =
+      '<div class="guia-det" id="guia-det" hidden>'+
+        '<h4>Cómo ganás puntos</h4>'+
+        '<p>Cada <b>₡100</b> de compra es <b>1 punto</b>. Se acreditan cuando '+
+          'Jesús confirma tu pedido, no antes: así nadie junta puntos por algo '+
+          'que después se cae.</p>'+
+        '<h4>Los niveles suben solos</h4>'+
+        '<p>Mientras más comprás, más puntos te da cada colón. Canjear '+
+          '<b>no</b> te baja de nivel: el nivel se gana con lo comprado.</p>'+
+        '<h4>Cómo funciona La Reserva</h4>'+
+        '<p>Es donde cambiás tus puntos por producto. Elegís el premio y lo '+
+          'pedís; <b>los puntos salen de tu saldo en ese momento</b>. Jesús lo '+
+          'revisa y te lo lleva con tu siguiente pedido. Si no puede dártelo, '+
+          'te devuelve los puntos.</p>'+
+      '</div>';
+
+    if (completa) {
+      box.innerHTML =
+        '<div class="guia lista">'+
+          '<button type="button" class="guia-mas" id="guia-mas">¿Cómo funciona?</button>'+
+          detalle+
+        '</div>';
+    } else {
+      box.innerHTML =
+        '<div class="guia">'+
+          '<div class="guia-h"><span>Tu guía</span><b>'+hechos+' de '+pasos.length+'</b></div>'+
+          '<div class="guia-barra"><i style="width:'+Math.round(hechos/pasos.length*100)+'%"></i></div>'+
+          pasos.map(function(x,i){
+            var cls = x.ok ? ' ok' : (i===iAhora ? ' ahora' : '');
+            var boton = (!x.ok && i===iAhora && x.btn)
+              ? (x.btn.mi
+                  ? '<button type="button" class="guia-btn" data-ir="'+x.btn.mi+'">'+x.btn.txt+'</button>'
+                  : '<a class="guia-btn" href="'+x.btn.href+'">'+x.btn.txt+'</a>')
+              : '';
+            return '<div class="guia-paso'+cls+'">'+
+              '<span class="guia-ico">'+(x.ok?'✓':(i+1))+'</span>'+
+              '<span class="guia-txt"><b>'+CF.esc(x.t)+'</b>'+
+                '<small>'+CF.esc(x.d)+'</small>'+boton+'</span>'+
+            '</div>';
+          }).join('')+
+          '<button type="button" class="guia-mas" id="guia-mas">¿Cómo funciona?</button>'+
+          detalle+
+        '</div>';
+    }
+
+    /* Si el paso pendiente es justo "completá tus datos", el aviso de arriba
+       diria lo mismo pegadito y con el mismo boton. Se queda solo la guia,
+       que ya nombra lo que falta. El aviso vuelve en cuanto el paso se
+       cumple: sirve para el que despues borra el cumpleaños o la zona. */
+    var aviso=$('#fill-box');
+    if(aviso) aviso.hidden = (!completa && iAhora===1);
+
+    var mas=$('#guia-mas'), det=$('#guia-det');
+    if(mas&&det){
+      mas.addEventListener('click', function(){
+        var abierto = !det.hidden;
+        det.hidden = abierto;
+        mas.textContent = abierto ? '¿Cómo funciona?' : 'Ocultar';
+      });
+    }
+    /* Los botones que llevan a una seccion del perfil pulsan el propio
+       boton del menu: asi no se duplica la logica de pestañas, y si esa
+       logica cambia, la guia la hereda. */
+    box.querySelectorAll('.guia-btn[data-ir]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var tab = document.querySelector('.mi[data-tab="'+b.getAttribute('data-ir')+'"]');
+        if (tab) { tab.click(); tab.scrollIntoView({ behavior:'smooth', block:'center' }); }
+      });
+    });
+  }
+
   function pintarPerfil(p){
     var box=$('#fill-box'); p=p||{};
     var faltan=CAMPOS.filter(function(c){ return !p[c.k]; });
@@ -1323,11 +1509,13 @@
         var ta=CF.toDate(a.createdAt), tb=CF.toDate(b.createdAt);
         return (tb?tb.getTime():0)-(ta?ta.getTime():0);
       });
+      yaCanjeo = docs.length > 0;
       pintarCanjes(docs);
+      pintarGuia(CF.profile);
     }, function(e){ console.error('[canjes]', e); });
   }
 
-  function watchRewards(){
+  function watchRewards(){ /* los premios alimentan el ultimo paso de la guia */
     if(unsubRewards) return;
     unsubRewards=db.collection('rewards').onSnapshot(function(snap){
       rewards=[]; snap.forEach(function(d){ rewards.push(Object.assign({id:d.id}, d.data())); });

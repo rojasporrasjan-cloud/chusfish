@@ -78,3 +78,33 @@ vuelve a intentarlo ya sin ser primera compra.
 **Corré cada herramienta A SOLAS y con semilla recién puesta.** `npm run seed`
 NO limpia la colección `coupons`, así que las reservas de una corrida anterior
 hacen fallar a la siguiente con un falso positivo.
+
+## probar-guia.js — la guía de primeros pasos del perfil
+
+```
+npm run seed && node herramientas/probar-guia.js
+```
+
+La guía no es un texto fijo: cada paso se marca con datos reales y se mueve
+sola cuando Jesús confirma un pedido. Esta prueba recorre los seis estados
+—recién registrado sin datos, el botón que lleva a *Mis datos*, la
+explicación desplegable, la guía moviéndose sola al confirmar el pedido, la
+clienta que ya recorrió todo (la guía se encoge a una línea) y el visitante
+sin sesión— y comprueba que la puerta explique La Reserva de punta a punta.
+
+## Si de golpe falla todo
+
+Es casi siempre el emulador, no el código. El proceso `java` crece hasta
+~4 GB tras muchas corridas y empieza a devolver `DEADLINE_EXCEEDED` a los
+60 s; a partir de ahí todo falla en cadena. Se reinicia así:
+
+```powershell
+Get-Process java | Stop-Process -Force
+Get-CimInstance Win32_Process -Filter "Name='node.exe'" |
+  Where-Object { $_.CommandLine -match 'emulators' } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+npm run emu
+```
+
+Ojo: el puerto 9099 (auth) puede seguir contestando 200 con el 8080 ya
+muerto. **El que hay que sondear es el 8080.**

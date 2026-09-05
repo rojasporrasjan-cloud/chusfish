@@ -2,9 +2,16 @@ const { chromium } = require('playwright');
 const pausa = ms => new Promise(r => setTimeout(r, ms));
 const COL = 'http://localhost:8080/v1/projects/chus-fish/databases/(default)/documents/admins';
 
-const borrar = uid => fetch(COL + '/' + uid, { method:'DELETE', headers:{Authorization:'Bearer owner'} });
+/* Con tope de tiempo a proposito. Cuando el emulador se estanca —le pasa tras
+   muchas corridas— un fetch pelado se queda colgado para siempre y parece que
+   el test encontro un fallo. Asi dice lo que es: el emulador, no el codigo. */
+const pedir = (url, opts) => fetch(url, Object.assign(
+  { headers:{Authorization:'Bearer owner'}, signal: AbortSignal.timeout(15000) }, opts||{}))
+  .catch(e => { throw new Error('el emulador no contesto (' + e.name + '). Reinicialo: ver LEEME.md'); });
+
+const borrar = uid => pedir(COL + '/' + uid, { method:'DELETE' });
 async function listar() {
-  const j = await (await fetch(COL, { headers:{Authorization:'Bearer owner'} })).json();
+  const j = await (await pedir(COL)).json();
   return (j.documents||[]).map(d => ({ uid: d.name.split('/').pop(),
     email: ((d.fields||{}).email||{}).stringValue || '?' }));
 }
