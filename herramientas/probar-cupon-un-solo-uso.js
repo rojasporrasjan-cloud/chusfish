@@ -66,10 +66,15 @@ const api = (ruta, opts) => fetch(D + ruta, Object.assign(
       const ofrecido = !!btn;
       if (btn && !btn.disabled) { btn.click(); await new Promise(k => setTimeout(k, 3000)); }
       const puesto = (typeof cuponAplicado !== 'undefined' && cuponAplicado) ? cuponAplicado.codigo : null;
-      ['of-zone-chips', 'of-date-chips', 'of-payment-chips'].forEach(id => {
-        const c = document.getElementById(id);
-        if (c && !c.querySelector('.selected')) { const t = c.querySelector('.zone-chip,.date-chip'); if (t) t.click(); }
-      });
+      /* Zona y fecha son desplegables, no fichas: se eligen de su lista. */
+      const zOp = document.querySelector('#of-zone-list .of-op');
+      if (zOp) zOp.click();
+      const fOp = document.querySelector('#of-date-list .of-op');
+      if (fOp) fOp.click();
+      const pagos = document.getElementById('of-payment-chips');
+      if (pagos && !pagos.querySelector('.selected')) {
+        const t = pagos.querySelector('.zone-chip'); if (t) t.click();
+      }
       document.getElementById('of-name').value = 'Cliente Real';
       document.getElementById('of-phone').value = '88885555';
       document.getElementById('of-address').value = 'Frente al parque';

@@ -96,10 +96,15 @@ const DIR = 'Del super 200 metros sur, casa verde';
     const x = PRODUCTS.find(q => q.price > 0);
     addToCart(x, 1); openCartOrderForm();
     await new Promise(k => setTimeout(k, 4000));
-    ['of-zone-chips', 'of-date-chips', 'of-payment-chips'].forEach(id => {
-      const c = document.getElementById(id);
-      if (c && !c.querySelector('.selected')) { const t = c.querySelector('.zone-chip,.date-chip'); if (t) t.click(); }
-    });
+    /* Zona y fecha son desplegables, no fichas: se eligen de su lista. */
+    const zOp = document.querySelector('#of-zone-list .of-op');
+    if (zOp) zOp.click();
+    const fOp = document.querySelector('#of-date-list .of-op');
+    if (fOp) fOp.click();
+    const pagos = document.getElementById('of-payment-chips');
+    if (pagos && !pagos.querySelector('.selected')) {
+      const t = pagos.querySelector('.zone-chip'); if (t) t.click();
+    }
     document.getElementById('of-name').value    = 'Datos Perfil';
     document.getElementById('of-phone').value   = d.tel;
     document.getElementById('of-address').value = d.dir;

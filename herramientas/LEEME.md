@@ -63,6 +63,7 @@ volvé a correrlo y ya.
 | `probar-devolucion-de-canjes.js` | Se pueden devolver canjes ya resueltos |
 | `probar-cancelar-pedido.js` | Cancelar un pedido lo deshace TODO |
 | `probar-datos-en-perfil.js` | El pedido deja teléfono y dirección guardados |
+| `probar-formulario-pedido.js` | El pedido se llena sin scrollear media hora |
 | `probar-guia.js` | La guía del perfil, en sus seis estados |
 | `probar-textos.js` | Lo que se promete es lo que de verdad pasa |
 | `probar-recorrido-completo.js` | Una persona de cero a canjear, con los números cuadrando |
@@ -181,6 +182,29 @@ pasando, porque en Chromium con la ruta de `wa.me` interceptada la página
 no se congela. Quien caza el fallo es la **parte estructural**: lee
 `catalogo.html` y exige que el pedido, el cupón y el perfil se esperen
 antes de la navegación. Esa sí falla al quitar el arreglo.
+
+## probar-formulario-pedido.js — llenar el pedido sin pelear
+
+```
+npm run catalogo && npm run seed && node herramientas/probar-formulario-pedido.js
+```
+
+**Corré `npm run catalogo` antes.** Con la semilla hay 3 zonas y el
+problema no se ve; con las 18 de producción, sí.
+
+De dónde viene: el formulario medía **2.290px sobre una pantalla de
+664px — 3,4 pantallas de scroll**. Las zonas solas eran 847px y las
+fechas 244px: entre las dos, el **48%** del formulario. Y el total vivía
+arriba del todo, así que para ver cuánto se iba a pagar había que subir.
+
+Ahora zona y fecha son desplegables de 62px y el total vive en una barra
+pegada abajo. Quedó en **1,3 pantallas**.
+
+La prueba vigila que no se vuelva a inflar: mide el alto real, que el
+total y los puntos se vean sin scrollear, que la lista de zonas **se vea
+de verdad** (llegó a abrirse debajo de la barra, invisible), que el
+buscador aguante sin tildes, y que la zona y la fecha elegidas lleguen
+al pedido guardado.
 
 ## probar-textos.js — que no se prometa lo que ya no pasa
 

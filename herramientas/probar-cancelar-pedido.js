@@ -78,10 +78,15 @@ const api = (r, o) => fetch(D + r, Object.assign(
     await new Promise(k => setTimeout(k, 4500));
     const btn = document.querySelector('.cupon-mio-btn');
     if (btn && !btn.disabled) { btn.click(); await new Promise(k => setTimeout(k, 3000)); }
-    ['of-zone-chips','of-date-chips','of-payment-chips'].forEach(id => {
-      const c = document.getElementById(id);
-      if (c && !c.querySelector('.selected')) { const t = c.querySelector('.zone-chip,.date-chip'); if (t) t.click(); }
-    });
+    /* Zona y fecha son desplegables, no fichas: se eligen de su lista. */
+    const zOp = document.querySelector('#of-zone-list .of-op');
+    if (zOp) zOp.click();
+    const fOp = document.querySelector('#of-date-list .of-op');
+    if (fOp) fOp.click();
+    const pagos = document.getElementById('of-payment-chips');
+    if (pagos && !pagos.querySelector('.selected')) {
+      const t = pagos.querySelector('.zone-chip'); if (t) t.click();
+    }
     document.getElementById('of-name').value = 'Cancela Prueba';
     document.getElementById('of-phone').value = '84443333';
     document.getElementById('of-address').value = 'Calle vieja';

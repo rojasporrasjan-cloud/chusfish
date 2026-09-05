@@ -21,6 +21,7 @@ const PRUEBAS = [
   ['probar-devolucion-de-canjes.js','se pueden devolver canjes ya resueltos'],
   ['probar-cancelar-pedido.js',     'cancelar un pedido lo deshace TODO'],
   ['probar-datos-en-perfil.js',     'el pedido deja telefono y direccion guardados'],
+  ['probar-formulario-pedido.js',   'el formulario de pedido se llena sin scrollear media hora'],
   ['probar-guia.js',                'la guia del perfil, en sus seis estados'],
   ['probar-textos.js',              'lo que se promete es lo que de verdad pasa'],
   ['probar-recorrido-completo.js',  'una persona de cero a canjear, con los numeros cuadrando']

@@ -948,22 +948,38 @@
       border: 1px solid rgba(200,169,110,0.25);
       border-radius: 20px;
       width: 100%; max-width: 480px;
-      max-height: 90vh; overflow-y: auto;
+      /* Scroll SOLO en la parte de arriba: la barra del total va pegada
+         abajo y no se va con el dedo. Por eso overflow:hidden acá y el
+         scroll adentro, en .order-form-inner. */
+      max-height: 90vh; overflow: hidden;
+      display: flex; flex-direction: column;
       position: relative;
       transform: translateY(32px); opacity: 0;
       transition: transform 0.42s cubic-bezier(0.34,1.45,0.64,1), opacity 0.3s;
     }
+    #order-form { display: flex; flex-direction: column; min-height: 0; flex: 1; }
     .order-form-overlay.open .order-form-box { transform: translateY(0); opacity: 1; }
+    /* Desde que el formulario scrollea por dentro, la X se queda quieta y
+       el contenido le pasa por debajo. Antes se transparentaba encima de
+       los campos —el aspa montada sobre el chevron de "zona"—, así que va
+       opaca y con un halo que la separa de lo que tiene detrás. */
     .order-form-close {
       position: absolute; top: 0.9rem; right: 0.9rem;
       width: 34px; height: 34px; border-radius: 50%;
-      background: rgba(200,169,110,0.1); border: 1px solid rgba(200,169,110,0.2);
+      background: #0f2942; border: 1px solid rgba(200,169,110,0.35);
+      box-shadow: 0 0 0 6px rgba(10,24,40,0.85), 0 4px 14px rgba(3,8,16,0.5);
       color: var(--gold); font-size: 0.9rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.2s; z-index: 10;
     }
-    .order-form-close:hover { background: rgba(200,169,110,0.22); }
-    .order-form-inner { padding: 2rem; }
+    .order-form-close:hover { background: #16405f; }
+    /* Y al llevar un campo a la vista se le deja aire arriba, para que no
+       quede justo debajo de la X. */
+    .order-field, .order-form-note { scroll-margin-top: 3.6rem; }
+    .order-form-inner {
+      padding: 2rem;
+      flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+    }
     .order-form-eyebrow {
       font-size: 0.62rem; letter-spacing: 0.35em; text-transform: uppercase;
       color: var(--gold); font-weight: 500; margin-bottom: 0.5rem;
@@ -1125,29 +1141,99 @@
     .zone-chip.selected svg { opacity: 1; }
     .zone-chips.of-error .zone-chip:not(.selected) { border-color: rgba(231,76,60,0.5); }
 
-    /* ═══ DATE CHIPS ═══ */
-    .date-chips {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 0.5rem; margin-top: 0.3rem;
-    }
-    .date-chip {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 0.7rem 0.3rem; border-radius: 12px; cursor: pointer;
+    /* Las fichas de fecha (.date-chip, con su numerote y su mes) se
+       borraron al pasar la fecha a desplegable. `.zone-chip` se queda:
+       la usa el metodo de pago, que son tres y no estorban. */
+
+    /* ═══ DESPLEGABLES DEL PEDIDO (zona y fecha) ═══════════════════
+       Las 18 zonas como fichas ocupaban 847px —más de una pantalla
+       entera— y las fechas otros 244px. Entre las dos, la mitad del
+       formulario era scroll. Ahora cada una es un botón de 48px que abre
+       su lista. No es un <select> nativo a propósito: en Android se ve
+       distinto en cada teléfono y no admite buscador, y con 18 zonas
+       buscar es justo lo que hace falta. */
+    .of-sel {
+      width: 100%; margin-top: 0.3rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+      padding: 0.75rem 1rem; border-radius: 12px; cursor: pointer; text-align: left;
       border: 1.5px solid rgba(200,169,110,0.2);
-      background: rgba(18,40,64,0.6); color: var(--muted);
-      font-size: 0.7rem; text-align: center; gap: 0.05rem; transition: all 0.18s;
-      user-select: none;
+      background: rgba(18,40,64,0.6); color: var(--text);
+      font-family: 'Montserrat', sans-serif; font-size: 0.82rem;
+      transition: border-color 0.18s, background 0.18s;
     }
-    .date-chip .dc-day { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.15rem; }
-    .date-chip .dc-num { font-size: 1.5rem; font-weight: 700; line-height: 1; color: var(--text); }
-    .date-chip .dc-mon { font-size: 0.6rem; opacity: 0.55; margin-top: 0.1rem; }
-    .date-chip:hover { border-color: rgba(200,169,110,0.5); background: rgba(18,40,64,0.9); }
-    .date-chip.selected {
-      border-color: var(--gold); background: rgba(200,169,110,0.12);
-      color: var(--gold); box-shadow: 0 0 0 3px rgba(200,169,110,0.08);
+    .of-sel:hover { border-color: rgba(200,169,110,0.45); background: rgba(18,40,64,0.9); }
+    .of-sel.abierto { border-color: var(--gold-dk); }
+    .of-sel.puesto { border-color: var(--gold); background: rgba(200,169,110,0.1); color: var(--gold); }
+    .of-sel.vacio .of-sel-txt { color: var(--muted); }
+    .of-sel.of-error { border-color: #e74c3c; }
+    .of-sel-txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .of-sel svg { flex-shrink: 0; opacity: 0.5; transition: transform 0.22s; }
+    .of-sel.abierto svg { transform: rotate(180deg); opacity: 1; }
+
+    .of-pop {
+      margin-top: 0.4rem; border-radius: 12px; overflow: hidden;
+      border: 1px solid rgba(200,169,110,0.25);
+      background: #0b1c30;
+      animation: ofPop 0.18s ease;
     }
-    .date-chip.selected .dc-num { color: var(--gold); }
-    .date-chips.of-error .date-chip:not(.selected) { border-color: rgba(231,76,60,0.5); }
+    @keyframes ofPop { from { opacity: 0; transform: translateY(-4px); } }
+    .of-pop-q {
+      width: 100%; padding: 0.7rem 1rem; border: 0; outline: none;
+      border-bottom: 1px solid rgba(200,169,110,0.15);
+      background: rgba(18,40,64,0.8); color: var(--text);
+      font-family: 'Montserrat', sans-serif; font-size: 16px; /* 16px: menos zoom en iOS */
+    }
+    .of-pop-q::placeholder { color: var(--muted); font-size: 0.8rem; }
+    /* Alto tope, no fijo: con 3 zonas no deja un hueco vacío. */
+    .of-pop-list { max-height: 232px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+    .of-op {
+      padding: 0.72rem 1rem; cursor: pointer; font-size: 0.82rem; color: var(--text);
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+    }
+    .of-op:last-child { border-bottom: 0; }
+    .of-op:hover { background: rgba(200,169,110,0.08); }
+    .of-op.marcada { color: var(--gold); background: rgba(200,169,110,0.1); }
+    .of-op small { color: var(--muted); font-size: 0.68rem; flex-shrink: 0; }
+    .of-nada { padding: 1rem; font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
+
+    /* ═══ BARRA DE TOTAL, ABAJO Y SIEMPRE A LA VISTA ═══════════════
+       El desglose vivía arriba del formulario: para ver cuánto iba a
+       pagar había que subir tres pantallas. Ahora vive abajo, pegado,
+       con el total siempre visible y el detalle a un toque — como en
+       cualquier app de pedidos. */
+    .of-bar {
+      flex-shrink: 0;
+      border-top: 1px solid rgba(200,169,110,0.22);
+      background: linear-gradient(180deg, rgba(9,22,38,0.98), #060e1c);
+      padding: 0.7rem 1.2rem 1rem;
+      box-shadow: 0 -12px 30px rgba(3,8,16,0.55);
+    }
+    .of-bar-tap {
+      width: 100%; background: none; border: 0; padding: 0.35rem 0 0.55rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; gap: 0.8rem;
+      font-family: inherit; text-align: left; color: var(--text);
+    }
+    .of-bar-izq { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    .of-bar-ver {
+      font-size: 0.63rem; letter-spacing: 0.13em; text-transform: uppercase;
+      color: var(--gold); font-weight: 600;
+    }
+    .of-bar-tap svg { flex-shrink: 0; stroke: var(--gold); transition: transform 0.24s; }
+    .of-bar.abierta .of-bar-tap svg { transform: rotate(180deg); }
+    .of-bar-der { text-align: right; flex-shrink: 0; }
+    .of-bar-lbl { display: block; font-size: 0.58rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); }
+    .of-bar-tot { display: block; font-family: 'Cormorant Garamond', serif;
+      font-size: 1.45rem; color: var(--gold-lt); line-height: 1.15; }
+
+    /* El detalle se despliega HACIA ARRIBA del total. */
+    .of-bar-det { animation: ofPop 0.22s ease; padding-bottom: 0.5rem; }
+    .of-bar-det .ofs-items { max-height: 170px; overflow-y: auto; }
+
+    .of-bar .ofs-pts { margin: 0 0 0.6rem; }
+    .of-bar .order-form-submit { margin-top: 0; }
+    .of-bar .order-form-note { margin-top: 0.5rem; }
 
     /* ═══ SEPARADOR DE SECCIONES ═══ */
     .section-sep {
@@ -3396,12 +3482,11 @@ if ('serviceWorker' in navigator) {
 <div id="order-form-overlay" class="order-form-overlay">
   <div class="order-form-box">
     <button class="order-form-close" id="order-form-close" aria-label="Cerrar">✕</button>
+    <form id="order-form" novalidate>
     <div class="order-form-inner">
       <p class="order-form-eyebrow">Finalizar pedido</p>
       <h3 class="order-form-title">Datos de entrega</h3>
       <p class="order-form-sub">Solo realizamos entregas a domicilio. Completá tus datos y te contactamos por WhatsApp para confirmar tu pedido.</p>
-      <div id="order-form-summary" class="order-form-summary" style="display:none"></div>
-      <form id="order-form" novalidate>
         <div class="order-field">
           <label for="of-name">Nombre completo</label>
           <input type="text" id="of-name" placeholder="Tu nombre completo" autocomplete="name">
@@ -3410,13 +3495,34 @@ if ('serviceWorker' in navigator) {
           <label for="of-phone">Teléfono</label>
           <input type="tel" id="of-phone" placeholder="8888-8888" autocomplete="tel">
         </div>
+        <!-- Zona y fecha: desplegables, no fichas. Las 18 zonas apiladas
+             eran 847px de scroll; la zona lleva buscador porque con 18
+             opciones leerlas todas es peor que escribir tres letras. -->
         <div class="order-field" id="of-zone-field" style="display:none">
           <label>Zona de entrega</label>
-          <div class="zone-chips" id="of-zone-chips"></div>
+          <button type="button" class="of-sel vacio" id="of-zone-btn" aria-expanded="false">
+            <span class="of-sel-txt" id="of-zone-txt">Elegí tu zona…</span>
+            <svg width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>
+          </button>
+          <div class="of-pop" id="of-zone-pop" hidden>
+            <input class="of-pop-q" id="of-zone-q" placeholder="Buscá tu zona…"
+                   autocomplete="off" spellcheck="false">
+            <div class="of-pop-list" id="of-zone-list"></div>
+          </div>
+          <input type="hidden" id="of-zone-val">
         </div>
         <div class="order-field" id="of-date-field" style="display:none">
           <label>Fecha de entrega</label>
-          <div class="date-chips" id="of-date-chips"></div>
+          <button type="button" class="of-sel vacio" id="of-date-btn" aria-expanded="false">
+            <span class="of-sel-txt" id="of-date-txt">Elegí el día…</span>
+            <svg width="12" height="8" viewBox="0 0 12 8" fill="none" stroke="currentColor"
+                 stroke-width="1.6" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>
+          </button>
+          <div class="of-pop" id="of-date-pop" hidden>
+            <div class="of-pop-list" id="of-date-list"></div>
+          </div>
+          <input type="hidden" id="of-date-val">
         </div>
         <div class="order-field">
           <label for="of-address">Dirección de entrega</label>
@@ -3448,13 +3554,36 @@ if ('serviceWorker' in navigator) {
             </div>
           </div>
         </div>
-        <button type="submit" class="order-form-submit">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
-          Enviar pedido por WhatsApp
-        </button>
-        <p class="order-form-note">* Solo entrega a domicilio. Precios sujetos a confirmación de disponibilidad.</p>
-      </form>
+        <!-- La nota vive acá, con el resto del formulario. En la barra de
+             abajo robaba dos renglones de una zona que hay que mantener
+             corta: ahí solo va lo que hace falta para decidir y enviar. -->
+        <p class="order-form-note" style="text-align:left;margin-top:1.4rem">
+          * Solo entrega a domicilio. Precios sujetos a confirmación de disponibilidad.</p>
     </div>
+
+    <!-- LA BARRA DEL TOTAL. Fuera de .order-form-inner a propósito: esa
+         es la que hace scroll, esta se queda pegada abajo. El desglose
+         se abre hacia arriba con un toque. -->
+    <div class="of-bar" id="of-bar">
+      <div class="of-bar-det" id="of-bar-det" hidden></div>
+      <button type="button" class="of-bar-tap" id="of-bar-tap" aria-expanded="false">
+        <span class="of-bar-izq">
+          <span class="of-bar-ver" id="of-bar-ver">Ver desglose</span>
+          <svg width="11" height="7" viewBox="0 0 12 8" fill="none" stroke-width="1.8"
+               stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>
+        </span>
+        <span class="of-bar-der">
+          <span class="of-bar-lbl">Total estimado</span>
+          <span class="of-bar-tot" id="of-bar-tot">—</span>
+        </span>
+      </button>
+      <div id="of-bar-pts"></div>
+      <button type="submit" class="order-form-submit" id="of-submit">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" aria-hidden="true"><path d="M12 0C5.373 0 0 5.373 0 12c0 2.115.549 4.1 1.508 5.83L.057 23.998l6.304-1.655A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm5.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+        Enviar pedido por WhatsApp
+      </button>
+    </div>
+    </form>
   </div>
 </div>
 
@@ -3575,20 +3704,8 @@ function pintarSeccionesDeConfig(cfg) {
     if (cfg.zones && cfg.zones.length > 0) {
       const activeZones = cfg.zones.filter(z => z.active !== false);
       if (activeZones.length > 0) {
-        const chipsWrap = document.getElementById('of-zone-chips');
-        activeZones.forEach(z => {
-          const chip = document.createElement('div');
-          chip.className = 'zone-chip';
-          chip.dataset.value = z.name;
-          chip.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${z.name}`;
-          chip.addEventListener('click', () => {
-            chipsWrap.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected'));
-            chip.classList.add('selected');
-            chipsWrap.classList.remove('of-error');
-            updateDeliveryFee(z.price || 0);
-          });
-          chipsWrap.appendChild(chip);
-        });
+        ZONAS_PEDIDO = activeZones;
+        pintarZonasPedido('');
         document.getElementById('of-zone-field').style.display = '';
       }
     }
@@ -3599,9 +3716,9 @@ function pintarSeccionesDeConfig(cfg) {
     }
 
         if (cfg.deliveryDays && cfg.deliveryDays.length > 0) {
+      const DAY_LARGO = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
       const DAY_NAMES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
       const MON_NAMES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-      const dateChipsWrap = document.getElementById('of-date-chips');
       const today = new Date(); today.setHours(0,0,0,0);
       const dates = [];
       for (let offset = 1; offset <= 14; offset++) {
@@ -3609,19 +3726,16 @@ function pintarSeccionesDeConfig(cfg) {
         if (cfg.deliveryDays.includes(d.getDay())) dates.push(d);
       }
       if (dates.length > 0) {
-        dates.forEach(d => {
-          const chip = document.createElement('div');
-          chip.className = 'date-chip';
-          const label = `${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON_NAMES[d.getMonth()]}`;
-          chip.dataset.value = label;
-          chip.innerHTML = `<span class="dc-day">${DAY_NAMES[d.getDay()]}</span><span class="dc-num">${d.getDate()}</span><span class="dc-mon">${MON_NAMES[d.getMonth()]}</span>`;
-          chip.addEventListener('click', () => {
-            dateChipsWrap.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected'));
-            chip.classList.add('selected');
-            dateChipsWrap.classList.remove('of-error');
-          });
-          dateChipsWrap.appendChild(chip);
-        });
+        /* En la lista se lee el día entero ("Miércoles 10 de septiembre"),
+           que es como lo dice la gente. El valor que viaja a WhatsApp sigue
+           siendo el corto de siempre, para no cambiarle el mensaje a Jesús. */
+        const lista = document.getElementById('of-date-list');
+        lista.innerHTML = dates.map((d, i) => {
+          const corto = `${DAY_NAMES[d.getDay()]} ${d.getDate()} ${MON_NAMES[d.getMonth()]}`;
+          const largo = `${DAY_LARGO[d.getDay()]} ${d.getDate()} de ${MON_NAMES[d.getMonth()]}`;
+          const manana = (d - today) / 86400000 === 1 ? '<small>mañana</small>' : '';
+          return `<div class="of-op" data-v="${esc(corto)}">${esc(largo)}${manana}</div>`;
+        }).join('');
         document.getElementById('of-date-field').style.display = '';
       }
     }
@@ -4118,8 +4232,6 @@ function renderOrderSummary() {
   if (!cart || cart.length === 0) return;
   const cartItems = cart;
   const total = cartItems.reduce((sum, i) => sum + (i.product.price || 0) * i.qty, 0);
-  const summary = document.getElementById('order-form-summary');
-  summary.style.display = 'block';
 
   const itemCount = cartItems.length;
   const itemsHtml = cartItems.map(i => {
@@ -4161,15 +4273,18 @@ function renderOrderSummary() {
              extra + '</div>';
     }
 
-    return '<div class="ofs-pts sin">Este pedido puede darte <b>' + CF.fmtNum(pts) +
-           ' puntos</b>.<br><a href="mi-cuenta.html">Entrá a tu cuenta</a> antes de enviarlo — ' +
-           'sin cuenta no se pueden sumar.</div>';
+    /* Corto a proposito: esto vive en la barra de abajo, que tiene que
+       quedarse chica. Antes eran tres renglones y se comia media pantalla
+       de formulario. */
+    return '<div class="ofs-pts sin"><b>' + CF.fmtNum(pts) + ' puntos</b> si ' +
+           '<a href="mi-cuenta.html">entrás a tu cuenta</a> antes de enviarlo.</div>';
   }
 
+  const desc = (typeof cuponAplicado !== 'undefined' && cuponAplicado)
+    ? Math.min(cuponAplicado.descuento, total) : 0;
+  const grandTotal = Math.max(0, total + currentDeliveryFee - desc);
+
   if (total > 0) {
-    const desc = (typeof cuponAplicado !== 'undefined' && cuponAplicado)
-      ? Math.min(cuponAplicado.descuento, total) : 0;
-    const grandTotal = Math.max(0, total + currentDeliveryFee - desc);
     totalsHtml = '<div class="ofs-totals">';
     totalsHtml += '<div class="ofs-row"><span>Subtotal productos</span><span>' + fmt(total) + '</span></div>';
     totalsHtml += currentDeliveryFee > 0
@@ -4179,22 +4294,158 @@ function renderOrderSummary() {
       totalsHtml += '<div class="ofs-row"><span>Descuento · ' + cuponAplicado.codigo +
         '</span><span style="color:#6fe0a0;font-weight:600">− ' + fmt(desc) + '</span></div>';
     }
-    totalsHtml += '<div class="ofs-row-total"><span>Total estimado</span><span>' + fmt(grandTotal) + '</span></div>';
     totalsHtml += '</div>';
-    // Despues del total, no antes: primero cuanto cuesta, despues que gana.
-    totalsHtml += renglonPuntos(grandTotal);
     totalsHtml += '<p class="ofs-note">* Monto de referencia. El total final puede variar según el peso y se confirma por WhatsApp.</p>';
   }
 
-  summary.innerHTML =
-    '<div class="ofs-header">' +
-      '<span class="ofs-icon"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg></span>' +
-      '<span class="ofs-title">Tu pedido</span>' +
-      '<span class="ofs-count">' + itemCount + (itemCount === 1 ? ' producto' : ' productos') + '</span>' +
-    '</div>' +
-    '<div class="ofs-items">' + itemsHtml + '</div>' +
-    totalsHtml;
+  /* ═══ TODO ESTO VA A LA BARRA DE ABAJO ═══
+     El total, siempre a la vista; el renglón por renglón, a un toque.
+     El total NO se repite dentro del desglose: ya está en la barra,
+     dos centímetros más abajo y más grande. */
+  const det = document.getElementById('of-bar-det');
+  if (det) {
+    det.innerHTML =
+      '<div class="ofs-header">' +
+        '<span class="ofs-icon"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg></span>' +
+        '<span class="ofs-title">Tu pedido</span>' +
+        '<span class="ofs-count">' + itemCount + (itemCount === 1 ? ' producto' : ' productos') + '</span>' +
+      '</div>' +
+      '<div class="ofs-items">' + itemsHtml + '</div>' +
+      totalsHtml;
+  }
+  const tot = document.getElementById('of-bar-tot');
+  if (tot) tot.textContent = fmt(grandTotal);
+  /* Los puntos quedan FUERA del desplegable: es lo que la gente miró y
+     le gustó ver, y escondido detrás de un toque no lo ve nadie. */
+  const pts = document.getElementById('of-bar-pts');
+  if (pts) pts.innerHTML = total > 0 ? renglonPuntos(grandTotal) : '';
 }
+
+/* ═══ LOS DESPLEGABLES DE ZONA Y FECHA ═══════════════════════════
+   Las 18 zonas y las 8 fechas eran fichas apiladas: 1.091px, la mitad
+   del formulario, solo para elegir dos cosas. Ahora son dos botones de
+   48px que abren su lista.
+
+   No es un <select> nativo a propósito: en Android cada teléfono lo
+   dibuja distinto y no admite buscador, y con 18 zonas buscar es
+   exactamente lo que hace falta. */
+var ZONAS_PEDIDO = [];
+
+/* Busca con el mismo sinTildes() que el catalogo: nadie escribe
+   "Desamparados" perfecto, y "san jose" tiene que encontrar "San José". */
+function pintarZonasPedido(filtro) {
+  const lista = document.getElementById('of-zone-list');
+  if (!lista) return;
+  const q = sinTildes(filtro);
+  const hay = ZONAS_PEDIDO.filter(z => !q || sinTildes(z.name).indexOf(q) >= 0);
+  const actual = (document.getElementById('of-zone-val') || {}).value || '';
+
+  if (!hay.length) {
+    lista.innerHTML = '<div class="of-nada">No encontramos esa zona. Escribila en la ' +
+      'dirección y la coordinamos por WhatsApp.</div>';
+    return;
+  }
+  lista.innerHTML = hay.map(z => {
+    const costo = Number(z.price) || 0;
+    const etiqueta = costo > 0 ? '<small>' + fmt(costo) + '</small>' : '<small>envío gratis</small>';
+    return '<div class="of-op' + (z.name === actual ? ' marcada' : '') + '" data-v="' +
+           esc(z.name) + '" data-p="' + costo + '">' + esc(z.name) + etiqueta + '</div>';
+  }).join('');
+}
+
+/* Abre uno y cierra el otro: dos listas abiertas a la vez son otra vez
+   la pantalla llena de opciones que veniamos a quitar. */
+function abrirDesplegable(cual, abrir) {
+  ['zone', 'date'].forEach(k => {
+    const pop = document.getElementById('of-' + k + '-pop');
+    const btn = document.getElementById('of-' + k + '-btn');
+    if (!pop || !btn) return;
+    const abierto = (k === cual) ? abrir : false;
+    pop.hidden = !abierto;
+    btn.classList.toggle('abierto', abierto);
+    btn.setAttribute('aria-expanded', String(abierto));
+  });
+  if (cual === 'zone' && abrir) {
+    const q = document.getElementById('of-zone-q');
+    if (q) q.value = '';
+    pintarZonasPedido('');
+    /* Sin foco a proposito: en el celular el teclado saldria encima de la
+       lista y taparia justo lo que se acaba de abrir. */
+  }
+  /* Y se sube a la vista. Sin esto la lista se abre debajo de la barra del
+     total y no se ve nada: el campo de zona suele quedar al filo de la
+     pantalla, y desplegar hacia abajo lo manda fuera. */
+  if (abrir) {
+    const campo = document.getElementById('of-' + cual + '-field');
+    if (campo) setTimeout(() => campo.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  }
+}
+
+function elegirZonaPedido(nombre, precio) {
+  const val = document.getElementById('of-zone-val');
+  const txt = document.getElementById('of-zone-txt');
+  const btn = document.getElementById('of-zone-btn');
+  if (val) val.value = nombre || '';
+  if (txt) txt.textContent = nombre || 'Elegí tu zona…';
+  if (btn) {
+    btn.classList.toggle('vacio', !nombre);
+    btn.classList.toggle('puesto', !!nombre);
+    btn.classList.remove('of-error');
+  }
+  updateDeliveryFee(Number(precio) || 0);
+  abrirDesplegable('zone', false);
+}
+
+function elegirFechaPedido(valor, texto) {
+  const val = document.getElementById('of-date-val');
+  const txt = document.getElementById('of-date-txt');
+  const btn = document.getElementById('of-date-btn');
+  if (val) val.value = valor || '';
+  if (txt) txt.textContent = texto || valor || 'Elegí el día…';
+  if (btn) {
+    btn.classList.toggle('vacio', !valor);
+    btn.classList.toggle('puesto', !!valor);
+    btn.classList.remove('of-error');
+  }
+  abrirDesplegable('date', false);
+}
+
+/* Un solo enganche para los dos, delegado: las listas se repintan al
+   filtrar y reenganchar handlers en cada repintado es como se pierden. */
+document.addEventListener('click', function (e) {
+  const btnZ = e.target.closest('#of-zone-btn');
+  if (btnZ) { abrirDesplegable('zone', document.getElementById('of-zone-pop').hidden); return; }
+  const btnF = e.target.closest('#of-date-btn');
+  if (btnF) { abrirDesplegable('date', document.getElementById('of-date-pop').hidden); return; }
+
+  const op = e.target.closest('.of-op');
+  if (op) {
+    if (op.closest('#of-zone-list')) elegirZonaPedido(op.getAttribute('data-v'), op.getAttribute('data-p'));
+    else if (op.closest('#of-date-list')) elegirFechaPedido(op.getAttribute('data-v'), op.textContent.replace(/mañana$/, '').trim());
+    return;
+  }
+  // Un toque fuera cierra lo que este abierto.
+  if (!e.target.closest('.of-pop')) abrirDesplegable(null, false);
+});
+document.addEventListener('input', function (e) {
+  if (e.target && e.target.id === 'of-zone-q') pintarZonasPedido(e.target.value);
+});
+
+/* ═══ LA BARRA DEL TOTAL ═══
+   Se abre y se cierra con un toque. Arranca cerrada: lo que importa de
+   un vistazo es cuanto se paga, no el renglon por renglon. */
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('#of-bar-tap')) return;
+  const bar = document.getElementById('of-bar');
+  const det = document.getElementById('of-bar-det');
+  const ver = document.getElementById('of-bar-ver');
+  const tap = document.getElementById('of-bar-tap');
+  const abierto = !det.hidden;
+  det.hidden = abierto;
+  bar.classList.toggle('abierta', !abierto);
+  ver.textContent = abierto ? 'Ver desglose' : 'Ocultar';
+  tap.setAttribute('aria-expanded', String(!abierto));
+});
 
 /* Prepara el formulario y lo abre. Se separa de renderOrderSummary porque
    ese se vuelve a llamar al aplicar o quitar un cupon, y no debe borrar
@@ -4213,18 +4464,16 @@ function prepararYAbrirFormulario() {
     if (cfp.phone)   document.getElementById('of-phone').value   = cfp.phone;
     if (cfp.address) document.getElementById('of-address').value = cfp.address;
   }
-  const zoneChips = document.getElementById('of-zone-chips');
-  if (zoneChips) {
-    zoneChips.querySelectorAll('.zone-chip').forEach(c => c.classList.remove('selected'));
-    zoneChips.classList.remove('of-error');
-    if (cfp && cfp.zone) {
-      const mine = Array.from(zoneChips.querySelectorAll('.zone-chip'))
-        .find(c => c.dataset.value === cfp.zone);
-      if (mine) mine.click();   // click, no .selected: recalcula el costo de envio
-    }
+  /* Zona y fecha arrancan limpias. La zona se prellena con la del perfil
+     pasando por elegirZonaPedido(), no poniendo el texto a mano: asi
+     recalcula el costo de envio, que es lo que se olvidaba antes. */
+  elegirZonaPedido('', 0);
+  abrirDesplegable(null, false);
+  if (cfp && cfp.zone) {
+    const mia = ZONAS_PEDIDO.find(z => z.name === cfp.zone);
+    if (mia) elegirZonaPedido(mia.name, mia.price || 0);
   }
-  const dateChips = document.getElementById('of-date-chips');
-  if (dateChips) { dateChips.querySelectorAll('.date-chip').forEach(c => c.classList.remove('selected')); dateChips.classList.remove('of-error'); }
+  elegirFechaPedido('', '');
   // Default payment to SINPE
   const payChips = document.getElementById('of-payment-chips');
   if (payChips) {
@@ -4265,30 +4514,42 @@ document.getElementById('order-form').addEventListener('submit', async function(
   const phone   = document.getElementById('of-phone').value.trim();
   const address = document.getElementById('of-address').value.trim();
   const zoneField   = document.getElementById('of-zone-field');
-  const zoneChipsEl = document.getElementById('of-zone-chips');
   const dateField   = document.getElementById('of-date-field');
-  const dateChipsEl = document.getElementById('of-date-chips');
   const payChipsEl  = document.getElementById('of-payment-chips');
   const zoneVisible = zoneField && zoneField.style.display !== 'none';
   const dateVisible = dateField && dateField.style.display !== 'none';
-  const selectedZone    = zoneChipsEl ? zoneChipsEl.querySelector('.zone-chip.selected') : null;
-  const selectedDate    = dateChipsEl ? dateChipsEl.querySelector('.date-chip.selected') : null;
   const selectedPayment = payChipsEl  ? payChipsEl.querySelector('.zone-chip.selected')  : null;
   const payment = selectedPayment ? selectedPayment.dataset.value : 'SINPE Móvil';
-  const zone  = selectedZone ? selectedZone.dataset.value : '';
-  const fecha = selectedDate ? selectedDate.dataset.value : '';
+  // Zona y fecha viven en su campo oculto desde que son desplegables.
+  const zone  = (document.getElementById('of-zone-val') || {}).value || '';
+  const fecha = (document.getElementById('of-date-val') || {}).value || '';
 
-  let valid = true;
-  [['of-name', name], ['of-phone', phone], ['of-address', address]].forEach(([id, val]) => {
+  /* Se anota el PRIMER campo que falta, en el orden en que se ven. Desde
+     que el boton de enviar vive en la barra de abajo, el campo con error
+     puede estar tres pantallas arriba: sin llevarlo a la vista, la
+     persona toca "Enviar" y no pasa nada visible. */
+  let valid = true, primerFallo = null;
+  const marcar = (id, malo) => {
     const el = document.getElementById(id);
-    if (!val) { el.classList.add('of-error'); valid = false; }
-    else el.classList.remove('of-error');
-  });
-  if (zoneVisible && !zone) { if (zoneChipsEl) zoneChipsEl.classList.add('of-error'); valid = false; }
-  else if (zoneChipsEl) zoneChipsEl.classList.remove('of-error');
-  if (dateVisible && !fecha) { if (dateChipsEl) dateChipsEl.classList.add('of-error'); valid = false; }
-  else if (dateChipsEl) dateChipsEl.classList.remove('of-error');
-  if (!valid) return;
+    if (!el) return;
+    el.classList.toggle('of-error', !!malo);
+    if (malo) { valid = false; if (!primerFallo) primerFallo = el; }
+  };
+  marcar('of-name', !name);
+  marcar('of-phone', !phone);
+  marcar('of-zone-btn', zoneVisible && !zone);
+  marcar('of-date-btn', dateVisible && !fecha);
+  marcar('of-address', !address);
+
+  if (!valid) {
+    if (primerFallo) {
+      primerFallo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Foco solo en lo que se escribe: en los desplegables abriria la
+      // lista sin que nadie la haya pedido.
+      if (/INPUT|TEXTAREA/.test(primerFallo.tagName)) setTimeout(() => primerFallo.focus(), 320);
+    }
+    return;
+  }
 
   let finalMsg = "Hola Chus's Fish! 🛒🐟 Quiero hacer un pedido a domicilio:\n\n";
   finalMsg += '📋 *Mis datos:*\n';
