@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -4359,6 +4359,14 @@ document.getElementById('order-form').addEventListener('submit', async function(
   const textoBtn = btnEnviar ? btnEnviar.innerHTML : '';
   if (btnEnviar) { btnEnviar.disabled = true; btnEnviar.textContent = 'Enviando pedido…'; }
 
+  /* Los datos del perfil salen YA, a la par del pedido, y se esperan mas
+     abajo. Puestos en fila detras del pedido y del cupon sumarian su propio
+     tope al rato que la persona mira el boton en "Enviando pedido…"; en
+     paralelo no cuestan nada. */
+  const perfilGuardado = (cfUid && window.CF)
+    ? guardarDatosEnPerfil({ name, phone, address, zone: zone || '' })
+    : null;
+
   const guardado = await guardarPedido(datosPedido);
 
   /* Se aparta el cupon apenas se hace el pedido, no al facturar. Antes
@@ -4381,10 +4389,12 @@ document.getElementById('order-form').addEventListener('submit', async function(
 
   if (btnEnviar) { btnEnviar.disabled = false; btnEnviar.innerHTML = textoBtn; }
 
-  // Se guardan los datos en el perfil para que la proxima vez venga prellenado.
-  if (cfUid && window.CF) {
-    CF.saveProfile({ name, phone, address, zone: zone || '' }).catch(() => {});
-  }
+  /* Aca se espera lo que salio arriba. CON ESPERA, como el pedido y el
+     cupon: enseguida se navega a WhatsApp y eso mata cualquier escritura a
+     medias. Lanzarla y seguir —que es como estaba— dejaba el perfil vacio
+     aunque la persona acabara de escribir su telefono y su direccion, y la
+     guia del perfil le seguia pidiendo unos datos que ya habia dado. */
+  if (perfilGuardado) await perfilGuardado;
 
   cart = [];
   saveCart();
@@ -4515,6 +4525,41 @@ async function apartarCupon(codigo, uid) {
   }
 }
 
+/* Los datos del cliente en su perfil. Mismo trato que el pedido y el cupon:
+   tope de tiempo para no dejarlo esperando, y si no alcanza se encola y se
+   reintenta al volver a entrar. Perder esto no cuesta plata, pero obliga a
+   la persona a escribir su direccion en cada pedido — justo lo que la
+   pagina promete evitarle. */
+async function guardarDatosEnPerfil(datos) {
+  try {
+    const escribir = CF.saveProfile(datos);
+    const tope = new Promise(function (res) { setTimeout(function () { res('tarde'); }, 5000); });
+    const r = await Promise.race([escribir.then(function () { return 'ok'; }), tope]);
+    if (r !== 'ok') encolarPerfil(datos);
+  } catch (e) {
+    encolarPerfil(datos);
+    console.error('[perfil] no se pudieron guardar los datos', e && e.code);
+  }
+}
+
+const PERFIL_PENDIENTE = 'chusfish_perfil_pendiente';
+
+function encolarPerfil(datos) {
+  // Uno solo, y el ultimo: lo que vale es la direccion mas reciente.
+  try { localStorage.setItem(PERFIL_PENDIENTE, JSON.stringify(datos)); } catch (e) {}
+}
+
+async function reintentarPerfilPendiente() {
+  let datos;
+  try { datos = JSON.parse(localStorage.getItem(PERFIL_PENDIENTE) || 'null'); }
+  catch (e) { return; }
+  if (!datos || !window.CF || !CF.user) return;
+  try {
+    await CF.saveProfile(datos);
+    localStorage.removeItem(PERFIL_PENDIENTE);
+  } catch (e) { /* se queda para la proxima */ }
+}
+
 const CUPONES_PENDIENTES = 'chusfish_cupones_pendientes';
 
 function encolarCupon(codigo, uid) {
@@ -4598,6 +4643,9 @@ async function reintentarPedidosPendientes() {
 window.addEventListener('load', function () {
   setTimeout(reintentarPedidosPendientes, 3000);
   setTimeout(reintentarCuponesPendientes, 3500);
+  // El perfil de ultimo: es lo menos urgente de los tres, y necesita que la
+  // sesion ya este resuelta.
+  setTimeout(reintentarPerfilPendiente, 4000);
 });
 
 /* La pantalla de carga se maneja arriba, junto a initCatalog(). */

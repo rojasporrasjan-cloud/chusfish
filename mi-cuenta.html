@@ -870,7 +870,9 @@
       <code id="regalo-cod"></code>
       <button type="button" class="cupon-copiar" onclick="copiarCupon(this)">Copiar</button>
     </div>
-    <button type="button" class="regalo-btn" onclick="cerrarRegalo()">Empezar a comprar</button>
+    <!-- Decia "Empezar a comprar" y no llevaba a comprar: solo cerraba.
+         Ahora dice lo que hace, y entrega el testigo a la guia. -->
+    <button type="button" class="regalo-btn" onclick="cerrarRegalo()">Ver mis primeros pasos</button>
   </div>
 </div>
 
@@ -1780,6 +1782,13 @@
 
   function cerrarRegalo(){
     document.getElementById("regalo-ov").classList.remove("on");
+    /* Al cerrarlo se lleva la vista a la guia. Sin esto el modal desaparece
+       y la persona queda mirando su saldo en cero, que es justo lo que la
+       guia viene a explicar. */
+    var g = document.querySelector('.guia');
+    if (g) setTimeout(function(){
+      g.scrollIntoView({ behavior:'smooth', block:'center' });
+    }, 260);
   }
   window.cerrarRegalo = cerrarRegalo;
 

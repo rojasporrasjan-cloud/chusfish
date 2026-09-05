@@ -92,6 +92,28 @@ explicación desplegable, la guía moviéndose sola al confirmar el pedido, la
 clienta que ya recorrió todo (la guía se encoge a una línea) y el visitante
 sin sesión— y comprueba que la puerta explique La Reserva de punta a punta.
 
+## probar-datos-en-perfil.js — que el pedido deje los datos guardados
+
+```
+npm run seed && node herramientas/probar-datos-en-perfil.js
+```
+
+Vigila el fallo que **ya mordió tres veces** en este proyecto: lanzar una
+escritura a Firestore y acto seguido hacer `location.href = waLink`. Al
+abrir WhatsApp el celular congela la página y la escritura, que iba a
+medias, se muere. Pasó con el pedido, con la reserva del cupón, y con los
+datos del perfil.
+
+Es silencioso: el pedido llega bien, nadie se queja, y la persona
+simplemente vuelve a escribir su dirección en cada pedido.
+
+**Ojo con lo que esta prueba puede y no puede.** La parte de punta a punta
+NO reproduce el congelamiento — se comprobó quitando el `await`, y seguía
+pasando, porque en Chromium con la ruta de `wa.me` interceptada la página
+no se congela. Quien caza el fallo es la **parte estructural**: lee
+`catalogo.html` y exige que el pedido, el cupón y el perfil se esperen
+antes de la navegación. Esa sí falla al quitar el arreglo.
+
 ## Si de golpe falla todo
 
 Es casi siempre el emulador, no el código. El proceso `java` crece hasta
