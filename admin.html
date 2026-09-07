@@ -2331,12 +2331,14 @@
 
           <div class="config-field" style="display:flex;gap:1rem;flex-wrap:wrap">
             <div style="flex:1;min-width:140px">
-              <label class="config-label">Usos totales (-1 = ilimitado)</label>
+              <label class="config-label">Usos totales
+                <span class="help-tip" data-tip="Cuántas veces se puede usar el cupón ENTRE TODOS los clientes. -1 = ilimitado. Ojo: acá es -1, en el campo de al lado es 0 — son campos distintos.">?</span>
+              </label>
               <input type="number" class="config-input" id="cup-limit" step="1" value="-1">
             </div>
             <div style="flex:1;min-width:140px">
               <label class="config-label">Usos por cliente
-                <span class="help-tip" data-tip="Cuántas veces puede usarlo LA MISMA persona. Poné 0 para que lo pueda usar todas las veces que quiera mientras el cupón esté vigente — es lo que se necesita para una promoción de un producto que querés mover.">?</span>
+                <span class="help-tip" data-tip="Cuántas veces puede usarlo LA MISMA persona. Poné 0 para que lo pueda usar todas las veces que quiera mientras el cupón esté vigente — es lo que se necesita para una promoción de un producto que querés mover. Ojo: acá el ilimitado es 0, no -1 como en el campo de al lado.">?</span>
               </label>
               <input type="number" class="config-input" id="cup-peruser" min="0" step="1" value="1">
               <div id="cup-peruser-nota" style="font-size:0.68rem;color:#7a95aa;margin-top:0.3rem;line-height:1.5"></div>
@@ -8739,11 +8741,18 @@ function ajustarUsosDePromo() {
     f.peruser.value = 0;
   }
   if (!nota) return;
-  const v = parseInt(f.peruser.value, 10) || 0;
-  nota.textContent = v === 0
-    ? 'Sin límite: cada cliente lo puede usar todas las veces que quiera mientras esté vigente.'
+  /* Cualquier valor <= 0 es sin limite. El campo de arriba ("usos
+     totales") usa -1 para eso, asi que es muy facil escribir -1 tambien
+     aca; el validador lo acepta —comprueba `> 0`— pero la nota decia
+     "cada cliente lo puede usar -1 veces". Se tratan igual y se avisa. */
+  const v = parseInt(f.peruser.value, 10);
+  const sinLimite = !(v > 0);
+  nota.textContent = sinLimite
+    ? (v < 0
+        ? 'Sin límite (acá el valor es 0; el −1 es del campo de al lado, pero funciona igual).'
+        : 'Sin límite: cada cliente lo puede usar todas las veces que quiera mientras esté vigente.')
     : 'Cada cliente lo puede usar ' + v + (v === 1 ? ' vez.' : ' veces.');
-  nota.style.color = v === 0 ? '#6fe0a0' : '#7a95aa';
+  nota.style.color = sinLimite ? '#6fe0a0' : '#7a95aa';
 }
 
 /* Un cupon mal armado se detecta cuando ya lo uso un cliente. Este texto

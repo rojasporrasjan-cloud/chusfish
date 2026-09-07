@@ -107,6 +107,19 @@ const VIEJO = 'PROMOVIEJA';
   chk('si lo pone en 2 a mano, NO se lo pisa', aMano.valor === '2', aMano.valor);
   chk('y la nota lo dice', /2 veces/i.test(aMano.nota), aMano.nota);
 
+  /* El -1 se cuela facil: es lo que dice el campo de ARRIBA (usos totales).
+     El validador lo acepta como sin limite —comprueba `> 0`— asi que la
+     nota tiene que decir eso y no "-1 veces". */
+  const menosUno = await pa.evaluate(async () => {
+    const c = document.getElementById('cup-peruser');
+    c.value = '-1';
+    c.dispatchEvent(new Event('input', { bubbles: true }));
+    await new Promise(k => setTimeout(k, 600));
+    return (document.getElementById('cup-peruser-nota') || {}).textContent || '';
+  });
+  chk('el -1 se entiende como SIN LIMITE', /sin límite/i.test(menosUno), menosUno);
+  chk('y NO dice la tonteria de "-1 veces"', !/-1 veces/.test(menosUno), menosUno);
+
   /* ═══ 3. LA INSTRUCCIÓN QUE SE LE DIO A JESÚS ═══ */
   console.log('\n  == 3. ABRIR SU CUPON VIEJO Y GUARDARLO LO ARREGLA ==');
   const abierto = await pa.evaluate(async cod => {
