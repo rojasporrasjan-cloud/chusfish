@@ -272,6 +272,45 @@ const COD = 'PROMOPROD';
       'marca al volver: ' + await p.evaluate(c =>
         localStorage.getItem('chusfish_promo_' + c), COD));
 
+  /* ═══ 5b. EL SEGMENTO DE DESCUENTOS DEL CATALOGO ═══
+     El aviso sale una vez al dia y el carrito CONSUME el codigo guardado.
+     Al segundo pedido del mismo dia no habia forma de volver a aplicarlo
+     sin escribirlo a mano: Jesus lo vio como "solo se puede usar 1 vez
+     porque ya no aparece mas". Este segmento esta siempre. */
+  console.log('\n  == 5b. EL SEGMENTO DE DESCUENTOS, SIEMPRE A MANO ==');
+  const seg = await p.evaluate(() => {
+    const sec = document.getElementById('descuentos-section');
+    const sep = document.getElementById('descuentos-sep');
+    if (!sec) return { hay: false };
+    const cards = [...sec.querySelectorAll('.desc-card')];
+    return { hay: true,
+             visible: sec.style.display !== 'none' && sep.style.display !== 'none',
+             cuantos: cards.length,
+             txt: sec.innerText.replace(/\s+/g, ' ').trim(),
+             boton: (cards[0] && cards[0].querySelector('.desc-btn').textContent) || '' };
+  });
+  chk('el segmento existe y se ve', seg.hay && seg.visible === true, seg.txt.slice(0, 70));
+  chk('muestra el descuento', /20%/.test(seg.txt), seg.txt.slice(0, 60));
+  chk('dice sobre cuantos productos', /3 productos/.test(seg.txt), seg.txt.slice(0, 80));
+  chk('y que se puede repetir', /las veces que quieras/i.test(seg.txt), seg.txt.slice(0, 110));
+  chk('lleva el codigo a la vista', seg.txt.indexOf(COD) >= 0);
+
+  /* Lo que de verdad importa: que sirva para volver a pedir. */
+  const usar = await p.evaluate(async () => {
+    sessionStorage.removeItem('chusfish_cupon_pendiente');   // como tras un pedido
+    const btn = document.querySelector('#descuentos-section .desc-btn');
+    if (!btn) return { err: 'sin boton' };
+    btn.click();
+    await new Promise(k => setTimeout(k, 2000));
+    return { pendiente: sessionStorage.getItem('chusfish_cupon_pendiente'),
+             etiqueta: btn.textContent.trim(),
+             visibles: document.querySelectorAll('.p-card:not(.hidden)').length };
+  });
+  chk('el boton deja el codigo listo OTRA VEZ', usar.pendiente === COD, String(usar.pendiente));
+  chk('y avisa que quedo puesto', /listo/i.test(usar.etiqueta), usar.etiqueta);
+  chk('y filtra a los productos de la promo', usar.visibles === elegidos.length,
+      usar.visibles + ' visibles de ' + elegidos.length);
+
   /* ═══ 6. LA FACTURA DE JESUS (queja 2) ═══ */
   console.log('\n  == 6. LA FACTURA CALCULA SOBRE LA LINEA, NO EL PEDIDO ==');
   const pa = await (await b.newContext({ viewport: { width: 1500, height: 1000 } })).newPage();

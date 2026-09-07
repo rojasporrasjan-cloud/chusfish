@@ -62,6 +62,7 @@ volvé a correrlo y ya.
 | `probar-cupon-por-producto.js` | El descuento se calcula sobre su línea |
 | `probar-promo-de-productos.js` | El aviso de promoción y el cupón reutilizable |
 | `probar-form-cupones.js` | El formulario de cupones del panel no engaña |
+| `probar-canjes-whatsapp.js` | La factura desglosa y el canje trae mensaje |
 | `probar-devolucion-de-canjes.js` | Se pueden devolver canjes ya resueltos |
 | `probar-cancelar-pedido.js` | Cancelar un pedido lo deshace TODO |
 | `probar-datos-en-perfil.js` | El pedido deja teléfono y dirección guardados |

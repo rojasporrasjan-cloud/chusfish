@@ -1613,6 +1613,53 @@
        Se muestra UNA vez por persona y por promocion. Si se cierra o se
        usa, no vuelve: un aviso que reaparece en cada visita deja de
        leerse y pasa a molestar. */
+    /* ═══ DESCUENTOS ACTIVOS ═══
+       Tarjetas anchas, no una parrilla: normalmente hay uno o dos, y en
+       una parrilla de tres columnas un solo descuento se ve perdido. */
+    .descuentos-section { max-width:1180px; margin:0 auto 2.2rem; padding:0 2rem; }
+    .descuentos-row { display:grid; gap:0.9rem; grid-template-columns:1fr; }
+    @media(min-width:820px){ .descuentos-row{ grid-template-columns:repeat(2,1fr); } }
+
+    .desc-card {
+      display:flex; align-items:center; gap:1rem; padding:1rem 1.15rem;
+      border-radius:16px; border:1px solid rgba(200,169,110,0.32);
+      background:linear-gradient(140deg, rgba(200,169,110,0.13), rgba(200,169,110,0.03));
+    }
+    .desc-val {
+      flex-shrink:0; min-width:74px; text-align:center;
+      font-family:'Cormorant Garamond',serif; font-size:1.9rem; line-height:1;
+      color:var(--gold-lt);
+    }
+    .desc-val small { display:block; font-family:'Montserrat',sans-serif;
+      font-size:0.54rem; letter-spacing:0.18em; text-transform:uppercase;
+      color:var(--gold-dk); margin-top:0.25rem; }
+    .desc-b { flex:1; min-width:0; }
+    .desc-t { font-size:0.84rem; color:var(--white); font-weight:600; line-height:1.35; }
+    .desc-s { font-size:0.7rem; color:var(--muted); line-height:1.55; margin-top:0.2rem; }
+    .desc-cod {
+      display:inline-block; margin-top:0.45rem; padding:0.18rem 0.55rem;
+      border:1px dashed rgba(200,169,110,0.5); border-radius:6px;
+      font-family:'Courier New',monospace; font-size:0.7rem; letter-spacing:0.1em;
+      color:var(--gold-lt);
+    }
+    .desc-btn {
+      flex-shrink:0; padding:0.6rem 1.1rem; border:0; border-radius:24px; cursor:pointer;
+      background:linear-gradient(135deg,var(--gold-dk),var(--gold)); color:var(--deep);
+      font-family:'Montserrat',sans-serif; font-size:0.6rem; font-weight:700;
+      letter-spacing:0.13em; text-transform:uppercase;
+    }
+    .desc-btn:hover { filter:brightness(1.08); }
+    .desc-card.puesto { border-color:rgba(111,224,160,0.5); }
+    .desc-card.puesto .desc-btn {
+      background:none; border:1px solid rgba(111,224,160,0.5); color:#6fe0a0; cursor:default;
+    }
+    @media(max-width:520px){
+      .descuentos-section{ padding:0 1.1rem; }
+      .desc-card{ gap:0.8rem; padding:0.9rem; flex-wrap:wrap; }
+      .desc-val{ min-width:60px; font-size:1.6rem; }
+      .desc-btn{ width:100%; margin-top:0.2rem; }
+    }
+
     /* La lista de productos del aviso de promocion. */
     .promo-lista { margin: 0.9rem 0 0.2rem; text-align: left; }
     .promo-it {
@@ -1938,6 +1985,22 @@
 
 <!-- Categorías con foto: reemplazan a los botones y al desplegable -->
 <div class="catwall-wrap"><div class="catwall" id="catwall"></div></div>
+
+<!-- DESCUENTOS ACTIVOS
+     Va lo primero despues de las categorias a proposito. El aviso de
+     promocion sale una vez al dia y deja el codigo guardado, pero el
+     carrito lo consume y lo borra: al segundo pedido del mismo dia no
+     habia forma de volver a aplicarlo sin escribirlo a mano. Jesus lo
+     vio como "solo se puede usar 1 vez porque ya no aparece mas".
+     Aca esta siempre. -->
+<div id="descuentos-sep" style="display:none" class="section-sep">
+  <div class="section-sep-line"></div>
+  <div class="section-sep-label">Descuentos activos</div>
+  <div class="section-sep-line"></div>
+</div>
+<div class="descuentos-section" id="descuentos-section" style="display:none">
+  <div class="descuentos-row" id="descuentos-row"></div>
+</div>
 
 <!-- PRODUCTOS DESTACADOS -->
 <div id="destacados-sep" style="display:none" class="section-sep">
@@ -3851,6 +3914,95 @@ function pintarSeccionesDeConfig(cfg) {
     })();
 
     /* ═══ PRODUCTOS DESTACADOS ═══ */
+    /* ═══ DESCUENTOS ACTIVOS ═══════════════════════════════════
+       Los codigos salen de la configuracion, que es de lectura publica:
+       las reglas dejan LEER un cupon si ya sabes su codigo, pero NO
+       listarlos (si no, cualquiera descubriria promociones que no le
+       tocaban). Se admite una lista para cuando Jesus pueda marcar
+       varios; hoy el panel marca uno. */
+    (async function renderDescuentos() {
+      const codigos = (Array.isArray(cfg.promoCoupons) && cfg.promoCoupons.length)
+        ? cfg.promoCoupons.slice()
+        : (cfg.promoCoupon ? [cfg.promoCoupon] : []);
+      if (!codigos.length) return;
+
+      const hoy = new Date();
+      const vivos = [];
+      for (const cod of codigos) {
+        try {
+          const d = await db_cat.collection('coupons').doc(cod).get();
+          if (!d.exists) continue;
+          const c = d.data();
+          if (c.active === false) continue;
+          if (c.validFrom  && c.validFrom.toDate  && c.validFrom.toDate()  > hoy) continue;
+          if (c.validUntil && c.validUntil.toDate && c.validUntil.toDate() < hoy) continue;
+          vivos.push({ cod: cod, c: c });
+        } catch (e) { /* uno que no se pueda leer no tumba la seccion */ }
+      }
+      if (!vivos.length) return;
+
+      const row = document.getElementById('descuentos-row');
+      if (!row) return;
+
+      row.innerHTML = vivos.map(function (x) {
+        const c = x.c;
+        const pct = c.type === 'percent';
+        const val = pct ? (Number(c.value) || 0) + '%' : fmt(Number(c.value) || 0);
+
+        const ids = Array.isArray(c.productIds) ? c.productIds : [];
+        const prods = ids.map(function (id) {
+          return (PRODUCTS || []).find(function (p) { return p.id === id; });
+        }).filter(Boolean);
+
+        const sobre = prods.length === 1 ? 'En ' + esc(prods[0].name)
+                    : prods.length       ? 'En ' + prods.length + ' productos'
+                                         : 'En todo tu pedido';
+        const cond = [];
+        if (Number(c.minOrder) > 0) cond.push('desde ' + fmt(Number(c.minOrder)));
+        if (pct && Number(c.maxDiscount) > 0) cond.push('hasta ' + fmt(Number(c.maxDiscount)));
+        if (c.firstOrderOnly) cond.push('solo primer pedido');
+        /* Se dice si se puede repetir: es justo lo que nadie sabia. */
+        if (!(Number(c.perUserLimit) > 0)) cond.push('las veces que quieras');
+        else if (Number(c.perUserLimit) > 1) cond.push(c.perUserLimit + ' veces por cliente');
+
+        return '<div class="desc-card" data-cod="' + esc(x.cod) + '">' +
+          '<div class="desc-val">' + esc(val) + '<small>de descuento</small></div>' +
+          '<div class="desc-b">' +
+            '<div class="desc-t">' + sobre + '</div>' +
+            (cond.length ? '<div class="desc-s">' + esc(cond.join(' · ')) + '</div>' : '') +
+            '<span class="desc-cod">' + esc(x.cod) + '</span>' +
+          '</div>' +
+          '<button type="button" class="desc-btn">' +
+            (prods.length ? 'Ver y usar' : 'Usar') + '</button>' +
+        '</div>';
+      }).join('');
+
+      /* Un solo manejador: la seccion se repinta poco, pero enganchar uno
+         por tarjeta es como se pierden los handlers en este archivo. */
+      row.addEventListener('click', function (e) {
+        const btn = e.target.closest('.desc-btn');
+        if (!btn) return;
+        const card = btn.closest('.desc-card');
+        const cod = card && card.getAttribute('data-cod');
+        const x = vivos.find(function (v) { return v.cod === cod; });
+        if (!x) return;
+
+        try { sessionStorage.setItem('chusfish_cupon_pendiente', cod); } catch (e2) {}
+        card.classList.add('puesto');
+        btn.textContent = 'Listo, va en tu pedido';
+
+        const ids = Array.isArray(x.c.productIds) ? x.c.productIds : [];
+        const prods = ids.map(function (id) {
+          return (PRODUCTS || []).find(function (p) { return p.id === id; });
+        }).filter(Boolean);
+        if (prods.length) filtrarPorPromo(prods);
+        else showToast('Código ' + cod + ' guardado para tu pedido ✅');
+      });
+
+      document.getElementById('descuentos-sep').style.display = '';
+      document.getElementById('descuentos-section').style.display = '';
+    })();
+
     (function renderDestacados() {
       // Usa los destacados configurados en el admin; si no hay, mismo respaldo que la landing.
       // Sin tope: Jesus elige cuantos quiera desde el panel y se

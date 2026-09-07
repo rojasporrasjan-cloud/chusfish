@@ -5033,7 +5033,13 @@ function updateInvoiceDoc() {
     totalLines.push(`<div class="inv-total-line"><span>Envío${c.zone ? ' · ' + esc(c.zone) : ''}</span><span>${invCRC(t.delivery)}</span></div>`);
   }
   if (t.discount > 0) {
-    totalLines.push(`<div class="inv-total-line discount"><span>Descuento</span><span>-${invCRC(t.discount)}</span></div>`);
+    /* Antes decia "Descuento" a secas. Para el cliente que recibe la
+       factura eso es un numero sin explicacion, y para Jesus tampoco
+       decia de que promocion salio. Ahora lleva el codigo y, si el cupon
+       era de productos, sobre cuales se aplico. */
+    totalLines.push(
+      `<div class="inv-total-line discount"><span>${esc(etiquetaDescuento())}</span>` +
+      `<span>-${invCRC(t.discount)}</span></div>`);
   }
   setHtml('inv-doc-total-lines', totalLines.join(''));
   set('inv-doc-grand', invCRC(t.total));
@@ -8269,9 +8275,13 @@ function renderCanjes() {
          sale malo, o se entrega uno equivocado, y hay que dar marcha atras. */
       acts = '<button class="order-act-btn order-act-delete" onclick="devolverCanje(&quot;' + esc(r.id) + '&quot;)">↩ Devolver puntos</button>';
     }
+    /* El enlace abria WhatsApp EN BLANCO y Jesus tenia que escribir el
+       mensaje a mano cada vez. Los pedidos ya llevaban plantilla; los
+       canjes no. Ahora el texto sale segun el estado del canje, que es
+       lo unico que cambia entre un aviso y otro. */
     if (r.userPhone) {
-      acts += '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="https://wa.me/506' +
-              esc(String(r.userPhone).replace(/\D/g,'')) + '">WhatsApp</a>';
+      acts += '<a class="order-act-btn order-act-wa" target="_blank" rel="noopener" href="' +
+              esc(waCanjeLink(r, st)) + '">WhatsApp</a>';
     }
     const warn = (short && st === 'solicitado')
       ? '<div style="margin-top:0.6rem;font-size:0.72rem;color:#e05c4a">Ojo: al cliente ya solo le quedan ' +
@@ -8307,6 +8317,48 @@ document.querySelectorAll('.rd-filter').forEach(btn => {
 /* Aprobar YA NO descuenta: los puntos se apartaron cuando el cliente pidio
    el canje. Aca solo se deja el asiento en su libro y se marca aprobado.
    Si se descontara de nuevo, se le cobraria dos veces el mismo premio. */
+/* ── La plantilla de WhatsApp para los canjes ──────────────────
+   Un mensaje por estado, en el mismo tono que los de pedidos. Lo que la
+   persona necesita saber es siempre lo mismo: si le llega, cuando, y que
+   paso con sus puntos. */
+function mensajeCanje(r, st) {
+  var nombre = String(r.userName || '').trim().split(/\s+/)[0] || 'Hola';
+  var premio = r.rewardName || 'tu premio';
+  var pts = Number(r.cost) || 0;
+  var ptsTxt = pts ? ' (' + pts.toLocaleString('es-CR') + ' puntos)' : '';
+
+  if (st === 'aprobado') {
+    return nombre + '! 🦀 Tu canje en *Chus\'s Fish* quedó *aprobado*.\n\n' +
+      '🎁 *' + premio + '*' + ptsTxt + '\n\n' +
+      'Te lo llevamos junto con tu próximo pedido, sin costo de envío adicional.\n' +
+      '¡Gracias por seguir comprando con nosotros! 🐟';
+  }
+  if (st === 'entregado') {
+    return nombre + '! 🐟 Ya te entregamos *' + premio + '*' + ptsTxt + '.\n\n' +
+      '¡Que lo disfrutés! Seguí juntando puntos con cada pedido. 🦀';
+  }
+  if (st === 'rechazado' || st === 'devuelto') {
+    return nombre + '! 🐟 Te escribimos de *Chus\'s Fish* por tu canje de *' + premio + '*.\n\n' +
+      (r.adminNote ? r.adminNote + '\n\n' : 'No lo pudimos entregar esta vez.\n\n') +
+      'Te devolvimos tus ' + pts.toLocaleString('es-CR') + ' puntos completos: los podés ' +
+      'usar en otro premio cuando quieras.\n' +
+      'Perdón por la molestia 🙏';
+  }
+  // solicitado, o cualquier otro estado
+  return nombre + '! 🐟 Recibimos tu canje de *' + premio + '*' + ptsTxt +
+    ' en *Chus\'s Fish*.\n\nLo estamos revisando y te confirmamos en breve.';
+}
+
+function waCanjeLink(r, st) {
+  /* waPhone SIEMPRE devuelve '506' + los digitos, asi que sin telefono
+     devolvia '506' —que es truthy— y armaba un enlace a wa.me/506. Se
+     miran los digitos, no el resultado. */
+  var digitos = String(r.userPhone || '').replace(/[^0-9]/g, '');
+  if (!digitos) return 'https://web.whatsapp.com/';
+  var tel = waPhone(r.userPhone);
+  return 'https://wa.me/' + tel + '?text=' + encodeURIComponent(mensajeCanje(r, st));
+}
+
 async function approveRedeem(id) {
   try {
     await db.runTransaction(async (tx) => {
@@ -9092,17 +9144,44 @@ function copiarCupon(id) {
 }
 
 
+/* "Descuento · BIENVENIDO (5%)" o, si es de productos, "Descuento ·
+   PINKI20 (20% en Camaron Yumbo)". Se arma con lo que se sepa: si el
+   cupon no se pudo leer, queda "Descuento" como antes. */
+function etiquetaDescuento() {
+  const cod = invoiceState && invoiceState.cupon;
+  if (!cod) return 'Descuento';
+  const c = invoiceState.cuponData;
+  if (!c) return 'Descuento · ' + cod;
+
+  const partes = [];
+  if (c.type === 'percent' && Number(c.value) > 0) partes.push(Number(c.value) + '%');
+  const ids = Array.isArray(c.productIds) ? c.productIds : [];
+  if (ids.length) {
+    const nombres = (invoiceState.items || [])
+      .filter(it => it.id !== null && ids.indexOf(it.id) >= 0)
+      .map(it => it.name);
+    if (nombres.length === 1) partes.push('en ' + nombres[0]);
+    else if (nombres.length > 1) partes.push('en ' + nombres.length + ' productos');
+  }
+  return 'Descuento · ' + cod + (partes.length ? ' (' + partes.join(' ') + ')' : '');
+}
+
 /* Si el pedido trae el codigo del cupon pero sin monto, se recalcula
    leyendo el cupon. Le paso a Jesus: la factura decia "el cliente aplico
    el cupon BIENVENIDO" con el campo de descuento vacio. */
 async function completarDescuentoDelCupon() {
   if (!invoiceState || !invoiceState.cupon) return;
-  if (invNum(invoiceState.discount, 0) > 0) return;   // ya venia bien
 
   try {
     const d = await COUPONS_REF.doc(invoiceState.cupon).get();
     if (!d.exists) return;
     const c = d.data();
+
+    /* Se guarda SIEMPRE, aunque el monto ya venga del pedido: la etiqueta
+       de la factura lo necesita para decir "20% en Camaron Yumbo" en vez
+       de un "Descuento" pelado. */
+    invoiceState.cuponData = c;
+    if (invNum(invoiceState.discount, 0) > 0) { updateInvoiceDoc(); return; }
 
     const linea = it => invNum(it.qty, 0) * invNum(it.price, 0);
     const sub = (invoiceState.items || []).reduce((a, it) => a + linea(it), 0);
@@ -9134,7 +9213,11 @@ async function completarDescuentoDelCupon() {
     invoiceState.discount = desc;
     const campo = document.getElementById('inv-discount');
     if (campo) campo.value = desc;
-    renderInvoice();
+    /* Era `renderInvoice()`, que NO EXISTE. Tiraba ReferenceError, el catch
+       de abajo se lo tragaba, y el documento no se repintaba nunca: el
+       campo mostraba el descuento pero la factura salia sin el. Es lo que
+       Jesus reporto como "no me saca el desglose con descuentos". */
+    updateInvoiceDoc();
   } catch (e) { /* sin cupon legible, se deja como estaba */ }
 }
 
