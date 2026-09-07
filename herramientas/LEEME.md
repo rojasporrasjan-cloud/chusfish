@@ -61,6 +61,7 @@ volvé a correrlo y ya.
 | `probar-cupon-un-solo-uso.js` | El cupón no se puede usar dos veces |
 | `probar-cupon-por-producto.js` | El descuento se calcula sobre su línea |
 | `probar-promo-de-productos.js` | El aviso de promoción y el cupón reutilizable |
+| `probar-form-cupones.js` | El formulario de cupones del panel no engaña |
 | `probar-devolucion-de-canjes.js` | Se pueden devolver canjes ya resueltos |
 | `probar-cancelar-pedido.js` | Cancelar un pedido lo deshace TODO |
 | `probar-datos-en-perfil.js` | El pedido deja teléfono y dirección guardados |
@@ -217,6 +218,27 @@ factura de Jesús calcule sobre la línea y no sobre el pedido.
 **Ojo con el `load`:** el aviso se dispara 1,2 s *después* del load. Con
 una pausa fija, la comprobación de "no vuelve a salir" pasaba sola aunque
 el aviso ni se hubiera ejecutado. Por eso se espera el evento de verdad.
+
+## probar-form-cupones.js — el formulario que toca Jesús
+
+```
+npm run seed && node herramientas/probar-form-cupones.js
+```
+
+Las otras pruebas de cupones comprobaban la **aritmética**, pero nadie
+tocaba el formulario — y ahí estaba la trampa que le costó a Jesús su
+primera promoción: *"Usos por cliente"* venía en **1**, así que el cupón
+dejaba de aplicar en el segundo pedido del mismo cliente.
+
+Comprueba que encender *"Avisar al entrar al catálogo"* lo pase a 0, que
+un valor puesto a mano (2, 3…) **no** se pise, que la nota de abajo lo
+diga en castellano, y que abrir un cupón viejo y volver a guardarlo lo
+deje sin límite en la base sin perder el mínimo ni la promoción.
+
+**Dónde vive el interruptor:** en `chusfish/config.promoCoupon`, no en el
+campo `promo` del cupón. `editCupon()` lo lee de la config; guardar
+escribe los dos. Si montás un caso de prueba, poné la config o el
+interruptor sale apagado y no probás nada.
 
 ## probar-formulario-pedido.js — llenar el pedido sin pelear
 
