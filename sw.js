@@ -8,7 +8,7 @@
    ⚠️ Al tocar este archivo hay que subir CACHE_VERSION.
    ══════════════════════════════════════════════════════════════ */
 
-const CACHE_VERSION = 'chusfish-v2';
+const CACHE_VERSION = 'chusfish-v3';
 
 /* Lo que vale la pena tener guardado para cuando no hay red. Los productos
    vienen de Firestore y NO se pueden cachear acá, así que sin internet se ve
@@ -66,6 +66,17 @@ self.addEventListener('fetch', (e) => {
   // solas y guardarlas acá solo llenaría el caché.
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+
+  /* NADA DE APIs, aunque vengan del mismo origen.
+     En producción Firestore vive en otro dominio y no llega hasta acá, pero
+     en local `dev-server.js` lo proxea por el puerto 5000 para que el
+     navegador del editor lo alcance: ahí SÍ es del mismo origen. Estas
+     respuestas son flujos largos (Listen/channel), y hacerles `clone()` y
+     `put()` los atraganta: la config nunca terminaba de llegar y cosas como
+     el aviso de promoción no salían — "en ocasiones sale y otras no".
+     Guardar una respuesta de API tampoco sirve de nada offline. */
+  if (/^\/(v1|google\.firestore|identitytoolkit|securetoken)/.test(url.pathname) ||
+      url.pathname.indexOf('.googleapis.com') >= 0) return;
 
   e.respondWith((async () => {
     try {

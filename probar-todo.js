@@ -18,6 +18,7 @@ const PRUEBAS = [
   ['auditar-puntos-y-descuentos.js','la aritmetica de puntos y descuentos'],
   ['probar-cupon-un-solo-uso.js',   'el cupon no se puede usar dos veces'],
   ['probar-cupon-por-producto.js',  'el descuento por producto se calcula sobre su linea'],
+  ['probar-promo-de-productos.js',  'el aviso de promocion y el cupon reutilizable'],
   ['probar-devolucion-de-canjes.js','se pueden devolver canjes ya resueltos'],
   ['probar-cancelar-pedido.js',     'cancelar un pedido lo deshace TODO'],
   ['probar-datos-en-perfil.js',     'el pedido deja telefono y direccion guardados'],

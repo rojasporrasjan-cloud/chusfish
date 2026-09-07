@@ -1613,6 +1613,43 @@
        Se muestra UNA vez por persona y por promocion. Si se cierra o se
        usa, no vuelve: un aviso que reaparece en cada visita deja de
        leerse y pasa a molestar. */
+    /* La lista de productos del aviso de promocion. */
+    .promo-lista { margin: 0.9rem 0 0.2rem; text-align: left; }
+    .promo-it {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.45rem 0; border-top: 1px solid rgba(200,169,110,0.14);
+    }
+    .promo-it:first-child { border-top: 0; }
+    .promo-it img, .promo-it-sin {
+      width: 38px; height: 38px; border-radius: 8px; object-fit: cover; flex-shrink: 0;
+      background: rgba(200,169,110,0.12);
+    }
+    .promo-it-n {
+      flex: 1; min-width: 0; font-size: 0.76rem; color: var(--text); line-height: 1.35;
+    }
+    .promo-it-p {
+      font-size: 0.72rem; color: var(--gold-lt); font-weight: 600; flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .promo-mas {
+      font-size: 0.68rem; color: var(--muted); padding: 0.5rem 0 0; text-align: center;
+    }
+
+    /* "Estas viendo solo la promocion", con la salida al lado. */
+    .promo-filtro {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.8rem; flex-wrap: wrap;
+      margin: 0 0 1.2rem; padding: 0.7rem 1rem; border-radius: 12px;
+      background: rgba(200,169,110,0.1); border: 1px solid rgba(200,169,110,0.3);
+      font-size: 0.76rem; color: var(--gold-lt);
+    }
+    .promo-filtro button {
+      background: none; border: 0; padding: 0; cursor: pointer; font-family: inherit;
+      font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--gold); text-decoration: underline; text-underline-offset: 3px;
+      flex-shrink: 0;
+    }
+
     .promo-ov {
       position:fixed; inset:0; z-index:9000; display:none;
       align-items:center; justify-content:center; padding:1.2rem;
@@ -2586,6 +2623,9 @@ initCatalog();
 
 /* ═══ FILTER & SEARCH ═══ */
 let activeCat = 'all';
+/* Los ids de la promocion, cuando activeCat === 'promo'. Vive junto a
+   activeCat porque es parte del mismo estado: que se esta mostrando. */
+let promoIds = [];
 let searchQ   = '';
 
 
@@ -2707,6 +2747,7 @@ function renderCatwall() {
 
   box.querySelectorAll('.catcard').forEach(b => {
     b.addEventListener('click', () => {
+      promoIds = [];            // elegir categoria sale de la promocion
       activeCat = b.dataset.cat;
       applyFilter();
       renderCatwall();
@@ -2749,6 +2790,10 @@ function applyFilter() {
      categorias y parecia que el filtro no llevaba a ninguna parte.
      Con un filtro activo se esconden; vuelven con "Todo". */
   const hayFiltro = (activeCat && activeCat !== 'all') || !!searchQ;
+  /* Con la promocion puesta se avisa que se esta viendo solo un pedazo del
+     catalogo, con la salida al lado. Sin esto la persona cree que el
+     catalogo se quedo en cuatro productos. */
+  pintarAvisoPromo(activeCat === 'promo');
   ['destacados-section', 'destacados-sep'].forEach(function (id) {
     const el = document.getElementById(id);
     if (!el || !el.dataset.tieneContenido) return;
@@ -2764,6 +2809,8 @@ function applyFilter() {
       catOk = true;
     } else if (activeCat === 'favs') {
       catOk = CF.esFav(card.dataset.id);
+    } else if (activeCat === 'promo') {
+      catOk = promoIds.indexOf(card.dataset.id) >= 0;
     } else if (activeCat === 'top') {
       const pid = parseInt(card.dataset.id);
       const p = PRODUCTS.find(x => x.id === pid);
@@ -2790,6 +2837,29 @@ function applyFilter() {
   });
 }
 
+/* La barra que dice "estas viendo solo la promocion", con el boton para
+   volver al catalogo entero. Se crea la primera vez y despues solo se
+   muestra o se esconde. */
+function pintarAvisoPromo(mostrar) {
+  let b = document.getElementById('promo-filtro');
+  if (!mostrar) { if (b) b.hidden = true; return; }
+  if (!b) {
+    b = document.createElement('div');
+    b.id = 'promo-filtro';
+    b.className = 'promo-filtro';
+    b.innerHTML = '<span>Estás viendo solo los productos en promoción.</span>' +
+                  '<button type="button" id="promo-filtro-x">Ver todo el catálogo</button>';
+    const ancla = document.getElementById('catalog-wrap');
+    if (ancla) ancla.insertBefore(b, ancla.firstChild);
+    else document.body.appendChild(b);
+    b.querySelector('#promo-filtro-x').addEventListener('click', function () {
+      activeCat = 'all'; promoIds = [];
+      applyFilter(); renderCatwall();
+    });
+  }
+  b.hidden = false;
+}
+
 document.getElementById('search-input').addEventListener('input', e => {
   searchQ = sinTildes(e.target.value.trim());
   applyFilter();
@@ -2798,6 +2868,7 @@ document.getElementById('search-input').addEventListener('input', e => {
 /* ── Puente con la hoja de busqueda de ui.js ──────────────────────
    Si esta funcion existe, ui.js filtra aca mismo en vez de recargar. */
 window.CF_FILTER = function (cat, q, id) {
+  promoIds = [];              // cualquier otro filtro sale de la promocion
   activeCat = cat || 'all';
   searchQ   = sinTildes((q || '').trim());
 
@@ -4636,7 +4707,7 @@ document.getElementById('order-form').addEventListener('submit', async function(
      Jesus quien lo confirma al aceptar el pedido o lo devuelve al
      cancelarlo. */
   if (guardado && cuponAplicado && cfUid) {
-    await apartarCupon(cuponAplicado.codigo, cfUid);
+    await apartarCupon(cuponAplicado.codigo, cfUid, cuponAplicado.cupon);
   }
 
   if (guardado) {
@@ -4669,10 +4740,15 @@ document.getElementById('order-form').addEventListener('submit', async function(
    la foto del producto al que aplica. El boton lo deja guardado para el
    pedido, asi que no hay que copiar ni recordar el codigo.
 
-   Se muestra UNA vez por persona y por promocion: la marca lleva el
-   codigo, asi que si Jesus arma otra promocion la gente si la ve. Un
-   aviso que reaparece en cada visita deja de leerse y pasa a molestar. */
+   Se muestra UNA VEZ AL DIA por promocion. Antes era una vez y nunca
+   mas: servia para un cupon de un solo uso, pero Jesus arma estas promos
+   para que el mismo producto se pida VARIAS veces, y un aviso que solo
+   aparece el primer dia no vende nada. Una vez al dia recuerda sin
+   convertirse en el aviso que todos cierran sin leer.
+
+   La marca lleva el codigo, asi que una promocion nueva se ve igual. */
 const PROMO_VISTA = 'chusfish_promo_';
+const hoyISO = () => new Date().toISOString().slice(0, 10);
 
 async function mostrarPromoDelCatalogo() {
   try {
@@ -4680,7 +4756,7 @@ async function mostrarPromoDelCatalogo() {
     const cod = (cfg && cfg.promoCoupon) || '';
     if (!cod) return;
 
-    try { if (localStorage.getItem(PROMO_VISTA + cod)) return; } catch (e) {}
+    try { if (localStorage.getItem(PROMO_VISTA + cod) === hoyISO()) return; } catch (e) {}
 
     const d = await db_cat.collection('coupons').doc(cod).get();
     if (!d.exists) return;
@@ -4691,20 +4767,45 @@ async function mostrarPromoDelCatalogo() {
     if (c.validFrom  && c.validFrom.toDate  && c.validFrom.toDate()  > hoy) return;
     if (c.validUntil && c.validUntil.toDate && c.validUntil.toDate() < hoy) return;
 
-    // La foto y el nombre salen del producto al que aplica, si es de uno solo.
+    /* CUALES son los productos. Antes solo se veian si el cupon era de UNO:
+       con varios salia "en productos seleccionados" y nada mas, asi que
+       nadie podia decidir si le servia. Jesus lo dijo derecho: "no le da
+       acceso al cliente de ver primero cuales productos son". */
     const ids = Array.isArray(c.productIds) ? c.productIds : [];
-    const prod = ids.length === 1 ? (PRODUCTS || []).find(p => p.id === ids[0]) : null;
+    const prods = ids.map(id => (PRODUCTS || []).find(p => p.id === id)).filter(Boolean);
+    const prod = prods.length === 1 ? prods[0] : null;
 
     const valor = c.type === 'percent'
       ? (Number(c.value) || 0) + '%'
       : fmt(Number(c.value) || 0);
 
-    const sobre = prod ? ' en ' + prod.name
-                : ids.length ? ' en productos seleccionados'
-                : ' en tu pedido';
+    const sobre = prod ? 'En ' + prod.name
+                : prods.length ? 'En estos productos'
+                : 'En tu pedido';
 
     const minimo = Number(c.minOrder) || 0;
     const cond = minimo > 0 ? 'Desde ' + fmt(minimo) + ' de compra.' : 'Sin monto mínimo.';
+
+    /* Con varios se listan con su foto y su precio. Se muestran hasta
+       cuatro: mas que eso no cabe sin que el aviso se vuelva una pantalla
+       de scroll, y el resto se ve al tocar "Lo quiero". */
+    const TOPE = 4;
+    let lista = '';
+    if (prods.length > 1) {
+      lista = '<div class="promo-lista">' +
+        prods.slice(0, TOPE).map(p =>
+          '<div class="promo-it">' +
+            (p.img ? '<img src="' + escaparTexto(p.img) + '" alt="" loading="lazy">'
+                   : '<span class="promo-it-sin"></span>') +
+            '<span class="promo-it-n">' + escaparTexto(p.name) + '</span>' +
+            (p.price ? '<span class="promo-it-p">' + fmt(p.price) + (p.unit || '') + '</span>' : '') +
+          '</div>').join('') +
+        (prods.length > TOPE
+          ? '<div class="promo-mas">y ' + (prods.length - TOPE) + ' producto' +
+            (prods.length - TOPE === 1 ? '' : 's') + ' más</div>'
+          : '') +
+      '</div>';
+    }
 
     const ov = document.getElementById('promo-ov');
     ov.querySelector('.promo-box').innerHTML =
@@ -4712,16 +4813,17 @@ async function mostrarPromoDelCatalogo() {
       '<div class="promo-body">' +
         '<div class="promo-eyebrow">Promoción</div>' +
         '<h3 class="promo-tit">' + valor + ' <em>de descuento</em></h3>' +
-        '<p class="promo-txt">' + escaparTexto(sobre.trim().replace(/^en /, 'En ')) +
-          '. ' + cond + '</p>' +
+        '<p class="promo-txt">' + escaparTexto(sobre) + '. ' + cond + '</p>' +
+        lista +
         '<div class="promo-cod">' + escaparTexto(cod) + '</div>' +
-        '<button type="button" class="promo-btn" id="promo-usar">Lo quiero</button>' +
+        '<button type="button" class="promo-btn" id="promo-usar">' +
+          (prods.length ? 'Ver estos productos' : 'Lo quiero') + '</button>' +
         '<button type="button" class="promo-no" id="promo-no">Ahora no</button>' +
       '</div>';
 
     const cerrar = () => {
       ov.classList.remove('open');
-      try { localStorage.setItem(PROMO_VISTA + cod, '1'); } catch (e) {}
+      try { localStorage.setItem(PROMO_VISTA + cod, hoyISO()); } catch (e) {}
     };
 
     ov.querySelector('#promo-no').addEventListener('click', cerrar);
@@ -4731,18 +4833,33 @@ async function mostrarPromoDelCatalogo() {
       /* Se deja guardado para el pedido: al abrir el formulario se aplica
          solo. Copiar un codigo a mano es donde se pierde la gente. */
       try { sessionStorage.setItem('chusfish_cupon_pendiente', cod); } catch (e) {}
-      if (prod) { filtrarPorPromo(prod); }
-      showToast('Código ' + cod + ' guardado para tu pedido ✅');
+      /* Y se deja el catalogo mostrando SOLO esos productos. Antes, con
+         varios, el aviso se cerraba y la persona quedaba en el catalogo
+         entero sin saber cuales eran los de la promo. */
+      if (prods.length) filtrarPorPromo(prods);
+      showToast(prods.length
+        ? 'Estos son los productos en promoción ✅'
+        : 'Código ' + cod + ' guardado para tu pedido ✅');
     });
 
     ov.classList.add('open');
   } catch (e) { /* sin promo, sin ruido */ }
 }
 
-/* Lleva al producto de la promo, que es lo que la persona quiere ver. */
-function filtrarPorPromo(prod) {
-  const card = document.querySelector('[data-id="' + prod.id + '"]');
-  if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+/* Deja el catalogo mostrando SOLO los productos de la promo.
+   Con uno solo bastaba con bajar hasta su tarjeta; con varios, repartidos
+   por categorias distintas, hacia falta un filtro de verdad. */
+function filtrarPorPromo(prods) {
+  const lista = Array.isArray(prods) ? prods : [prods];
+  promoIds = lista.map(p => String(p.id));
+  activeCat = 'promo';
+  searchQ = '';
+  const input = document.getElementById('search-input');
+  if (input) input.value = '';
+  applyFilter();
+  renderCatwall();
+  const wrap = document.getElementById('catalog-wrap');
+  if (wrap) window.scrollTo({ top: Math.max(0, wrap.offsetTop - 70), behavior: 'smooth' });
 }
 
 function escaparTexto(t) {
@@ -4767,7 +4884,19 @@ const TOPE_GUARDADO = 8000;   // ms
 /* Deja constancia de que este cliente ya uso este cupon. Lo unico que
    hace el documento es existir: tanto el carrito como el perfil miran
    si esta para no volver a ofrecerlo. */
-async function apartarCupon(codigo, uid) {
+/* Aparta el cupon para que no se pueda volver a usar antes de que Jesus
+   confirme el pedido.
+
+   NO SE APARTA SI NO HAY LIMITE POR CLIENTE. Las promociones de catalogo
+   se arman justo para que la gente pida el mismo producto varias veces:
+   ahi no hay nada que apartar. Ademas las reglas solo dejan CREAR la
+   ficha, no actualizarla (update es del admin, para que nadie se libere
+   su propio cupon), asi que en el segundo pedido esto fallaba con
+   permission-denied y se encolaba para reintentarse en cada visita, para
+   siempre. */
+async function apartarCupon(codigo, uid, cup) {
+  // Sin tope por cliente no hay nada que apartar.
+  if (!(Number((cup || {}).perUserLimit) > 0)) return;
   try {
     /* Con tope de tiempo, como el pedido: enseguida se navega a WhatsApp y
        eso mata las escrituras a medias. Si no alcanza, se encola. */
@@ -4778,9 +4907,12 @@ async function apartarCupon(codigo, uid) {
     const r = await Promise.race([escribir.then(function () { return 'ok'; }), tope]);
     if (r !== 'ok') encolarCupon(codigo, uid);
   } catch (e) {
-    /* Si falla, el cupon quedaria reusable: se encola y se reintenta al
-       volver a entrar. Sin esto, perder esta escritura es regalar el
-       descuento de nuevo. */
+    /* permission-denied aca casi siempre significa que la ficha YA existe
+       (las reglas dejan crearla, no actualizarla): ya estaba apartado y no
+       hay nada que reintentar. Encolarlo solo dejaria un reintento eterno. */
+    if (e && e.code === 'permission-denied') return;
+    /* Cualquier otro fallo si se reintenta: perder esta escritura es
+       regalar el descuento de nuevo. */
     encolarCupon(codigo, uid);
     console.error('[cupon] no se pudo apartar', e && e.code);
   }
@@ -4846,7 +4978,12 @@ async function reintentarCuponesPendientes() {
       await db_cat.collection('coupons').doc(c.codigo)
         .collection('redemptions').doc(c.uid)
         .set({ status: 'apartado', at: new Date().toISOString() });
-    } catch (e) { quedan.push(c); }
+    } catch (e) {
+      /* Igual que al apartarlo: permission-denied significa que la ficha
+         ya existe y no hay nada que reintentar. Sin esto, una reserva vieja
+         se queda una semana entera reintentandose en cada visita. */
+      if (!(e && e.code === 'permission-denied')) quedan.push(c);
+    }
   }
   try {
     if (quedan.length) localStorage.setItem(CUPONES_PENDIENTES, JSON.stringify(quedan));

@@ -60,6 +60,7 @@ volvé a correrlo y ya.
 | `auditar-puntos-y-descuentos.js` | La aritmética de puntos y descuentos |
 | `probar-cupon-un-solo-uso.js` | El cupón no se puede usar dos veces |
 | `probar-cupon-por-producto.js` | El descuento se calcula sobre su línea |
+| `probar-promo-de-productos.js` | El aviso de promoción y el cupón reutilizable |
 | `probar-devolucion-de-canjes.js` | Se pueden devolver canjes ya resueltos |
 | `probar-cancelar-pedido.js` | Cancelar un pedido lo deshace TODO |
 | `probar-datos-en-perfil.js` | El pedido deja teléfono y dirección guardados |
@@ -182,6 +183,40 @@ pasando, porque en Chromium con la ruta de `wa.me` interceptada la página
 no se congela. Quien caza el fallo es la **parte estructural**: lee
 `catalogo.html` y exige que el pedido, el cupón y el perfil se esperen
 antes de la navegación. Esa sí falla al quitar el arreglo.
+
+## probar-promo-de-productos.js — el aviso de promoción
+
+```
+npm run seed && node herramientas/probar-promo-de-productos.js
+```
+
+Nació de tres cosas que reportó Jesús probando su primera promoción de
+productos, y una cuarta que notó sin poder nombrarla:
+
+1. **"No le da acceso al cliente de ver primero cuáles productos son."**
+   El aviso solo mostraba foto y nombre si el cupón era de UN producto.
+   Con varios decía *"en productos seleccionados"* y nada más, así que
+   nadie podía decidir si le servía.
+2. **El descuento en la factura.** Lo grave no era la demora: la factura
+   calculaba el porcentaje sobre el **pedido entero** aunque el cupón
+   fuera de un producto. Un 20% sobre un camarón de ₡17.000 dentro de un
+   pedido de ₡54.000 descontaba **₡10.800 en vez de ₡3.400**. El sitio ya
+   lo hacía bien; era la factura la que regalaba plata.
+3. **"No le aplica el descuento nuevamente."** El formulario creaba los
+   cupones con *1 uso por cliente*, y una promoción se arma justo para lo
+   contrario.
+4. **"En ocasiones sale y otras no."** Salía una vez por persona y nunca
+   más. Ahora vuelve **una vez al día**.
+
+La prueba recorre las seis: que el aviso liste los productos con foto y
+precio, que el botón filtre el catálogo a esos productos y se pueda
+volver, que el descuento salga de su línea, que el mismo cliente lo use
+tres veces seguidas, que el aviso vuelva al día siguiente, y que la
+factura de Jesús calcule sobre la línea y no sobre el pedido.
+
+**Ojo con el `load`:** el aviso se dispara 1,2 s *después* del load. Con
+una pausa fija, la comprobación de "no vuelve a salir" pasaba sola aunque
+el aviso ni se hubiera ejecutado. Por eso se espera el evento de verdad.
 
 ## probar-formulario-pedido.js — llenar el pedido sin pelear
 

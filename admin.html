@@ -2335,8 +2335,11 @@
               <input type="number" class="config-input" id="cup-limit" step="1" value="-1">
             </div>
             <div style="flex:1;min-width:140px">
-              <label class="config-label">Usos por cliente (0 = sin limite)</label>
+              <label class="config-label">Usos por cliente
+                <span class="help-tip" data-tip="Cuántas veces puede usarlo LA MISMA persona. Poné 0 para que lo pueda usar todas las veces que quiera mientras el cupón esté vigente — es lo que se necesita para una promoción de un producto que querés mover.">?</span>
+              </label>
               <input type="number" class="config-input" id="cup-peruser" min="0" step="1" value="1">
+              <div id="cup-peruser-nota" style="font-size:0.68rem;color:#7a95aa;margin-top:0.3rem;line-height:1.5"></div>
             </div>
           </div>
 
@@ -2364,7 +2367,7 @@
             </div>
             <div class="toggle-row" style="margin-top:0.6rem">
               <span class="toggle-label">Avisar al entrar al catálogo
-                <span class="help-tip" data-tip="Sale una vez por persona, con la foto del producto si el cupón es de uno solo. El botón deja el código guardado para su pedido. Solo puede haber uno a la vez.">?</span>
+                <span class="help-tip" data-tip="Sale una vez al día, con la foto y el precio de cada producto del cupón. El botón deja el código guardado y filtra el catálogo a esos productos. Solo puede haber uno a la vez.">?</span>
               </span>
               <label class="toggle"><input type="checkbox" id="cup-promo"><span class="toggle-slider"></span></label>
             </div>
@@ -4851,6 +4854,9 @@ function openInvoice(orderId) {
     numberAssigned: !!savedNumber,
     issuedAt: (saved && saved.issuedAt) || new Date().toISOString(),
     items: sourceItems.map(i => ({
+      // El id se guarda aunque la factura no lo muestre: sin el no se
+      // puede saber a que lineas aplica un cupon de productos.
+      id:      (i.id !== undefined && i.id !== null) ? i.id : null,
       name:    i.name || 'Producto',
       unit:    i.unit || '',
       qty:     invNum(i.qty, 1),
@@ -8721,12 +8727,32 @@ function cupForm() {
   };
 }
 
+/* Una promocion de catalogo se arma para que el producto se pida VARIAS
+   veces. Con el "1 por cliente" que trae el formulario por defecto, la
+   segunda vez ya no aplicaba y parecia roto — le paso a Jesus. Al
+   encenderla se pasa a sin limite, y se dice por que. */
+function ajustarUsosDePromo() {
+  const f = cupForm();
+  const nota = document.getElementById('cup-peruser-nota');
+  if (!f.promo || !f.peruser) return;
+  if (f.promo.checked && parseInt(f.peruser.value, 10) === 1) {
+    f.peruser.value = 0;
+  }
+  if (!nota) return;
+  const v = parseInt(f.peruser.value, 10) || 0;
+  nota.textContent = v === 0
+    ? 'Sin límite: cada cliente lo puede usar todas las veces que quiera mientras esté vigente.'
+    : 'Cada cliente lo puede usar ' + v + (v === 1 ? ' vez.' : ' veces.');
+  nota.style.color = v === 0 ? '#6fe0a0' : '#7a95aa';
+}
+
 /* Un cupon mal armado se detecta cuando ya lo uso un cliente. Este texto
    dice en castellano lo que va a pasar, antes de guardarlo. */
 function actualizarPreviewCupon() {
   const f = cupForm();
   const el = document.getElementById('cup-preview');
   if (!el) return;
+  ajustarUsosDePromo();
 
   const esPct = f.type.value === 'percent';
   document.getElementById('cup-value-label').textContent = esPct ? 'Porcentaje' : 'Monto en colones';
@@ -8747,11 +8773,19 @@ function actualizarPreviewCupon() {
     (esPct && max > 0 ? ' · tope ' + fmt(max) : '');
 }
 
-['cup-type','cup-value','cup-min','cup-max'].forEach(function (id) {
+/* cup-peruser va en la lista para que la nota de abajo ("sin límite" /
+   "2 veces") se actualice mientras se escribe. */
+['cup-type','cup-value','cup-min','cup-max','cup-peruser'].forEach(function (id) {
   const el = document.getElementById(id);
   if (el) el.addEventListener('input', actualizarPreviewCupon);
 });
 document.getElementById('cup-type').addEventListener('change', actualizarPreviewCupon);
+/* Los interruptores tambien: encender "avisar en el catalogo" es lo que
+   pasa el cupon a sin limite por cliente. */
+['cup-promo','cup-first','cup-welcome','cup-active'].forEach(function (id) {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('change', actualizarPreviewCupon);
+});
 
 function resetCuponForm() {
   const f = cupForm();
@@ -9061,17 +9095,31 @@ async function completarDescuentoDelCupon() {
     if (!d.exists) return;
     const c = d.data();
 
-    const sub = (invoiceState.items || []).reduce(function (a, it) {
-      return a + invNum(it.qty, 0) * invNum(it.price, 0);
-    }, 0);
+    const linea = it => invNum(it.qty, 0) * invNum(it.price, 0);
+    const sub = (invoiceState.items || []).reduce((a, it) => a + linea(it), 0);
+
+    /* Si el cupon esta atado a productos, la base son SOLO esas lineas.
+       Sin esto la factura le calculaba el porcentaje al pedido entero: un
+       cupon del 20% sobre un camaron de ₡12.000 dentro de un pedido de
+       ₡50.000 descontaba ₡10.000 en vez de ₡2.400. El sitio ya lo hacia
+       bien; era la factura la que regalaba plata. */
+    const ids = Array.isArray(c.productIds) ? c.productIds : [];
+    let base = sub, soloProductos = false;
+    if (ids.length) {
+      soloProductos = true;
+      base = (invoiceState.items || []).reduce(
+        (a, it) => (it.id !== null && ids.indexOf(it.id) >= 0) ? a + linea(it) : a, 0);
+      if (base <= 0) return;   // ninguna linea del cupon: no se descuenta nada
+    }
 
     let desc = c.type === 'percent'
-      ? Math.round(sub * (invNum(c.value, 0) / 100))
+      ? Math.round(base * (invNum(c.value, 0) / 100))
       : invNum(c.value, 0);
     if (c.type === 'percent' && invNum(c.maxDiscount, 0) > 0) {
       desc = Math.min(desc, invNum(c.maxDiscount, 0));
     }
-    desc = Math.min(desc, sub);        // nunca mas que el pedido
+    // Un monto fijo tampoco puede pasarse de lo que valen esas lineas.
+    desc = Math.min(desc, soloProductos ? base : sub);
     if (desc <= 0) return;
 
     invoiceState.discount = desc;
@@ -9123,7 +9171,19 @@ async function devolverCuponDelPedido(orderId) {
     const marca = await cRef.collection('orders').doc(orderId).get();
 
     await cRef.collection('orders').doc(orderId).delete().catch(function () {});
-    if (o.uid) await cRef.collection('redemptions').doc(o.uid).delete().catch(function () {});
+    /* Se RESTA un uso, no se borra la ficha. Borrandola, un cupon de
+       "3 por cliente" perdia la cuenta entera cada vez que se caia un
+       pedido, y el cliente volvia a tener sus tres. Solo se borra cuando
+       la cuenta llega a cero. */
+    if (o.uid) {
+      const uRef = cRef.collection('redemptions').doc(o.uid);
+      try {
+        const u = await uRef.get();
+        const quedan = (Number((u.data() || {}).count) || 0) - 1;
+        if (u.exists && quedan > 0) await uRef.update({ count: quedan });
+        else await uRef.delete().catch(function () {});
+      } catch (e) { await uRef.delete().catch(function () {}); }
+    }
 
     // Solo se descuenta si de verdad se habia contado.
     if (marca.exists) {
