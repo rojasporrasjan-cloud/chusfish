@@ -879,6 +879,10 @@
         uid:CF.user.uid,
         userName:pf.name||CF.user.displayName||'',
         userPhone:pf.phone||'',
+        /* La direccion viaja con el canje para que Jesus pueda coordinar la
+           entrega sin ir a buscarla a otra pantalla. Las reglas no limitan
+           que campos se mandan, asi que no hay que tocarlas. */
+        userAddress:pf.address||'',
         userEmail:pf.email||CF.user.email||'',
         rewardId:r.id, rewardName:r.name||'',
         cost:costo,

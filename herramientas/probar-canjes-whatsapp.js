@@ -111,6 +111,7 @@ const api = (r, o) => fetch(D + r, Object.assign(
   const msgs = await pa.evaluate(() => {
     const r = { userName: 'Maria Rodriguez', userPhone: '88881111',
                 rewardName: '1/2 kg de Camarón', cost: 4250,
+                userAddress: 'Escazú, del super 200 sur',
                 adminNote: 'Se nos acabó por hoy' };
     const leer = st => {
       const url = waCanjeLink(r, st);
@@ -128,8 +129,16 @@ const api = (r, o) => fetch(D + r, Object.assign(
     console.log('    ── ' + st + ' ──');
     msgs[st].txt.split('\n').forEach(l => console.log('       ' + l));
   }
-  chk('el aprobado dice que va con el proximo pedido',
-      /próximo pedido/i.test(msgs.aprobado.txt));
+  /* El aprobado es el mensaje que COORDINA: sin esto Jesus terminaba
+     escribiendo a mano la pregunta de siempre, para cuando se lo lleva. */
+  chk('el aprobado PIDE LA FECHA', /qué día te sirve/i.test(msgs.aprobado.txt),
+      'es lo que Jesus escribia a mano');
+  chk('y pide confirmar la direccion', /direcci[oó]n/i.test(msgs.aprobado.txt));
+  chk('y la propone, si la sabe', /Escazú, del super 200 sur/.test(msgs.aprobado.txt),
+      'sale del perfil, guardada con el canje');
+  chk('dice que el envio no cuesta', /sin costo de env/i.test(msgs.aprobado.txt));
+  chk('el solicitado ya adelanta la coordinacion',
+      /qué día te sirve/i.test(msgs.solicitado.txt));
   chk('el aprobado nombra el premio y los puntos',
       /Camarón/.test(msgs.aprobado.txt) && /4.250 puntos/.test(msgs.aprobado.txt));
   chk('el rechazado dice que se devolvieron los puntos',

@@ -8393,10 +8393,16 @@ function mensajeCanje(r, st) {
   var ptsTxt = pts ? ' (' + pts.toLocaleString('es-CR') + ' puntos)' : '';
 
   if (st === 'aprobado') {
+    /* Este es el mensaje que COORDINA. Antes solo avisaba, y Jesus
+       terminaba escribiendo a mano la pregunta de siempre: para cuando
+       se lo llevo y a que direccion. */
     return nombre + '! 🦀 Tu canje en *Chus\'s Fish* quedó *aprobado*.\n\n' +
       '🎁 *' + premio + '*' + ptsTxt + '\n\n' +
-      'Te lo llevamos junto con tu próximo pedido, sin costo de envío adicional.\n' +
-      '¡Gracias por seguir comprando con nosotros! 🐟';
+      'Te lo llevamos sin costo de envío, junto con un pedido tuyo.\n\n' +
+      '📅 ¿Qué día te sirve que te lo llevemos?\n' +
+      '📍 Confirmanos también la dirección' +
+      (r.userAddress ? ' (¿sigue siendo _' + r.userAddress + '_?)' : '') + '\n\n' +
+      'Apenas nos decis, lo dejamos apartado. 🐟';
   }
   if (st === 'entregado') {
     return nombre + '! 🐟 Ya te entregamos *' + premio + '*' + ptsTxt + '.\n\n' +
@@ -8411,7 +8417,9 @@ function mensajeCanje(r, st) {
   }
   // solicitado, o cualquier otro estado
   return nombre + '! 🐟 Recibimos tu canje de *' + premio + '*' + ptsTxt +
-    ' en *Chus\'s Fish*.\n\nLo estamos revisando y te confirmamos en breve.';
+    ' en *Chus\'s Fish*.\n\n' +
+    'Lo estamos revisando y te confirmamos en breve. Si ya sabés qué día te ' +
+    'sirve que te lo llevemos, decinos y lo vamos coordinando. 📅';
 }
 
 function waCanjeLink(r, st) {
