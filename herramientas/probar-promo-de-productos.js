@@ -103,10 +103,17 @@ const COD = 'PROMOPROD';
      los fallos. Se sondea hasta 25s. */
   const esperarAviso = async (seg = 25) => {
     for (let i = 0; i < seg * 2; i++) {
-      if (await p.evaluate(() => {
-        const ov = document.getElementById('promo-ov');
-        return !!ov && ov.classList.contains('open');
-      })) return true;
+      try {
+        if (await p.evaluate(() => {
+          const ov = document.getElementById('promo-ov');
+          return !!ov && ov.classList.contains('open');
+        })) return true;
+      } catch (e) {
+        /* "Execution context was destroyed": la pagina estaba navegando
+           justo en este sondeo. No es un fallo, es que llegamos temprano;
+           se sigue sondeando. Sin esto la prueba se caia entera. */
+        if (!/context was destroyed|Target closed/i.test(String(e && e.message))) throw e;
+      }
       await pausa(500);
     }
     return false;
@@ -206,8 +213,14 @@ const COD = 'PROMOPROD';
   await pausa(4000);
 
   async function pedir() {
-    await p.goto('http://localhost:5000/catalogo.html', { waitUntil: 'commit', timeout: 60000 });
-    await pausa(9000);
+    /* irAlCatalogo + esperar PRODUCTS, no una pausa de 9s a ojo: cuando el
+       servidor local corta una conexion la pagina llega sin sus scripts y
+       esto reventaba con "PRODUCTS is not defined" a mitad de la prueba. */
+    await irAlCatalogo();
+    await p.waitForFunction(
+      () => typeof PRODUCTS !== 'undefined' && PRODUCTS.length > 0 &&
+            typeof addToCart === 'function' && typeof openCartOrderForm === 'function',
+      { timeout: 30000 });
     const r = await p.evaluate(async d => {
       const ov = document.getElementById('promo-ov');
       if (ov && ov.classList.contains('open')) document.getElementById('promo-no').click();
@@ -344,7 +357,14 @@ const COD = 'PROMOPROD';
        vio: la factura recalculando el descuento a partir del cupon. */
     o.discount = { code: d.cod, type: 'percent', value: 20, amount: 0 };
     openInvoice(o.id);
-    await new Promise(k => setTimeout(k, 3500));
+    /* Se ESPERA a que el descuento aparezca: la factura lee el cupon de
+       Firestore para recalcularlo, y con el emulador cargado eso tarda mas
+       que cualquier pausa que se ponga a ojo. Con 3,5s fijos la prueba
+       fallaba a ratos con "puso ₡0". */
+    for (let i = 0; i < 40; i++) {
+      if (Number(invoiceState.discount) > 0) break;
+      await new Promise(k => setTimeout(k, 500));
+    }
     return { sub, enPromo, campo: document.getElementById('inv-discount').value,
              estado: invoiceState.discount };
   }, { ids: elegidos.map(e => e.id), cod: COD,

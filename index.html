@@ -368,6 +368,13 @@
       animation: fade-up 1s 0.8s forwards;
       text-shadow: 0 1px 12px rgba(0,0,0,0.5);
     }
+    .hero-nota {
+      margin-top: 1.1rem; font-size: 0.72rem; color: var(--muted);
+      line-height: 1.6; opacity: 0; animation: fade-up 1s 1.2s forwards;
+    }
+    .hero-nota b { color: var(--gold-lt); font-weight: 600; }
+    .hero-nota:empty { display: none; animation: none; }
+
     .hero-actions {
       display: flex;
       gap: 1.2rem;
@@ -1381,6 +1388,11 @@
         Descargar App
       </button>
     </div>
+
+    <!-- Debajo de los botones: lo que alguien duda antes de tocar
+         "Ver catalogo". Se arma con la CONFIGURACION real, no a mano:
+         si Jesus algun dia cobra envio, deja de prometerlo gratis solo. -->
+    <p class="hero-nota" id="hero-nota"></p>
   </div>
 
   <div class="hero-scroll">
@@ -1792,11 +1804,38 @@
   }
 
   /* ── Banner de cierre / horario (desde Firestore) ── */
+  /* La linea de debajo de "Ver catalogo". Sale de la CONFIGURACION para
+     que no prometa nada que no sea cierto: si alguna zona cobra envio, no
+     dice "envio gratis".
+
+     Vive aca y no escrita en el HTML porque el envio es un dato que Jesus
+     cambia desde el panel, y un texto a mano se quedaria viejo sin que
+     nadie se de cuenta. */
+  function pintarNotaDelHero(cfg) {
+    const el = document.getElementById('hero-nota');
+    if (!el) return;
+
+    const zonas = Array.isArray(cfg.zones)
+      ? cfg.zones.filter(function (z) { return z.active !== false; })
+      : [];
+    const base = Number(cfg.shippingFee) || 0;
+    const gratis = base === 0 && zonas.length > 0 &&
+      zonas.every(function (z) { return (Number(z.price) || 0) === 0; });
+
+    const partes = [];
+    if (gratis) partes.push('<b>Env\u00edo gratis</b> en todas nuestras zonas');
+    partes.push('coordinamos la entrega por WhatsApp');
+
+    const txt = partes.join(' \u00b7 ');
+    el.innerHTML = txt.charAt(0).toUpperCase() + txt.slice(1);
+  }
+
   (async function loadBanner() {
     try {
       const snap = await _db.collection('chusfish').doc('config').get();
       if (!snap.exists) return;
       const cfg = snap.data();
+      pintarNotaDelHero(cfg);
       // Un solo sitio decide que va en el banner (o si no va nada).
       const _txtBanner = await textoDelBanner(cfg);
       if (_txtBanner) {

@@ -1243,9 +1243,16 @@
     .inv-totals { display: flex; justify-content: flex-end; padding: 16px 34px 0; }
     .inv-totals-inner { width: 280px; }
     .inv-total-line {
-      display: flex; justify-content: space-between;
+      display: flex; justify-content: space-between; align-items: baseline;
+      gap: 14px;
       font-size: 11px; color: #4a5f75; padding: 5px 0;
     }
+    /* El monto NUNCA se parte. Con un cupon sobre un producto de nombre
+       largo la etiqueta ocupa dos lineas y el importe quedaba cortado:
+       el "-" arriba y el "₡3.400" abajo. La etiqueta envuelve, el
+       numero no. */
+    .inv-total-line > span:first-child { flex: 1; min-width: 0; line-height: 1.45; }
+    .inv-total-line > span:last-child { white-space: nowrap; flex-shrink: 0; }
     .inv-total-line.discount { color: #1e7d4f; }
     .inv-grand {
       display: flex; justify-content: space-between; align-items: baseline;
@@ -4272,8 +4279,13 @@ function renderOrders() {
     const payment = o.customer?.payment || o.payment || '';
     const deliveryHtml = fecha ? `<span class="order-delivery">📅 ${esc(fecha)}</span>` : '';
     const zoneHtml = zone ? `· 📍 ${esc(zone)}` : '';
+    /* waPhone SIEMPRE devuelve '506' + los digitos, asi que un pedido sin
+       telefono daba 'https://wa.me/506': un chat con un numero invalido.
+       Se mira si hay digitos, no el resultado. */
     const cleanPhone = waPhone(phone);
-    const waDirectLink = `https://wa.me/${cleanPhone}`;
+    const hayTel = String(phone || '').replace(/[^0-9]/g, '') !== '';
+    const waBase = hayTel ? 'https://wa.me/' + cleanPhone : 'https://web.whatsapp.com/';
+    const waDirectLink = waBase;
 
     const deliveryFee = parseFloat(o.deliveryFee) || 0;
     const deliveryFeeHtml = deliveryFee > 0 ? `<div class="order-client-meta" style="margin-top:2px;color:var(--gold)">🛵 Envío: ₡${Math.round(deliveryFee).toLocaleString()}</div>` : '';
@@ -4323,7 +4335,9 @@ function renderOrders() {
       `${emojiMoney} *Total a pagar:* *₡${Math.round(orderTotal).toLocaleString()}*\n` +
       `━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
       `¡Muchas gracias por su preferencia! ${emojiWave}${emojiFish}`;
-    const waInvoiceLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(invoiceMsg)}`;
+    const waInvoiceLink = hayTel
+      ? waBase + '?text=' + encodeURIComponent(invoiceMsg)
+      : waBase;
 
     // Lo primero de la fila: cuanto va a ganar el cliente. Va antes que
     // los botones porque es informacion para decidir, no una accion.
@@ -4334,14 +4348,17 @@ function renderOrders() {
     if (!o.uid && o.status !== "cancelado") {
       actions.push(`<button class="order-act-btn order-act-wa" style="color:#f39c12;border-color:rgba(243,156,18,0.35)" onclick="abrirLigar('${o.id}')">Ligar a cuenta</button>`);
     }
-    if (o.status === 'pendiente') actions.push(`<a class="order-act-btn order-act-confirm" href="${waConfirmLink}" target="_blank" onclick="setOrderStatus('${o.id}','confirmado')">✓ Confirmar + WA</a>`);
-    if (o.status === 'confirmado') actions.push(`<button class="order-act-btn order-act-deliver" style="color:#9b59b6;border-color:rgba(142,68,173,0.3)" onclick="setOrderStatus('${o.id}','en_camino')">En camino</button>`);
-    if (o.status === 'en_camino') actions.push(`<button class="order-act-btn order-act-deliver" onclick="setOrderStatus('${o.id}','entregado')">Entregado</button>`);
+    if (o.status === 'pendiente') actions.push(`<a class="order-act-btn order-act-confirm" href="${waPedidoLink(o,'confirmado')}" target="_blank" onclick="setOrderStatus('${o.id}','confirmado')">✓ Confirmar</a>`);
+    if (o.status === 'confirmado') actions.push(`<a class="order-act-btn order-act-deliver" style="color:#9b59b6;border-color:rgba(142,68,173,0.3)" href="${waPedidoLink(o,'en_camino')}" target="_blank" onclick="setOrderStatus('${o.id}','en_camino')">En camino</a>`);
+    if (o.status === 'en_camino') actions.push(`<a class="order-act-btn order-act-deliver" href="${waPedidoLink(o,'entregado')}" target="_blank" onclick="setOrderStatus('${o.id}','entregado')">Entregado</a>`);
     if (o.status !== 'cancelado' && o.status !== 'entregado') actions.push(`<button class="order-act-btn order-act-cancel" onclick="setOrderStatus('${o.id}','cancelado')">Cancelar</button>`);
     actions.push(`<button class="order-act-btn order-act-wa" style="color:var(--gold);border-color:rgba(200,169,110,0.3)" onclick="openEditOrder('${o.id}')">✏️ Editar</button>`);
-    actions.push(`<a class="order-act-btn order-act-wa" href="${waDirectLink}" target="_blank">💬 WA</a>`);
+    /* El WA de siempre, pero con el texto del estado en que esta el
+       pedido. Asi despues de cancelar hay algo que mandar, y cualquier
+       camino que tome Jesus tiene su mensaje. */
+    /* Se quito: el boton 💬 WA (el de confirmar ya manda el mensaje) */
     actions.push(`<button class="order-act-btn order-act-invoice" onclick="openInvoice('${o.id}')">🧾 Factura</button>`);
-    actions.push(`<a class="order-act-btn order-act-wa" href="${waInvoiceLink}" target="_blank">📄 Texto WA</a>`);
+    /* Se quito: el boton 📄 Texto WA (la factura en imagen lo reemplaza) */
     /* Borrar va al final y separado del resto: es lo unico de esta fila
        que no tiene vuelta atras. Cancelar deja el pedido a la vista; esto
        lo hace desaparecer. */
@@ -4646,6 +4663,54 @@ async function saveEditOrder() {
   } finally {
     btn.disabled = false; btn.textContent = 'Guardar Cambios';
   }
+}
+
+/* ── El mensaje de WhatsApp de cada paso del pedido ──────────
+   Antes solo "confirmado" llevaba texto: los otros botones cambiaban el
+   estado y ya, asi que avisar que el pedido iba en camino o que quedaba
+   entregado habia que escribirlo a mano cada vez.
+
+   OJO: esto ABRE WhatsApp con el mensaje escrito; mandarlo lo hace
+   Jesus. Enviar solo, sin que nadie toque nada, necesita la API de
+   WhatsApp Business, que es otra cosa y se paga. */
+function mensajePedido(o, estado) {
+  var c = o.customer || {};
+  var nombre = String(c.name || o.name || '').trim().split(/\s+/)[0] || 'Hola';
+  var fecha = c.fecha || o.fecha || '';
+
+  if (estado === 'en_camino') {
+    return nombre + '! \u{1F6F5} Tu pedido de *Chus\'s Fish* ya va *en camino*.' +
+      (fecha ? '\n\n\u{1F4C5} Entrega: ' + fecha : '') +
+      '\n\nTe escribimos apenas estemos llegando. \u{1F41F}';
+  }
+  if (estado === 'entregado') {
+    return nombre + '! \u{1F41F} Tu pedido de *Chus\'s Fish* quedo *entregado*.\n\n' +
+      '\u00a1Gracias por tu preferencia! Si algo no vino como esperabas, escribinos ' +
+      'y lo arreglamos. \u{1F980}';
+  }
+  if (estado === 'cancelado') {
+    return nombre + '! \u{1F41F} Te escribimos de *Chus\'s Fish* por tu pedido.\n\n' +
+      'Lamentablemente tuvimos que *cancelarlo*.' +
+      '\n\nSi queres, lo volvemos a armar cuando gustes. Perdon por la molestia \u{1F64F}';
+  }
+  /* confirmado. Corto a proposito: el detalle y el monto de verdad van
+     despues en la factura, que es una imagen y se lee mejor. Repetir
+     aca la lista de productos solo alarga un mensaje que la persona lee
+     en el celular. */
+  return nombre + '! \u{1F41F} Tu pedido en *Chus\'s Fish* qued\u00f3 *confirmado*.' +
+    (fecha ? '\n\n\u{1F4C5} Entrega: ' + fecha : '') +
+    '\n\nEn breve lo preparamos y te confirmamos el monto final seg\u00fan el peso.\n' +
+    '\u00a1Gracias por tu preferencia! \u{1F980}';
+}
+
+function waPedidoLink(o, estado) {
+  /* waPhone SIEMPRE devuelve '506' + los digitos: sin telefono daba
+     '506' y el boton abria un chat con un numero invalido. */
+  var c = o.customer || {};
+  var digitos = String(c.phone || o.phone || '').replace(/[^0-9]/g, '');
+  if (!digitos) return 'https://web.whatsapp.com/';
+  return 'https://wa.me/' + waPhone(c.phone || o.phone) +
+         '?text=' + encodeURIComponent(mensajePedido(o, estado));
 }
 
 async function setOrderStatus(id, status) {
