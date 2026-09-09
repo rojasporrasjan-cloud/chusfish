@@ -183,6 +183,19 @@
     .section-title em { font-style: italic; color: var(--gold); }
     .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
     .dash-panel { background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius); padding: 1.4rem; }
+    .dash-grid-1 { grid-template-columns: 1fr; }
+    /* El titulillo que separa los numeros del negocio de los de La
+       Reserva. Sin el, la segunda fila parecia una continuacion rota. */
+    .dash-sec { font-size: .6rem; letter-spacing: .24em; text-transform: uppercase;
+      color: var(--gold); font-weight: 700; margin: .2rem 0 .9rem; }
+    /* Las etiquetas de dos palabras se partian y descuadraban la fila. */
+    .stat-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* El numero del mes, mas grande que los otros tres: si solo se mira
+       una cosa al abrir el panel, que sea esa. */
+    .stat-hero { grid-column: span 2; }
+    .stat-hero .stat-value { font-size: 2.4rem; }
+    .stat-hero .stat-label { color: var(--gold); }
+    @media (max-width: 720px) { .stat-hero { grid-column: span 1; } }
 
     /* ═══ GRAFICAS ═══════════════════════════════════════════════
        El dorado de la marca (#c8a96e) NO sirve como color de datos: sobre
@@ -1688,6 +1701,7 @@
         <div class="stats-grid" id="stats-grid"></div>
         <!-- Fidelidad: sin esto el programa de puntos era invisible desde el
              Dashboard y habia que entrar a tres secciones para saber como iba -->
+        <div class="dash-sec" id="sec-fidelidad" style="display:none">La Reserva</div>
         <div class="stats-grid" id="stats-fidelidad" style="display:none"></div>
         <!-- ═══ LO QUE VENDE LA PAGINA ═══════════════════════════
              Antes el dashboard contaba PRODUCTOS —cuantos hay, cuantos sin
@@ -1746,11 +1760,10 @@
           </div>
         </div>
 
-        <div class="dash-grid">
-          <div class="dash-panel">
-            <div class="panel-title">Productos por categoría</div>
-            <div id="cat-bars"></div>
-          </div>
+        <!-- "Productos por categoria" se fue: contaba cuantos productos
+             hay de cada tipo, que es inventario. "Ventas por categoria",
+             arriba, dice de cual sale la plata — que es la pregunta. -->
+        <div class="dash-grid dash-grid-1">
           <div class="dash-panel">
             <div class="panel-title">Acciones rápidas</div>
             <div class="quick-actions">
@@ -3924,35 +3937,40 @@ function renderVisualizaciones() {
 }
 
 function renderDashboard() {
-  const total      = products.length;
-  const noImg      = products.filter(p => !p.img).length;
-  const noPrice    = products.filter(p => p.price === null || p.price === undefined).length;
-  const preorder   = products.filter(p => p.preorder).length;
-  const categories = CAT_ORDER.filter(c => products.some(p => p.cat === c)).length;
+  /* Las cuentas de inventario (sin foto, sin precio, cuantas categorias)
+     se fueron con las tarjetas viejas: viven en la seccion de Productos,
+     que es donde se arreglan. */
 
   const pendingOrders = orders.filter(o => o.status === 'pendiente').length;
   const unavail = products.filter(p => p.available === false).length;
+
+  /* ═══ LO PRIMERO QUE SE VE ═════════════════════════════════════
+     Antes eran cinco tarjetas de INVENTARIO: cuantos productos hay,
+     cuantos sin foto, cuantas categorias. Eso no es como va el negocio,
+     y ademas ya vive en la seccion de Productos.
+
+     Ahora son cuatro numeros de negocio, y el primero es el mes en
+     curso, mas grande que el resto: si Jesus solo mira una cosa al
+     abrir el panel, que sea esa. */
+  const d = vizDatos();
+  const hoy = new Date();
+  const desdeMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const delMes = (orders || []).filter(o => VIZ_VENDIDOS.indexOf(o.status) >= 0)
+    .filter(o => { const f = vizFecha(o); return f && f >= desdeMes; });
+  const ventasMes = delMes.reduce((a, o) => a + orderAmountForPoints(o), 0);
+  const ticket = delMes.length ? Math.round(ventasMes / delMes.length) : 0;
+  const mesTxt = hoy.toLocaleDateString('es-CR', { month: 'long' });
+
   document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card stat-hero"><div class="stat-label">Ventas de ${mesTxt}</div><div class="stat-value gold">${fmt(Math.round(ventasMes))}</div><div class="stat-sub">${delMes.length} ${delMes.length === 1 ? 'pedido' : 'pedidos'} confirmados</div></div>
     <div class="stat-card" style="cursor:pointer" onclick="showView('pedidos')"><div class="stat-label">Pedidos pendientes</div><div class="stat-value amber">${pendingOrders}</div><div class="stat-sub">por confirmar</div></div>
-    <div class="stat-card"><div class="stat-label">Total productos</div><div class="stat-value gold">${total}</div><div class="stat-sub">en el catálogo</div></div>
-    <div class="stat-card"><div class="stat-label">No disponibles</div><div class="stat-value red">${unavail}</div><div class="stat-sub">agotados esta semana</div></div>
-    <div class="stat-card"><div class="stat-label">Sin imagen</div><div class="stat-value amber">${noImg}</div><div class="stat-sub">sin foto asignada</div></div>
-    <div class="stat-card"><div class="stat-label">Categorías</div><div class="stat-value green">${categories}</div><div class="stat-sub">activas</div></div>
+    <div class="stat-card"><div class="stat-label">Ticket promedio</div><div class="stat-value">${ticket ? fmt(ticket) : '—'}</div><div class="stat-sub">por pedido este mes</div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showView('productos')"><div class="stat-label">Agotados</div><div class="stat-value ${unavail ? 'red' : 'green'}">${unavail}</div><div class="stat-sub">${unavail ? 'hay que reponer' : 'todo disponible'}</div></div>
   `;
 
   renderFidelidadKPIs();
   renderVisualizaciones();
 
-  const maxCount = Math.max(...CAT_ORDER.map(c => products.filter(p => p.cat === c).length), 1);
-  document.getElementById('cat-bars').innerHTML = CAT_ORDER.map(cat => {
-    const count = products.filter(p => p.cat === cat).length;
-    const pct   = Math.round((count / maxCount) * 100);
-    return `<div class="cat-bar-row">
-      <span class="cat-bar-label">${CAT_NAMES[cat]}</span>
-      <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%"></div></div>
-      <span class="cat-bar-count">${count}</span>
-    </div>`;
-  }).join('');
 }
 
 /* ════════════════════════════════════════════
@@ -4497,7 +4515,10 @@ function toggleGuide() {
 
 // Restaurar estado de la guía
 (function() {
-  const open = localStorage.getItem('chusfish_guide_open') !== '0';
+  /* Cerrada por defecto. Antes se abria sola y se comia el 18% del
+     dashboard con instrucciones que Jesus ya se sabe. Si alguien la
+     abre, se le respeta: la preferencia se guarda igual. */
+  const open = localStorage.getItem('chusfish_guide_open') === '1';
   if (open) {
     const body = document.getElementById('guide-body');
     const icon = document.getElementById('guide-toggle-icon');
@@ -8608,7 +8629,12 @@ function renderFidelidadKPIs() {
   if (!box) return;
 
   // Todavia no llegaron los datos: mejor no mostrar ceros que asustan.
-  if (!cfUsers.length) { box.style.display = 'none'; return; }
+  const titulo = document.getElementById('sec-fidelidad');
+  if (!cfUsers.length) {
+    box.style.display = 'none';
+    if (titulo) titulo.style.display = 'none';
+    return;
+  }
 
   const clientes   = cfUsers.length;
   const conPuntos  = cfUsers.filter(u => (Number(u.points) || 0) > 0).length;
@@ -8623,6 +8649,7 @@ function renderFidelidadKPIs() {
   const alcanzaPara = masBarato ? Math.floor(pendientes / masBarato) : null;
 
   box.style.display = '';
+  if (titulo) titulo.style.display = '';
   box.innerHTML = `
     <div class="stat-card" style="cursor:pointer" onclick="showView('clientes')">
       <div class="stat-label">Clientes con cuenta</div>

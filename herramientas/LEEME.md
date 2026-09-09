@@ -72,6 +72,7 @@ volvé a correrlo y ya.
 | `probar-formulario-pedido.js` | El pedido se llena sin scrollear media hora |
 | `probar-carrito-atras.js` | El carrito no se duplica y el gesto de atras no saca del sitio |
 | `revisar-sintaxis.js` | ¿Compila el JS de las paginas? (2 segundos) |
+| `revisar-conexiones.js` | ¿Esta todo conectado? handlers que no existen, ids sin elemento |
 | `probar-guia.js` | La guía del perfil, en sus seis estados |
 | `probar-textos.js` | Lo que se promete es lo que de verdad pasa |
 | `probar-recorrido-completo.js` | Una persona de cero a canjear, con los números cuadrando |

@@ -12,6 +12,15 @@
 const { spawnSync } = require('child_process');
 const path = require('path');
 
+/* Estas dos NO tocan la base ni abren un navegador: leen los archivos.
+   Van PRIMERO y sin sembrar, porque tardan dos segundos y cazan lo que
+   si no descubririas a los quince minutos: un parentesis de mas, o una
+   funcion que se llama y no existe. */
+const ESTATICAS = [
+  ['revisar-sintaxis.js',   'compila el JS de las paginas'],
+  ['revisar-conexiones.js', 'esta todo conectado: handlers e ids'],
+];
+
 const PRUEBAS = [
   ['probar-reglas.js',              'las reglas de Firestore hacen lo que dicen'],
   ['probar-alta-admin.js',          'entrar con Google da el panel solo a quien debe'],
@@ -59,6 +68,22 @@ function sembrar() {
   const t0 = Date.now();
   const fallaron = [];
 
+  /* Primero las que no necesitan nada. Si un archivo no compila, no
+     tiene sentido arrancar el navegador diecinueve veces para ver
+     fallos en cascada que no dicen nada. */
+  for (const [archivo, que] of ESTATICAS) {
+    console.log('\n' + '='.repeat(66));
+    console.log('  ' + archivo + '  —  ' + que);
+    console.log('='.repeat(66));
+    if (correr('node', [path.join('herramientas', archivo)]) !== 0)
+      fallaron.push(archivo);
+  }
+  if (fallaron.length) {
+    console.log('\n  >>> hay algo roto en los archivos. Se para aca.');
+    fallaron.forEach(f => console.log('    · ' + f));
+    process.exit(1);
+  }
+
   for (const [archivo, que] of PRUEBAS) {
     console.log('\n' + '═'.repeat(66));
     console.log('  ' + archivo);
@@ -83,7 +108,7 @@ function sembrar() {
     console.log('  FALLARON ' + fallaron.length + ' de ' + PRUEBAS.length + ':');
     fallaron.forEach(f => console.log('    · ' + f));
   } else {
-    console.log('  LAS ' + PRUEBAS.length + ' PRUEBAS PASARON');
+    console.log('  LAS ' + (PRUEBAS.length + ESTATICAS.length) + ' PRUEBAS PASARON');
   }
   console.log('  (' + mins + ' minutos)');
   console.log('═'.repeat(66));
