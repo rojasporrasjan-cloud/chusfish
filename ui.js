@@ -610,6 +610,23 @@
     return true;
   }
 
+  /* Cambiar de capa SIN tocar el historial: se reutiliza la entrada que
+     ya habia. Es para pasar de una capa a otra —del carrito al
+     checkout, de la ficha al checkout— donde cerrar la primera con
+     history.back() y abrir la segunda con pushState SE PISAN: el back
+     es asincrono, llega DESPUES del push, y termina cerrando la capa
+     que se acababa de abrir. Eso dejaba el checkout sin abrirse y el
+     historial descuadrado, asi que el siguiente "atras" sacaba a la
+     persona del sitio.
+
+     Si no hay ninguna capa, empuja una normal. */
+  function reemplazarCapa(cerrar){
+    if (typeof cerrar !== 'function') return false;
+    if (!capas.length) { abrirCapa(cerrar); return true; }
+    capas[capas.length - 1] = cerrar;
+    return true;
+  }
+
   window.addEventListener('popstate', function(){
     var f = capas.pop();
     if (f) { try { f(); } catch (e) {} }
@@ -622,6 +639,7 @@
     refrescarCarrito: refrescarCarrito,
     abrirCapa: abrirCapa,
     cerrarCapa: cerrarCapa,
+    reemplazarCapa: reemplazarCapa,
     get CATS(){ return CATS; }
   };
 

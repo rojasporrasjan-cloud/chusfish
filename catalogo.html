@@ -95,7 +95,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="auth.js?v=16"></script>
-<script src="ui.js?v=17"></script>
+<script src="ui.js?v=18"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -731,11 +731,18 @@
     }
     .cart-qty-btn:hover { background: rgba(200,169,110,0.22); }
     .cart-qty-val { font-size: 0.88rem; color: var(--white); min-width: 20px; text-align: center; }
+    /* Antes era un caracter "·" de 1rem: no se leia como "quitar" y en el
+       telefono no habia donde darle. Ahora es una X de verdad, con un area
+       de toque de 30px. */
     .cart-remove {
       background: none; border: none; cursor: pointer; color: var(--muted);
-      font-size: 1rem; padding: 0.2rem; transition: color 0.2s; line-height: 1;
+      width: 30px; height: 30px; flex-shrink: 0; margin-left: 0.15rem;
+      display: grid; place-items: center; border-radius: 50%;
+      transition: color 0.2s, background 0.2s;
     }
-    .cart-remove:hover { color: #e74c3c; }
+    .cart-remove svg { width: 13px; height: 13px; }
+    .cart-remove:hover { color: #e74c3c; background: rgba(231,76,60,0.1); }
+    .cart-remove:active { background: rgba(231,76,60,0.18); }
     .cart-footer {
       padding: 1.2rem 1.6rem 1.6rem;
       border-top: 1px solid var(--glass-border);
@@ -3204,7 +3211,8 @@ document.getElementById('btn-add-cart').addEventListener('click', () => {
 btnWaDirect.addEventListener('click', () => {
   if (!currentProduct) return;
   addToCart(currentProduct, modalQty);
-  closeModal();
+  // Igual que en el carrito: se cierra a mano y el checkout hereda la capa.
+  cerrarFichaDirecto();
   openCartOrderForm();
 });
 
@@ -3317,6 +3325,16 @@ function restoreCart() {
     const saved = localStorage.getItem('chusfish_cart');
     if (!saved) return;
     const entries = JSON.parse(saved);
+    /* SE REEMPLAZA, no se agrega. Esta funcion corre DOS veces en
+       initCatalog(): una al pintar con el catalogo en cache y otra
+       cuando llegan los productos frescos de Firestore y son distintos.
+       Con push, cada producto quedaba duplicado — es lo que veia la
+       gente al volver atras desde el checkout en el telefono.
+
+       Vaciar es seguro: lo que se agrega al carrito se guarda en
+       localStorage en el acto (saveCart), asi que lo que se reconstruye
+       de ahi ya incluye todo. */
+    cart = [];
     entries.forEach(({ id, qty }) => {
       const p = PRODUCTS.find(x => x.id === id);
       if (p && p.available !== false) cart.push({ product: p, qty });
@@ -3421,7 +3439,11 @@ function renderCartUI() {
         <button class="cart-qty-btn" data-action="dec" data-id="${p.id}">−</button>
         <span class="cart-qty-val">${fmtQty(item.qty, p.unit)}</span>
         <button class="cart-qty-btn" data-action="inc" data-id="${p.id}">+</button>
-        <button class="cart-remove" data-action="remove" data-id="${p.id}" title="Eliminar">·</button>
+        <button class="cart-remove" data-action="remove" data-id="${p.id}"
+                title="Quitar del carrito" aria-label="Quitar ${p.name} del carrito">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
       </div>
     </div>`;
   }).join('');
@@ -3446,7 +3468,9 @@ function renderCartUI() {
 }
 
 document.getElementById('cart-wa-btn').addEventListener('click', function() {
-  closeCart();
+  /* cerrarCarritoDirecto, NO closeCart: este ultimo va por el historial
+     y su history.back() llegaria despues de abrir el checkout, cerrandolo. */
+  cerrarCarritoDirecto();
   openCartOrderForm();
   if (window.fbq) {
     const total = cart.reduce((s,i) => s + (i.product.price||0)*i.qty, 0);
@@ -4706,13 +4730,28 @@ function prepararYAbrirFormulario() {
 
   const ov = document.getElementById('order-form-overlay');
   ov.classList.add('open');
+  /* El checkout entra al historial. REEMPLAZA la capa de quien lo abrio
+     —el carrito o la ficha del producto—, que se cerro sin tocar el
+     historial justo antes. Empujar una capa nueva aqui descuadraba la
+     pila y el gesto de "atras" sacaba del sitio. */
+  if (window.CFUI && CFUI.reemplazarCapa) CFUI.reemplazarCapa(cerrarFormularioDirecto);
   document.body.style.overflow = 'hidden';
   setTimeout(() => document.getElementById('of-name').focus(), 420);
 }
 
+/* La llama la interfaz: pasa por el historial para que el gesto de
+   "atras" y la X hagan exactamente lo mismo. */
 function closeOrderForm() {
+  if (window.CFUI && CFUI.cerrarCapa && CFUI.cerrarCapa()) return;
+  cerrarFormularioDirecto();
+}
+
+/* El trabajo de verdad; la llama el popstate al volver atras. */
+function cerrarFormularioDirecto() {
   document.getElementById('order-form-overlay').classList.remove('open');
   document.body.style.overflow = '';
+  // Los desplegables no pueden quedar abiertos debajo del formulario.
+  if (typeof abrirDesplegable === 'function') abrirDesplegable(null, false);
 }
 
 // Payment chips click handler

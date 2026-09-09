@@ -63,11 +63,15 @@ volvé a correrlo y ya.
 | `probar-promo-de-productos.js` | El aviso de promoción y el cupón reutilizable |
 | `probar-form-cupones.js` | El formulario de cupones del panel no engaña |
 | `probar-canjes-whatsapp.js` | La factura desglosa y el canje trae mensaje |
+| `probar-editar-pedido.js` | Editar pedido y factura, con los puntos ajustandose |
+| `probar-dashboard.js` | Las graficas dicen la verdad y se pueden leer sin raton |
 | `probar-avisos-pedido.js` | Cada paso del pedido avisa y el hero no miente |
 | `probar-devolucion-de-canjes.js` | Se pueden devolver canjes ya resueltos |
 | `probar-cancelar-pedido.js` | Cancelar un pedido lo deshace TODO |
 | `probar-datos-en-perfil.js` | El pedido deja teléfono y dirección guardados |
 | `probar-formulario-pedido.js` | El pedido se llena sin scrollear media hora |
+| `probar-carrito-atras.js` | El carrito no se duplica y el gesto de atras no saca del sitio |
+| `revisar-sintaxis.js` | ¿Compila el JS de las paginas? (2 segundos) |
 | `probar-guia.js` | La guía del perfil, en sus seis estados |
 | `probar-textos.js` | Lo que se promete es lo que de verdad pasa |
 | `probar-recorrido-completo.js` | Una persona de cero a canjear, con los números cuadrando |

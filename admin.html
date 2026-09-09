@@ -183,6 +183,97 @@
     .section-title em { font-style: italic; color: var(--gold); }
     .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
     .dash-panel { background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius); padding: 1.4rem; }
+
+    /* ═══ GRAFICAS ═══════════════════════════════════════════════
+       El dorado de la marca (#c8a96e) NO sirve como color de datos: sobre
+       el panel queda fuera de la banda de luminosidad y por debajo del
+       piso de croma —o sea, "se lee como gris"—. Se comprobo con el
+       validador, no a ojo. #b8862b es el mismo dorado mas profundo y pasa
+       las tres comprobaciones: banda, croma y contraste 3:1.
+
+       Todas las barras van del MISMO color: pintar cada una mas oscura
+       segun su tamaño dobla la codificacion (el largo ya lo dice) y quema
+       el unico canal libre que queda. */
+    .viz-panel {
+      --serie:      #b8862b;   /* validado sobre esta superficie */
+      --serie-viva: #d1a03a;   /* solo para el hover, no para datos */
+      --viz-sup:    #0c1d31;   /* el panel compuesto: los huecos van de este color */
+      --viz-linea:  rgba(255,255,255,.08);
+    }
+    .viz-fila { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1.2rem; }
+    @media (max-width: 900px) { .viz-fila { grid-template-columns: 1fr; } }
+
+    .viz-head { display: flex; align-items: flex-start; justify-content: space-between;
+      gap: .8rem; margin-bottom: 1.1rem; }
+    .viz-sub { font-size: .68rem; color: var(--muted); margin-top: .25rem; line-height: 1.5; }
+    .viz-tabla-btn { background: none; border: 1px solid var(--gb); color: var(--muted);
+      font-family: inherit; font-size: .58rem; letter-spacing: .12em; text-transform: uppercase;
+      padding: .35rem .7rem; border-radius: 20px; cursor: pointer; flex-shrink: 0;
+      transition: color .2s, border-color .2s; }
+    .viz-tabla-btn:hover { color: var(--gold); border-color: var(--gold-dk); }
+
+    /* Barras horizontales: el nombre del producto es largo y en columnas
+       quedaria de lado o cortado. */
+    .viz-bar { display: grid; grid-template-columns: 1fr auto; gap: .3rem .8rem;
+      align-items: baseline; margin-bottom: .8rem; cursor: default; }
+    .viz-bar-n { font-size: .7rem; color: var(--text); overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap; }
+    .viz-bar-v { font-size: .7rem; color: var(--white); font-variant-numeric: tabular-nums;
+      font-weight: 600; }
+    .viz-bar-t { grid-column: 1 / -1; height: 10px; border-radius: 2px;
+      background: rgba(255,255,255,.05); overflow: hidden; }
+    /* 4px redondeado en la punta del dato, cuadrado en la base. */
+    .viz-bar-f { height: 100%; background: var(--serie);
+      border-radius: 0 4px 4px 0; transition: background .18s, width .5s cubic-bezier(.22,.61,.36,1); }
+    .viz-bar:hover .viz-bar-f { background: var(--serie-viva); }
+
+    .viz-vacio { font-size: .72rem; color: var(--muted); line-height: 1.7; padding: .6rem 0; }
+
+    /* La tabla es el camino sin hover: nada queda solo detras del raton. */
+    .viz-tabla { margin-top: .9rem; border-top: 1px solid var(--viz-linea); padding-top: .6rem; }
+    .viz-tabla table { width: 100%; border-collapse: collapse; }
+    .viz-tabla th { font-size: .56rem; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--muted); text-align: left; padding: .35rem .4rem; font-weight: 600; }
+    .viz-tabla td { font-size: .7rem; color: var(--text); padding: .35rem .4rem;
+      border-top: 1px solid rgba(255,255,255,.04); }
+    .viz-tabla td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    /* Agotados. El rojo de estado NUNCA va solo: lleva icono y palabra,
+       porque rojo y verde no se distinguen bajo daltonismo (medido: ΔE 4.1). */
+    .viz-ago { display: flex; align-items: center; gap: .7rem; padding: .55rem 0;
+      border-bottom: 1px solid rgba(255,255,255,.04); }
+    .viz-ago:last-child { border-bottom: 0; }
+    .viz-ago-chip { display: inline-flex; align-items: center; gap: .3rem; flex-shrink: 0;
+      font-size: .56rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700;
+      color: #d03b3b; border: 1px solid rgba(208,59,59,.4); background: rgba(208,59,59,.1);
+      padding: .18rem .45rem; border-radius: 4px; }
+    .viz-ago-n { font-size: .72rem; color: var(--text); flex: 1; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap; }
+    .viz-ago-v { font-size: .66rem; color: var(--muted); flex-shrink: 0;
+      font-variant-numeric: tabular-nums; }
+
+    /* La linea de ventas por semana. */
+    .viz-svg { width: 100%; display: block; overflow: visible; }
+    .viz-svg .rejilla { stroke: var(--viz-linea); stroke-width: 1; }
+    .viz-svg .area { fill: var(--serie); opacity: .10; }
+    .viz-svg .linea { fill: none; stroke: var(--serie); stroke-width: 2;
+      stroke-linejoin: round; stroke-linecap: round; }
+    /* Anillo del color de la superficie: el punto se lee aunque cruce la linea. */
+    .viz-svg .punto { fill: var(--serie); stroke: var(--viz-sup); stroke-width: 2; }
+    .viz-svg .eje { font-size: 9px; fill: var(--muted); }
+    .viz-svg .toque { fill: transparent; cursor: pointer; }
+    .viz-svg .cruz { stroke: var(--gold-dk); stroke-width: 1; opacity: 0; }
+
+    .viz-tip { position: fixed; z-index: 900; pointer-events: none; opacity: 0;
+      transition: opacity .12s; background: #071523; border: 1px solid var(--gb);
+      border-radius: 8px; padding: .5rem .7rem; box-shadow: 0 8px 24px rgba(0,0,0,.5);
+      max-width: 240px; }
+    .viz-tip.on { opacity: 1; }
+    .viz-tip-v { font-size: .84rem; color: var(--white); font-weight: 700;
+      font-variant-numeric: tabular-nums; }
+    .viz-tip-n { font-size: .66rem; color: var(--muted); margin-top: .1rem; line-height: 1.45; }
+    .viz-tip-k { display: inline-block; width: 10px; height: 2px; border-radius: 1px;
+      background: var(--serie); margin-right: .35rem; vertical-align: middle; }
     .panel-title { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; }
     .cat-bar-row { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.75rem; }
     .cat-bar-label { font-size: 0.68rem; color: var(--text); min-width: 180px; }
@@ -1598,6 +1689,63 @@
         <!-- Fidelidad: sin esto el programa de puntos era invisible desde el
              Dashboard y habia que entrar a tres secciones para saber como iba -->
         <div class="stats-grid" id="stats-fidelidad" style="display:none"></div>
+        <!-- ═══ LO QUE VENDE LA PAGINA ═══════════════════════════
+             Antes el dashboard contaba PRODUCTOS —cuantos hay, cuantos sin
+             foto— que es inventario, no resultados. Jesus necesita saber que
+             se vende, cuanto entra y que se le esta agotando. -->
+        <div class="viz-fila">
+          <div class="dash-panel viz-panel">
+            <div class="viz-head">
+              <div>
+                <div class="panel-title" style="margin:0">Lo que más se vende</div>
+                <div class="viz-sub" id="viz-top-sub">—</div>
+              </div>
+              <button type="button" class="viz-tabla-btn" onclick="vizTabla('top')">Ver tabla</button>
+            </div>
+            <div id="viz-top"></div>
+            <div class="viz-tabla" id="viz-top-tabla" hidden></div>
+          </div>
+
+          <div class="dash-panel viz-panel">
+            <div class="viz-head">
+              <div>
+                <div class="panel-title" style="margin:0">Ventas por semana</div>
+                <div class="viz-sub" id="viz-sem-sub">—</div>
+              </div>
+              <button type="button" class="viz-tabla-btn" onclick="vizTabla('sem')">Ver tabla</button>
+            </div>
+            <div id="viz-sem"></div>
+            <div class="viz-tabla" id="viz-sem-tabla" hidden></div>
+          </div>
+        </div>
+
+        <div class="viz-fila">
+          <div class="dash-panel viz-panel">
+            <div class="viz-head">
+              <div>
+                <div class="panel-title" style="margin:0">Ventas por categoría</div>
+                <div class="viz-sub" id="viz-cat-sub">—</div>
+              </div>
+              <button type="button" class="viz-tabla-btn" onclick="vizTabla('cat')">Ver tabla</button>
+            </div>
+            <div id="viz-cat"></div>
+            <div class="viz-tabla" id="viz-cat-tabla" hidden></div>
+          </div>
+
+          <!-- Agotados: NO es una grafica. Es una lista de lo que hay que
+               reponer, ordenada por lo que mas se vendia. -->
+          <div class="dash-panel viz-panel">
+            <div class="viz-head">
+              <div>
+                <div class="panel-title" style="margin:0">Agotados</div>
+                <div class="viz-sub" id="viz-ago-sub">—</div>
+              </div>
+              <button type="button" class="viz-tabla-btn" onclick="showView('productos')">Ir a productos</button>
+            </div>
+            <div id="viz-agotados"></div>
+          </div>
+        </div>
+
         <div class="dash-grid">
           <div class="dash-panel">
             <div class="panel-title">Productos por categoría</div>
@@ -2732,7 +2880,8 @@
             </div>
             <div>
               <label class="invoice-mini-label">Descuento (₡)</label>
-              <input class="invoice-input" id="inv-discount" type="number" min="0" step="100" inputmode="numeric">
+              <input class="invoice-input" id="inv-discount" type="number" min="0" step="100" inputmode="numeric"
+                     oninput="marcarDescuentoManual()">
             </div>
           </div>
         </div>
@@ -2953,10 +3102,38 @@
   </div>
 </div>
 
+<style>
+  /* El editor de pedidos. Vive en el mismo modal que los datos del
+     cliente porque es el mismo trabajo: arreglar un pedido. */
+  .ed-sep{height:1px;background:rgba(200,169,110,.18);margin:1.2rem 0}
+  .ed-tit{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--gold);font-weight:700;margin-bottom:.7rem}
+  .ed-row{display:grid;grid-template-columns:1fr 70px 90px 74px 30px;gap:.5rem;
+    align-items:center;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.05)}
+  .ed-row:last-child{border-bottom:0}
+  .ed-row-n{font-size:.78rem;color:var(--text);overflow:hidden;
+    text-overflow:ellipsis;white-space:nowrap}
+  .ed-row input{width:100%;padding:.4rem .5rem;border-radius:7px;font-size:.76rem;
+    background:rgba(18,40,64,.8);border:1px solid rgba(200,169,110,.18);color:var(--text)}
+  .ed-row-t{font-size:.76rem;color:var(--gold-lt);text-align:right;
+    font-variant-numeric:tabular-nums}
+  .ed-x{background:none;border:0;color:var(--muted);cursor:pointer;width:26px;height:26px;
+    border-radius:50%;display:grid;place-items:center;transition:.2s}
+  .ed-x:hover{color:#e74c3c;background:rgba(231,76,60,.12)}
+  .ed-vacio{font-size:.75rem;color:var(--muted);padding:.6rem 0}
+  .ed-add{display:grid;grid-template-columns:1fr auto;gap:.5rem;margin-top:.8rem}
+  .ed-total{display:flex;justify-content:space-between;align-items:baseline;
+    margin-top:1rem;padding-top:.9rem;border-top:2px solid var(--gold)}
+  .ed-total span{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .ed-total b{font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);font-weight:400}
+  .ed-aviso{font-size:.7rem;color:var(--muted);line-height:1.6;margin-top:.7rem}
+  .ed-aviso b{color:var(--gold-lt)}
+</style>
+
 <div id="edit-order-modal" class="modal-overlay">
-  <div class="modal-box" style="max-width:480px">
+  <div class="modal-box" style="max-width:620px">
     <div class="modal-header">
-      <h3>Editar datos del cliente</h3>
+      <h3>Editar pedido</h3>
       <button class="modal-close-btn" onclick="closeEditOrder()">✕</button>
     </div>
     <div class="modal-body">
@@ -2975,6 +3152,33 @@
           <textarea class="form-textarea" id="edit-order-address" placeholder="Provincia, cantón, señas..." rows="3"></textarea>
         </div>
       </div>
+
+      <!-- Los productos del pedido. Antes solo se podian tocar al
+           facturar; Jesus necesita corregirlos antes, cuando el cliente
+           llama para cambiar algo. -->
+      <div class="ed-sep"></div>
+      <div class="ed-tit">Productos</div>
+      <div id="ed-items"></div>
+      <div class="ed-add">
+        <select class="form-input" id="ed-add-sel"></select>
+        <button type="button" class="btn-cancel" onclick="edAgregar()">Agregar</button>
+      </div>
+
+      <div class="ed-sep"></div>
+      <div class="form-grid" style="grid-template-columns:1fr 1fr">
+        <div class="form-group">
+          <label class="form-label">Envío</label>
+          <input class="form-input" id="ed-envio" type="number" min="0" step="100"
+                 inputmode="numeric" oninput="edPintarTotal()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Descuento <span id="ed-cupon-lbl"></span></label>
+          <input class="form-input" id="ed-desc" type="number" min="0" step="100"
+                 inputmode="numeric" oninput="edDescManual()">
+        </div>
+      </div>
+      <div class="ed-total"><span>Total del pedido</span><b id="ed-total">₡0</b></div>
+      <div class="ed-aviso" id="ed-aviso"></div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeEditOrder()">Cancelar</button>
@@ -3379,6 +3583,346 @@ function renderAll() {
 /* ════════════════════════════════════════════
    DASHBOARD
 ════════════════════════════════════════════ */
+/* ═══ LAS GRAFICAS DEL DASHBOARD ═════════════════════════════════
+   Que contesta cada una, que es lo que Jesus pregunta:
+     · Lo que mas se vende  -> que reponer y que empujar
+     · Ventas por semana    -> como va el negocio
+     · Ventas por categoria -> de donde sale la plata
+     · Agotados             -> que esta costando plata AHORA MISMO
+
+   Decisiones que no son de gusto:
+   · Una sola serie por grafica, un solo color. Pintar cada barra mas
+     oscura segun su tamaño dobla lo que el largo ya dice.
+   · El color de datos es #b8862b, no el dorado de la marca: ese ultimo
+     queda fuera de la banda de luminosidad y por debajo del piso de
+     croma sobre este fondo — "se lee como gris". Medido, no a ojo.
+   · Todo lo que se ve al pasar el raton esta TAMBIEN en "Ver tabla":
+     el hover no puede ser el unico camino a un numero. */
+
+/* Un pedido cuenta como venta desde que se confirma. Los pendientes son
+   intencion, no venta; los cancelados no son nada. */
+const VIZ_VENDIDOS = ['confirmado', 'en_camino', 'entregado'];
+
+function vizFecha(o) {
+  const c = o.createdAt;
+  if (!c) return null;
+  const d = c && typeof c.toDate === 'function' ? c.toDate() : new Date(c);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/* Todo lo que las cuatro vistas necesitan, de una sola pasada. */
+function vizDatos() {
+  const vendidos = (orders || []).filter(o => VIZ_VENDIDOS.indexOf(o.status) >= 0);
+  const porProd = new Map();
+  const porCat  = new Map();
+  let ingresos = 0;
+
+  vendidos.forEach(o => {
+    (o.items || []).forEach(i => {
+      const id  = (i.id !== undefined && i.id !== null) ? String(i.id) : ('n:' + (i.name || '?'));
+      const qty = Number(i.qty) || 0;
+      const monto = qty * (Number(i.price) || 0);
+      const a = porProd.get(id) || { id: i.id, nombre: i.name || 'Producto', qty: 0, monto: 0, pedidos: 0 };
+      a.qty += qty; a.monto += monto; a.pedidos += 1;
+      porProd.set(id, a);
+
+      const p = (products || []).find(x => String(x.id) === String(i.id));
+      const cat = (p && p.cat) || 'otros';
+      porCat.set(cat, (porCat.get(cat) || 0) + monto);
+    });
+    ingresos += orderAmountForPoints(o);
+  });
+
+  /* Las semanas, de lunes a lunes, las ultimas 8. */
+  const semanas = [];
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));   // lunes de esta semana
+  for (let k = 7; k >= 0; k--) {
+    const ini = new Date(lunes); ini.setDate(lunes.getDate() - k * 7);
+    const fin = new Date(ini);   fin.setDate(ini.getDate() + 7);
+    semanas.push({ ini, fin, monto: 0, pedidos: 0 });
+  }
+  vendidos.forEach(o => {
+    const d = vizFecha(o); if (!d) return;
+    const s = semanas.find(w => d >= w.ini && d < w.fin);
+    if (s) { s.monto += orderAmountForPoints(o); s.pedidos += 1; }
+  });
+
+  /* Agotados: los que Jesus marco como no disponibles, ordenados por lo
+     que se vendian. Un agotado que nadie compra no es urgente. */
+  const agotados = (products || [])
+    .filter(p => p.available === false)
+    .map(p => {
+      const v = porProd.get(String(p.id));
+      return { nombre: p.name, qty: v ? v.qty : 0, monto: v ? v.monto : 0 };
+    })
+    .sort((a, b) => b.monto - a.monto);
+
+  return {
+    top: [...porProd.values()].sort((a, b) => b.qty - a.qty),
+    cats: [...porCat.entries()].map(([c, m]) => ({ cat: c, monto: m }))
+                               .sort((a, b) => b.monto - a.monto),
+    semanas, agotados, ingresos, pedidos: vendidos.length
+  };
+}
+
+/* ── El globito. Se usa en las barras y en la linea. ── */
+let vizTip = null;
+function vizTipEl() {
+  if (!vizTip) {
+    vizTip = document.createElement('div');
+    vizTip.className = 'viz-tip';
+    document.body.appendChild(vizTip);
+  }
+  return vizTip;
+}
+/* El nombre viene del catalogo: se pone con textContent, nunca armando
+   HTML con concatenacion. */
+function vizMostrarTip(x, y, valor, detalle) {
+  const t = vizTipEl();
+  t.innerHTML = '';
+  const v = document.createElement('div'); v.className = 'viz-tip-v';
+  const k = document.createElement('span'); k.className = 'viz-tip-k';
+  v.appendChild(k); v.appendChild(document.createTextNode(valor));
+  const d = document.createElement('div'); d.className = 'viz-tip-n';
+  d.textContent = detalle;
+  t.appendChild(v); t.appendChild(d);
+  t.classList.add('on');
+  const r = t.getBoundingClientRect();
+  t.style.left = Math.min(Math.max(8, x - r.width / 2), innerWidth - r.width - 8) + 'px';
+  t.style.top  = Math.max(8, y - r.height - 12) + 'px';
+}
+function vizOcultarTip() { if (vizTip) vizTip.classList.remove('on'); }
+
+/* ── Barras horizontales, un solo color ── */
+function vizBarras(destino, filas, fmtValor) {
+  const box = document.getElementById(destino);
+  if (!box) return;
+  if (!filas.length) {
+    box.innerHTML = '<div class="viz-vacio">Todavía no hay ventas confirmadas. ' +
+      'Apenas confirmés pedidos, acá vas a ver qué se mueve.</div>';
+    return;
+  }
+  const max = Math.max(...filas.map(f => f.valor), 1);
+  box.innerHTML = '';
+  filas.forEach(f => {
+    const fila = document.createElement('div');
+    fila.className = 'viz-bar';
+    fila.tabIndex = 0;
+
+    const n = document.createElement('div');
+    n.className = 'viz-bar-n'; n.textContent = f.nombre; n.title = f.nombre;
+    const v = document.createElement('div');
+    v.className = 'viz-bar-v'; v.textContent = fmtValor(f.valor);
+    const t = document.createElement('div'); t.className = 'viz-bar-t';
+    const rel = document.createElement('div');
+    rel.className = 'viz-bar-f';
+    rel.style.width = Math.max(2, Math.round(f.valor / max * 100)) + '%';
+    t.appendChild(rel);
+    fila.appendChild(n); fila.appendChild(v); fila.appendChild(t);
+
+    const ver = e => {
+      const r = fila.getBoundingClientRect();
+      vizMostrarTip(e && e.clientX ? e.clientX : r.left + r.width / 2,
+                    r.top, fmtValor(f.valor), f.nombre + (f.detalle ? ' · ' + f.detalle : ''));
+    };
+    fila.addEventListener('pointermove', ver);
+    fila.addEventListener('pointerleave', vizOcultarTip);
+    fila.addEventListener('focus', ver);
+    fila.addEventListener('blur', vizOcultarTip);
+    box.appendChild(fila);
+  });
+}
+
+/* ── La linea de ventas por semana ── */
+function vizLinea(semanas) {
+  const box = document.getElementById('viz-sem');
+  if (!box) return;
+  const hayAlgo = semanas.some(w => w.monto > 0);
+  if (!hayAlgo) {
+    box.innerHTML = '<div class="viz-vacio">Sin ventas confirmadas en las últimas 8 semanas.</div>';
+    return;
+  }
+  const W = 460, H = 170, ML = 8, MR = 8, MT = 12, MB = 26;
+  const max = Math.max(...semanas.map(w => w.monto), 1);
+  const px = i => ML + (i / Math.max(1, semanas.length - 1)) * (W - ML - MR);
+  const py = v => MT + (1 - v / max) * (H - MT - MB);
+
+  const pts = semanas.map((w, i) => [px(i), py(w.monto)]);
+  const linea = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
+  const area = linea + ' L' + px(semanas.length - 1).toFixed(1) + ' ' + py(0).toFixed(1) +
+               ' L' + px(0).toFixed(1) + ' ' + py(0).toFixed(1) + ' Z';
+  const dia = d => d.getDate() + ' ' + ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'][d.getMonth()];
+
+  /* Rejilla en cuatro niveles, fina y solida: acompaña, no compite. */
+  let rejilla = '';
+  for (let k = 0; k <= 3; k++) {
+    const y = MT + (k / 3) * (H - MT - MB);
+    rejilla += '<line class="rejilla" x1="' + ML + '" y1="' + y.toFixed(1) +
+               '" x2="' + (W - MR) + '" y2="' + y.toFixed(1) + '"/>';
+  }
+
+  box.innerHTML =
+    '<svg class="viz-svg" viewBox="0 0 ' + W + ' ' + H + '" role="img" ' +
+    'aria-label="Ventas de las últimas 8 semanas">' +
+      rejilla +
+      '<path class="area" d="' + area + '"/>' +
+      '<path class="linea" d="' + linea + '"/>' +
+      '<line class="cruz" id="viz-cruz" y1="' + MT + '" y2="' + (H - MB) + '"/>' +
+      pts.map((p, i) => '<circle class="punto" cx="' + p[0].toFixed(1) + '" cy="' +
+        p[1].toFixed(1) + '" r="4"' + (i === pts.length - 1 ? '' : ' opacity=".55"') + '/>').join('') +
+      /* Solo se rotulan los extremos: un numero en cada punto no se lee. */
+      '<text class="eje" x="' + ML + '" y="' + (H - 8) + '">' + dia(semanas[0].ini) + '</text>' +
+      '<text class="eje" x="' + (W - MR) + '" y="' + (H - 8) + '" text-anchor="end">' +
+        dia(semanas[semanas.length - 1].ini) + '</text>' +
+      /* Zonas de toque anchas: nadie apunta a una linea de 2px. */
+      semanas.map((w, i) => {
+        const ancho = (W - ML - MR) / semanas.length;
+        return '<rect class="toque" x="' + (px(i) - ancho / 2).toFixed(1) + '" y="0" width="' +
+          ancho.toFixed(1) + '" height="' + H + '" data-i="' + i + '"/>';
+      }).join('') +
+    '</svg>';
+
+  const svg = box.querySelector('svg');
+  const cruz = box.querySelector('#viz-cruz');
+  box.querySelectorAll('.toque').forEach(z => {
+    const i = Number(z.getAttribute('data-i'));
+    const w = semanas[i];
+    z.addEventListener('pointermove', e => {
+      const r = svg.getBoundingClientRect();
+      const xs = r.left + (px(i) / W) * r.width;
+      cruz.setAttribute('x1', px(i)); cruz.setAttribute('x2', px(i));
+      cruz.style.opacity = '.5';
+      vizMostrarTip(xs, r.top + (py(w.monto) / H) * r.height,
+        fmt(Math.round(w.monto)),
+        'Semana del ' + dia(w.ini) + ' · ' + w.pedidos + (w.pedidos === 1 ? ' pedido' : ' pedidos'));
+    });
+    z.addEventListener('pointerleave', () => { cruz.style.opacity = '0'; vizOcultarTip(); });
+  });
+}
+
+/* ── Ver tabla: el mismo dato, sin depender del raton ── */
+function vizTabla(cual) {
+  const caja = document.getElementById('viz-' + cual + '-tabla');
+  if (!caja) return;
+  const abierto = !caja.hidden;
+  caja.hidden = abierto;
+  const btn = caja.parentElement.querySelector('.viz-tabla-btn');
+  if (btn) btn.textContent = abierto ? 'Ver tabla' : 'Ocultar tabla';
+  if (abierto) return;
+
+  const d = vizDatos();
+  const armar = (cols, filas) => {
+    const t = document.createElement('table');
+    const thead = document.createElement('thead');
+    const tr = document.createElement('tr');
+    cols.forEach(c => { const th = document.createElement('th'); th.textContent = c; tr.appendChild(th); });
+    thead.appendChild(tr); t.appendChild(thead);
+    const tb = document.createElement('tbody');
+    filas.forEach(f => {
+      const r = document.createElement('tr');
+      f.forEach((v, i) => {
+        const td = document.createElement('td');
+        if (i) td.className = 'num';
+        td.textContent = v;                 // dato del catalogo: nunca innerHTML
+        r.appendChild(td);
+      });
+      tb.appendChild(r);
+    });
+    t.appendChild(tb);
+    caja.innerHTML = ''; caja.appendChild(t);
+  };
+
+  if (cual === 'top') {
+    armar(['Producto', 'Cantidad', 'Vendido'],
+      d.top.slice(0, 8).map(p => [p.nombre, vizCant(p.qty), fmt(Math.round(p.monto))]));
+  } else if (cual === 'sem') {
+    const dia = x => x.getDate() + '/' + (x.getMonth() + 1);
+    armar(['Semana', 'Pedidos', 'Ventas'],
+      d.semanas.map(w => ['Del ' + dia(w.ini), String(w.pedidos), fmt(Math.round(w.monto))]));
+  } else if (cual === 'cat') {
+    armar(['Categoría', 'Vendido'],
+      d.cats.map(c => [CAT_NAMES[c.cat] || c.cat, fmt(Math.round(c.monto))]));
+  }
+}
+
+/* Las cantidades llevan decimal solo si lo tienen: "2 kg", no "2.0 kg". */
+function vizCant(q) {
+  const n = Math.round((Number(q) || 0) * 10) / 10;
+  return (Number.isInteger(n) ? n : n.toFixed(1)) + ' kg';
+}
+
+function renderVisualizaciones() {
+  const d = vizDatos();
+
+  /* 1. Lo que mas se vende */
+  const top = d.top.slice(0, 8);
+  vizBarras('viz-top', top.map(p => ({
+    nombre: p.nombre, valor: p.qty,
+    detalle: fmt(Math.round(p.monto)) + ' · ' + p.pedidos + (p.pedidos === 1 ? ' pedido' : ' pedidos')
+  })), vizCant);
+  const sub1 = document.getElementById('viz-top-sub');
+  if (sub1) sub1.textContent = top.length
+    ? 'Por kilos vendidos, sobre ' + d.pedidos + (d.pedidos === 1 ? ' pedido confirmado' : ' pedidos confirmados')
+    : 'Todavía sin ventas confirmadas';
+
+  /* 2. Ventas por semana */
+  vizLinea(d.semanas);
+  const ult = d.semanas[d.semanas.length - 1], ant = d.semanas[d.semanas.length - 2];
+  const sub2 = document.getElementById('viz-sem-sub');
+  if (sub2) {
+    if (!ult || !ult.monto) sub2.textContent = 'Sin ventas esta semana todavía';
+    else {
+      const dif = ant && ant.monto ? Math.round((ult.monto - ant.monto) / ant.monto * 100) : null;
+      sub2.textContent = 'Esta semana ' + fmt(Math.round(ult.monto)) +
+        (dif === null ? '' : (dif >= 0 ? ' · ' + dif + '% más que la anterior'
+                                       : ' · ' + Math.abs(dif) + '% menos que la anterior'));
+    }
+  }
+
+  /* 3. Ventas por categoria */
+  vizBarras('viz-cat', d.cats.slice(0, 8).map(c => ({
+    nombre: CAT_NAMES[c.cat] || c.cat, valor: Math.round(c.monto)
+  })), v => fmt(v));
+  const sub3 = document.getElementById('viz-cat-sub');
+  if (sub3) sub3.textContent = d.cats.length
+    ? 'De dónde sale la plata' : 'Todavía sin ventas confirmadas';
+
+  /* 4. Agotados */
+  const caja = document.getElementById('viz-agotados');
+  const sub4 = document.getElementById('viz-ago-sub');
+  if (caja) {
+    if (!d.agotados.length) {
+      caja.innerHTML = '<div class="viz-vacio">No hay nada marcado como agotado. ' +
+        'Cuando marqués un producto como no disponible, aparece acá.</div>';
+      if (sub4) sub4.textContent = 'Todo disponible';
+    } else {
+      caja.innerHTML = '';
+      d.agotados.slice(0, 8).forEach(a => {
+        const f = document.createElement('div'); f.className = 'viz-ago';
+        /* El rojo no va solo: icono y palabra. Rojo y verde no se */
+        /* distinguen bajo daltonismo. */
+        const chip = document.createElement('span'); chip.className = 'viz-ago-chip';
+        chip.innerHTML = '<svg viewBox="0 0 24 24" width="9" height="9" fill="none" ' +
+          'stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">' +
+          '<path d="M6 6l12 12M18 6L6 18"/></svg>';
+        chip.appendChild(document.createTextNode('Agotado'));
+        const n = document.createElement('div'); n.className = 'viz-ago-n';
+        n.textContent = a.nombre; n.title = a.nombre;
+        const v = document.createElement('div'); v.className = 'viz-ago-v';
+        v.textContent = a.monto > 0 ? 'vendía ' + fmt(Math.round(a.monto)) : 'sin ventas';
+        f.appendChild(chip); f.appendChild(n); f.appendChild(v);
+        caja.appendChild(f);
+      });
+      const conVenta = d.agotados.filter(a => a.monto > 0).length;
+      if (sub4) sub4.textContent = d.agotados.length +
+        (d.agotados.length === 1 ? ' producto sin existencias' : ' productos sin existencias') +
+        (conVenta ? ' · ' + conVenta + ' de ellos se vendían' : '');
+    }
+  }
+}
+
 function renderDashboard() {
   const total      = products.length;
   const noImg      = products.filter(p => !p.img).length;
@@ -3397,6 +3941,7 @@ function renderDashboard() {
   `;
 
   renderFidelidadKPIs();
+  renderVisualizaciones();
 
   const maxCount = Math.max(...CAT_ORDER.map(c => products.filter(p => p.cat === c).length), 1);
   document.getElementById('cat-bars').innerHTML = CAT_ORDER.map(cat => {
@@ -4615,6 +5160,16 @@ async function guardarLigar() {
   }
 }
 
+/* ═══ EDITAR EL PEDIDO ENTERO ═══════════════════════════════════
+   Antes solo se podian tocar nombre, telefono y direccion. Los
+   productos solo se podian corregir al FACTURAR, que es tarde: el
+   cliente llama para agregar o quitar algo mucho antes de eso, y a
+   Jesus no le quedaba mas que rehacer el pedido a mano.
+
+   Lo que se edita aca es el PEDIDO. La factura sigue siendo otra cosa
+   —el peso real al empacar— y no se toca desde aqui. */
+let edPedido = null;
+
 function openEditOrder(id) {
   const o = orders.find(x => x.id === id);
   if (!o) { toast('Pedido no encontrado'); return; }
@@ -4622,14 +5177,153 @@ function openEditOrder(id) {
   document.getElementById('edit-order-name').value = o.customer?.name || o.name || '';
   document.getElementById('edit-order-phone').value = o.customer?.phone || o.phone || '';
   document.getElementById('edit-order-address').value = o.customer?.address || o.address || '';
+
+  edPedido = {
+    id: id,
+    estado: o.status || 'pendiente',
+    conCuenta: !!o.uid,
+    items: (o.items || []).map(i => ({
+      id: (i.id !== undefined && i.id !== null) ? i.id : null,
+      name: i.name || 'Producto',
+      unit: i.unit || '',
+      qty: invNum(i.qty, 1),
+      price: invNum(i.price, 0)
+    })),
+    envio: invNum(o.deliveryFee, 0),
+    desc: invNum(o.discount && o.discount.amount, 0),
+    cupon: (o.discount && o.discount.code) || null,
+    cuponData: null,
+    descManual: false
+  };
+  document.getElementById('ed-envio').value = edPedido.envio || '';
+  document.getElementById('ed-desc').value  = edPedido.desc || '';
+  document.getElementById('ed-cupon-lbl').textContent =
+    edPedido.cupon ? '· ' + edPedido.cupon : '';
+  edLlenarSelector();
+  edPintarItems();
+
+  /* El cupon se lee aparte para poder recalcular el descuento cuando se
+     quiten o agreguen productos. Si falla, se queda el monto que traia:
+     nunca se pone en cero solo. */
+  if (edPedido.cupon) {
+    COUPONS_REF.doc(edPedido.cupon).get().then(d => {
+      if (d.exists && edPedido) { edPedido.cuponData = d.data(); }
+    }).catch(() => {});
+  }
+
   document.getElementById('edit-order-modal').classList.add('open');
   document.body.style.overflow = 'hidden';
   setTimeout(() => document.getElementById('edit-order-name').focus(), 350);
 }
 
+function edLlenarSelector() {
+  const sel = document.getElementById('ed-add-sel');
+  if (!sel) return;
+  const lista = (products || []).slice()
+    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'es'));
+  sel.innerHTML = '<option value="">— Elegí un producto para agregar —</option>' +
+    lista.map(p => '<option value="' + p.id + '">' + esc(p.name) +
+      (p.price ? ' · ' + invCRC(p.price) + esc(p.unit || '') : '') + '</option>').join('');
+}
+
+function edPintarItems() {
+  const box = document.getElementById('ed-items');
+  if (!box || !edPedido) return;
+  if (!edPedido.items.length) {
+    box.innerHTML = '<div class="ed-vacio">Este pedido se quedó sin productos. ' +
+      'Agregá al menos uno antes de guardar.</div>';
+    edPintarTotal();
+    return;
+  }
+  box.innerHTML = edPedido.items.map((it, i) =>
+    '<div class="ed-row">' +
+      '<div class="ed-row-n" title="' + esc(it.name) + '">' + esc(it.name) + '</div>' +
+      '<input type="number" min="0" step="0.01" inputmode="decimal" value="' + it.qty +
+        '" oninput="edCambiar(' + i + ', \'qty\', this.value)" aria-label="Cantidad">' +
+      '<input type="number" min="0" step="50" inputmode="numeric" value="' + it.price +
+        '" oninput="edCambiar(' + i + ', \'price\', this.value)" aria-label="Precio">' +
+      '<div class="ed-row-t" id="ed-lin-' + i + '">' + invCRC(it.qty * it.price) + '</div>' +
+      '<button type="button" class="ed-x" onclick="edQuitar(' + i + ')" ' +
+        'title="Quitar" aria-label="Quitar ' + esc(it.name) + '">' +
+        '<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" ' +
+        'stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+      '</button>' +
+    '</div>').join('');
+  edPintarTotal();
+}
+
+function edCambiar(i, campo, valor) {
+  if (!edPedido || !edPedido.items[i]) return;
+  edPedido.items[i][campo] = invNum(valor, 0);
+  const l = document.getElementById('ed-lin-' + i);
+  if (l) l.textContent = invCRC(edPedido.items[i].qty * edPedido.items[i].price);
+  edPintarTotal();
+}
+
+function edQuitar(i) {
+  if (!edPedido) return;
+  edPedido.items.splice(i, 1);
+  edPintarItems();
+}
+
+function edAgregar() {
+  const sel = document.getElementById('ed-add-sel');
+  if (!sel || !sel.value || !edPedido) return;
+  const p = (products || []).find(x => String(x.id) === String(sel.value));
+  if (!p) return;
+  const ya = edPedido.items.find(x => String(x.id) === String(p.id));
+  // Si ya estaba, se le suma uno en vez de repetir la linea.
+  if (ya) ya.qty = invNum(ya.qty, 0) + 1;
+  else edPedido.items.push({ id: p.id, name: p.name, unit: p.unit || '',
+                             qty: 1, price: invNum(p.price, 0) });
+  sel.value = '';
+  edPintarItems();
+}
+
+function edDescManual() {
+  if (edPedido) edPedido.descManual = true;
+  edPintarTotal();
+}
+
+function edPintarTotal() {
+  if (!edPedido) return;
+  const val = id => (document.getElementById(id) || {}).value;
+  edPedido.envio = invNum(val('ed-envio'), 0);
+  edPedido.desc  = invNum(val('ed-desc'), 0);
+
+  /* El descuento del cupon sigue a los productos, con la MISMA cuenta
+     que usa la factura. Si Jesus lo escribio a mano, manda el suyo. */
+  if (!edPedido.descManual && edPedido.cuponData) {
+    const d = calcularDescuentoCupon(edPedido.cuponData, edPedido.items);
+    if (d !== null && d !== edPedido.desc) {
+      edPedido.desc = d;
+      const campo = document.getElementById('ed-desc');
+      if (campo) campo.value = d || '';
+    }
+  }
+
+  const sub = edPedido.items.reduce((a, it) => a + invNum(it.qty, 0) * invNum(it.price, 0), 0);
+  const desc = Math.min(edPedido.desc, sub + edPedido.envio);
+  const total = Math.max(0, sub + edPedido.envio - desc);
+  const t = document.getElementById('ed-total');
+  if (t) t.textContent = invCRC(total);
+
+  /* Se avisa lo que va a pasar con los puntos. Editar un pedido ya
+     confirmado los mueve, y eso hay que decirlo ANTES de guardar. */
+  const av = document.getElementById('ed-aviso');
+  if (av) {
+    const acredita = ACREDITA_DESDE.indexOf(edPedido.estado) >= 0;
+    av.innerHTML = (acredita && edPedido.conCuenta)
+      ? 'Este pedido ya está <b>' + esc(edPedido.estado) + '</b>: al guardar se ' +
+        'ajustan los puntos del cliente a este nuevo total.'
+      : 'Los puntos se acreditan al confirmar el pedido.';
+  }
+}
+
 function closeEditOrder() {
   document.getElementById('edit-order-modal').classList.remove('open');
   document.body.style.overflow = '';
+  edPedido = null;
 }
 
 async function saveEditOrder() {
@@ -4641,23 +5335,71 @@ async function saveEditOrder() {
   if (!phone) { toast('⚠ El teléfono es obligatorio'); return; }
   const btn = document.getElementById('edit-order-save-btn');
   btn.disabled = true; btn.textContent = 'Guardando…';
+  /* Un pedido sin productos no es un pedido. Si se queria anular, el
+     boton es Cancelar, que ademas devuelve puntos y libera el cupon. */
+  if (edPedido && !edPedido.items.length) {
+    toast('⚠ El pedido se quedó sin productos. Agregá uno, o usá Cancelar.');
+    return;
+  }
   try {
-    await ORDERS_REF.doc(id).update({
+    const cambios = {
       'customer.name': name,
       'customer.phone': phone,
       'customer.address': address,
       updatedAt: new Date().toISOString()
-    });
+    };
+
+    /* Los productos, el envio y el descuento van solo si el editor los
+       cargo: asi esta funcion sigue sirviendo aunque alguna vez se abra
+       el modal sin ellos. */
+    if (edPedido) {
+      edPintarTotal();          // que lo guardado sea lo que se ve
+      cambios.items = edPedido.items.map(i => ({
+        id: i.id, name: i.name, unit: i.unit || '',
+        qty: invNum(i.qty, 0), price: invNum(i.price, 0)
+      }));
+      cambios.deliveryFee = invNum(edPedido.envio, 0);
+      const sub = edPedido.items.reduce(
+        (a, it) => a + invNum(it.qty, 0) * invNum(it.price, 0), 0);
+      const desc = Math.min(invNum(edPedido.desc, 0), sub + invNum(edPedido.envio, 0));
+      /* Se conserva el cupon: sin el, la factura no puede decir de donde
+         sale el descuento ni recalcularlo. */
+      cambios.discount = desc > 0
+        ? {
+            code:  edPedido.cupon || null,
+            type:  (edPedido.cuponData && edPedido.cuponData.type) || 'amount',
+            value: (edPedido.cuponData && invNum(edPedido.cuponData.value, 0)) || desc,
+            amount: desc
+          }
+        : null;
+    }
+
+    await ORDERS_REF.doc(id).update(cambios);
     const o = orders.find(x => x.id === id);
     if (o) {
       if (!o.customer) o.customer = {};
       o.customer.name = name;
       o.customer.phone = phone;
       o.customer.address = address;
+      if (edPedido) {
+        o.items = cambios.items;
+        o.deliveryFee = cambios.deliveryFee;
+        o.discount = cambios.discount;
+      }
     }
+
+    /* Si el pedido ya acredito puntos, el total cambio y hay que
+       ajustarlos. awardPointsForOrder aplica solo la DIFERENCIA y se
+       puede repetir, asi que no paga dos veces. Sin esto, editar un
+       pedido confirmado dejaba al cliente con los puntos del total
+       viejo — y el libro descuadrado. */
+    if (edPedido && ACREDITA_DESDE.indexOf(edPedido.estado) >= 0) {
+      await awardPointsForOrder(id);
+    }
+
     closeEditOrder();
     renderOrders();
-    toast('✅ Datos del cliente actualizados');
+    toast('✅ Pedido actualizado');
   } catch(e) {
     toast('Error al guardar: ' + e.message);
   } finally {
@@ -4914,6 +5656,8 @@ function openInvoice(orderId) {
   const savedNumber = saved && saved.number;
 
   invoiceState = {
+    // Se enciende solo si Jesus escribe el descuento a mano.
+    descuentoManual: false,
     orderId:  o.id,
     // Ya emitida: se respeta su número. Nueva: se muestra el próximo del
     // talonario como adelanto, pero todavía sin apartarlo.
@@ -5007,8 +5751,72 @@ function renderInvoiceEditor() {
   }).join('');
 }
 
+/* ═══ EL DESCUENTO SE RECALCULA AL EDITAR ═══════════════════════
+   Antes se calculaba UNA vez, al abrir la factura, y quedaba congelado
+   como numero fijo. Jesus quitaba un producto, el subtotal bajaba, y el
+   descuento seguia siendo el de antes: con un cupon del 20% terminaba
+   regalando de mas sobre un pedido que ya no existia.
+
+   Se recalcula sobre las lineas INCLUIDAS, que es lo que "quitar" un
+   producto significa en esta pantalla. */
+/* La cuenta del descuento de un cupon sobre una lista de lineas.
+   UNA sola copia: la usan la factura y el editor de pedidos. Tener la
+   aritmetica de la plata en dos sitios es como se gano este proyecto
+   sus peores fallos —dos pantallas cobrando distinto—, asi que vive
+   aca y nadie la vuelve a escribir. */
+function calcularDescuentoCupon(c, lineas) {
+  if (!c) return null;
+  const linea = it => invNum(it.qty, 0) * invNum(it.price, 0);
+  const sub = (lineas || []).reduce((a, it) => a + linea(it), 0);
+  if (sub <= 0) return 0;
+
+  const ids = Array.isArray(c.productIds) ? c.productIds : [];
+  let base = sub, soloProductos = false;
+  if (ids.length) {
+    soloProductos = true;
+    base = (lineas || []).reduce((a, it) =>
+      (it.id !== null && it.id !== undefined && ids.indexOf(it.id) >= 0)
+        ? a + linea(it) : a, 0);
+    // Si se quitaron TODAS las lineas del cupon, el descuento es cero.
+    if (base <= 0) return 0;
+  }
+
+  let desc = c.type === 'percent'
+    ? Math.round(base * (invNum(c.value, 0) / 100))
+    : invNum(c.value, 0);
+  if (c.type === 'percent' && invNum(c.maxDiscount, 0) > 0) {
+    desc = Math.min(desc, invNum(c.maxDiscount, 0));
+  }
+  desc = Math.min(desc, soloProductos ? base : sub);
+  return Math.max(0, desc);
+}
+
+function descuentoDelCuponAhora() {
+  if (!invoiceState || !invoiceState.cuponData) return null;
+  // Solo las lineas INCLUIDAS: "quitar" en la factura es excluir.
+  return calcularDescuentoCupon(invoiceState.cuponData,
+                                (invoiceState.items || []).filter(i => i.include));
+}
+
+/* Si Jesus escribe el descuento a mano, manda el suyo: no se le pisa. */
+function marcarDescuentoManual() {
+  if (invoiceState) invoiceState.descuentoManual = true;
+  onInvoiceInput();
+}
+
+function reajustarDescuento() {
+  if (!invoiceState || invoiceState.descuentoManual) return;
+  const d = descuentoDelCuponAhora();
+  if (d === null) return;                 // no hay cupon: no hay nada que reajustar
+  if (d === invNum(invoiceState.discount, 0)) return;
+  invoiceState.discount = d;
+  const campo = document.getElementById('inv-discount');
+  if (campo) campo.value = d || '';
+}
+
 function onInvoiceInput() {
   syncInvoiceFromInputs();
+  reajustarDescuento();
   updateInvoiceDoc();
 }
 
@@ -5035,6 +5843,10 @@ function toggleInvoiceItem(idx) {
   const tog = document.getElementById('inv-tog-' + idx);
   if (row) row.classList.toggle('excluded', !it.include);
   if (tog) tog.textContent = it.include ? 'Quitar' : 'Incluir';
+  /* Quitar un producto cambia la base del cupon: el descuento tiene que
+     seguirlo. Sin esto, quitar el unico producto en promocion dejaba el
+     descuento intacto sobre un pedido que ya no lo tenia. */
+  reajustarDescuento();
   updateInvoiceDoc();
 }
 
@@ -9254,6 +10066,10 @@ async function completarDescuentoDelCupon() {
        de la factura lo necesita para decir "20% en Camaron Yumbo" en vez
        de un "Descuento" pelado. */
     invoiceState.cuponData = c;
+    /* El monto que trae el pedido se respeta al abrir, pero NO se marca
+       como manual: si Jesus edita los productos, se recalcula. Marcarlo
+       lo dejaria congelado, que es justo el fallo que se venia a
+       arreglar. */
     if (invNum(invoiceState.discount, 0) > 0) { updateInvoiceDoc(); return; }
 
     const linea = it => invNum(it.qty, 0) * invNum(it.price, 0);
