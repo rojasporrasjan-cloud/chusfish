@@ -184,6 +184,13 @@
     .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
     .dash-panel { background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius); padding: 1.4rem; }
     .dash-grid-1 { grid-template-columns: 1fr; }
+    /* Un cupon configurado que ya no existe fallaba en silencio. */
+    .cup-aviso { background: rgba(243,156,18,.09); border: 1px solid rgba(243,156,18,.4);
+      border-left-width: 3px; border-radius: var(--radius); padding: .9rem 1.1rem;
+      margin-bottom: 1rem; font-size: .74rem; line-height: 1.65; color: var(--text); }
+    .cup-aviso b { color: var(--amber); }
+    .cup-aviso code { background: rgba(0,0,0,.3); padding: .1rem .35rem; border-radius: 4px;
+      color: var(--gold-lt); font-size: .72rem; }
     /* El titulillo que separa los numeros del negocio de los de La
        Reserva. Sin el, la segunda fila parecia una continuacion rota. */
     .dash-sec { font-size: .6rem; letter-spacing: .24em; text-transform: uppercase;
@@ -2458,6 +2465,10 @@
 
       <!-- ══ CUPONES ══ -->
       <div id="view-cupones" class="view" style="display:none">
+        <!-- Si la configuracion apunta a un cupon que ya no existe, el
+             sitio no muestra la promocion y NADIE se entera: falla en
+             silencio y Jesus cree que la tiene corriendo. -->
+        <div id="cup-huerfano" hidden></div>
         <div class="config-panel" style="margin-bottom:1rem">
           <div class="config-panel-title" id="cup-form-title">Nuevo cupon</div>
           <div style="font-size:0.72rem;color:#7a95aa;line-height:1.6;margin-bottom:0.9rem">
@@ -9592,6 +9603,42 @@ function renderCupones() {
   watchCupones();
   renderListaCupones();
   actualizarPreviewCupon();
+  avisarCuponHuerfano();
+}
+
+/* ═══ EL CUPON QUE YA NO ESTA ═══════════════════════════════════
+   La configuracion guarda el CODIGO del cupon de bienvenida y el de la
+   promocion. Si despues se borra o se renombra el cupon, la config
+   sigue apuntando al vacio: el sitio no encuentra nada, no muestra la
+   promocion, y no se queja. Pasó de verdad — promoCoupon apuntaba a un
+   codigo que ya no existia y la promocion llevaba dias sin salir. */
+async function avisarCuponHuerfano() {
+  const caja = document.getElementById('cup-huerfano');
+  if (!caja) return;
+  const aRevisar = [
+    { clave: 'welcomeCoupon', cod: (appConfig || {}).welcomeCoupon, que: 'de bienvenida' },
+    { clave: 'promoCoupon',   cod: (appConfig || {}).promoCoupon,   que: 'de la promoción del catálogo' },
+  ].filter(x => x.cod);
+
+  const rotos = [];
+  for (const x of aRevisar) {
+    try {
+      const d = await COUPONS_REF.doc(x.cod).get();
+      if (!d.exists) rotos.push(x);
+      else if (d.data().active === false) rotos.push(Object.assign({ apagado: true }, x));
+    } catch (e) { /* si no se puede leer, mejor callar que asustar */ }
+  }
+
+  if (!rotos.length) { caja.hidden = true; caja.innerHTML = ''; return; }
+  caja.hidden = false;
+  caja.innerHTML = rotos.map(r =>
+    '<div class="cup-aviso">' +
+      '<b>El cupón ' + esc(r.que) + ' no está funcionando.</b><br>' +
+      'La configuración apunta al código <code>' + esc(r.cod) + '</code>, que ' +
+      (r.apagado ? 'está <b>desactivado</b>.' : '<b>ya no existe</b> (se borró o se le cambió el nombre).') +
+      '<br>Mientras tanto no se le muestra a nadie. Creá el cupón con ese ' +
+      'código, o cambiá cuál es marcándolo en el cupón que sí querés.' +
+    '</div>').join('');
 }
 
 /* ═══ CUPON ATADO A PRODUCTOS ════════════════════════════════════

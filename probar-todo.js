@@ -29,6 +29,7 @@ const PRUEBAS = [
   ['probar-cupon-por-producto.js',  'el descuento por producto se calcula sobre su linea'],
   ['probar-promo-de-productos.js',  'el aviso de promocion y el cupon reutilizable'],
   ['probar-form-cupones.js',        'el formulario de cupones del panel no engaña'],
+  ['probar-cupon-huerfano.js',      'un cupon configurado que ya no existe se avisa'],
   ['probar-canjes-whatsapp.js',     'la factura desglosa y el canje trae mensaje'],
   ['probar-editar-pedido.js',       'editar pedido y factura, con los puntos ajustandose'],
   ['probar-dashboard.js',           'las graficas dicen la verdad y se pueden leer sin raton'],
