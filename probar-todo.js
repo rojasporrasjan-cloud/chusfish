@@ -19,6 +19,7 @@ const path = require('path');
 const ESTATICAS = [
   ['revisar-sintaxis.js',   'compila el JS de las paginas'],
   ['revisar-conexiones.js', 'esta todo conectado: handlers e ids'],
+  ['probar-estilo-foto.js',  'la llave de Gemini no se filtra al navegador'],
 ];
 
 const PRUEBAS = [

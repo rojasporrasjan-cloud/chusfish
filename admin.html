@@ -184,6 +184,37 @@
     .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
     .dash-panel { background: var(--glass); border: 1px solid var(--gb); border-radius: var(--radius); padding: 1.4rem; }
     .dash-grid-1 { grid-template-columns: 1fr; }
+
+    /* ═══ PASAR LA FOTO AL ESTILO DE LA CASA ═══ */
+    .img-acciones { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
+    .act-estilo { color: var(--gold); }
+    .act-estilo:hover { background: rgba(200,169,110,.15); }
+    .btn-estilo {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: rgba(200,169,110,.1); border: 1px solid var(--gb); color: var(--gold);
+      font-family: inherit; font-size: .6rem; letter-spacing: .1em; text-transform: uppercase;
+      font-weight: 600; padding: .45rem .8rem; border-radius: 20px; cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    .btn-estilo:hover:not(:disabled) { background: rgba(200,169,110,.2); border-color: var(--gold-dk); }
+    .btn-estilo:disabled { opacity: .55; cursor: default; }
+
+    .estilo-caja { margin-top: .9rem; border: 1px solid var(--gb); border-radius: var(--radius);
+      padding: 1rem; background: rgba(13,33,55,.5); }
+    /* Antes y despues, lado a lado: la decision es comparando. */
+    .estilo-par { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+    .estilo-col { text-align: center; }
+    .estilo-col img { width: 100%; aspect-ratio: 1; object-fit: cover;
+      border-radius: 8px; border: 1px solid rgba(255,255,255,.08); }
+    .estilo-col span { display: block; font-size: .58rem; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--muted); margin-top: .45rem; }
+    .estilo-col.nueva span { color: var(--gold); }
+    .estilo-pie { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; }
+    .estilo-msg { font-size: .72rem; color: var(--muted); line-height: 1.6; }
+    .estilo-msg.malo { color: var(--amber); }
+    .estilo-aviso { font-size: .68rem; color: var(--muted); line-height: 1.6;
+      margin-top: .7rem; padding-top: .7rem; border-top: 1px solid rgba(255,255,255,.06); }
+    .estilo-aviso b { color: var(--amber); }
     /* Un cupon configurado que ya no existe fallaba en silencio. */
     .cup-aviso { background: rgba(243,156,18,.09); border: 1px solid rgba(243,156,18,.4);
       border-left-width: 3px; border-radius: var(--radius); padding: .9rem 1.1rem;
@@ -2798,7 +2829,22 @@
             <div class="img-upload-text">Haz clic o arrastra una imagen aquí</div>
             <div class="img-upload-sub">JPG, PNG, WEBP · Máx. recomendado 2MB</div>
           </div>
-          <button class="btn-cancel" id="clear-img-btn" style="margin-top:0.5rem;font-size:0.6rem;display:none">✕ Eliminar imagen</button>
+          <div class="img-acciones">
+            <button class="btn-cancel" id="clear-img-btn" style="font-size:0.6rem;display:none">✕ Eliminar imagen</button>
+            <!-- Pasa la foto al estilo del resto del catalogo: cenital,
+                 sobre hielo picado. La llave de Gemini NO esta aca: la
+                 peticion va a una funcion de Netlify que la guarda. -->
+            <button class="btn-estilo" id="estilo-btn" type="button" style="display:none"
+                    onclick="pasarAEstiloCasa()">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor"
+                   stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+                <path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/>
+              </svg>
+              Pasar al estilo de la casa
+            </button>
+          </div>
+          <div class="estilo-caja" id="estilo-caja" hidden></div>
         </div>
         <div class="form-group full">
           <div class="toggle-row">
@@ -3995,6 +4041,8 @@ function renderTable() {
   });
 
   document.getElementById('table-count').textContent = `${filtered.length} productos`;
+  // Los botones de estilo se pintan escondidos: aca se decide si se ven.
+  setTimeout(pintarBotonesEstilo, 0);
 
   const tbody = document.getElementById('products-tbody');
   if (!filtered.length) {
@@ -4028,6 +4076,15 @@ function renderTable() {
       <td class="td-c-price"><span class="td-price">${fmt(p.price)}</span> <small style="font-size:0.6rem;color:var(--muted)">${p.unit||''}</small></td>
       <td class="td-c-flags"><div class="td-flags">${flags}</div></td>
       <td class="td-c-acts"><div class="td-actions">
+        <!-- Solo para quien puede transformar fotos: se muestra al entrar,
+             segun el correo. Jesus no lo ve. -->
+        ${p.img ? `<button class="act-btn act-estilo" data-estilo="${p.id}"
+          title="Pasar al estilo del catálogo" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/>
+            <path d="M18 15l.8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/>
+          </svg></button>` : ''}
         <button class="act-btn act-edit" data-edit="${p.id}" title="Editar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         </button>
@@ -4325,6 +4382,10 @@ function showImgPreview(src) {
   preview.src = src; preview.style.display = 'block';
   icon.style.display = 'none'; text.style.display = 'none'; sub.style.display = 'none';
   clearBtn.style.display = 'inline-block';
+  // Sin foto no hay nada que transformar, y sin permiso tampoco.
+  const eb = document.getElementById('estilo-btn');
+  if (eb) eb.style.display = puedoTransformarFotos() ? 'inline-flex' : 'none';
+  cerrarEstilo();
 }
 function clearImgPreview() {
   const preview  = document.getElementById('img-preview');
@@ -4335,7 +4396,138 @@ function clearImgPreview() {
   preview.src = ''; preview.style.display = 'none';
   icon.style.display = ''; text.style.display = ''; sub.style.display = '';
   clearBtn.style.display = 'none';
+  const eb = document.getElementById('estilo-btn');
+  if (eb) eb.style.display = 'none';
+  cerrarEstilo();
   pendingImgFile = null;
+}
+
+/* ═══ PASAR LA FOTO AL ESTILO DE LA CASA ═══════════════════════
+   Las primeras fotos del catalogo son cenitales sobre hielo picado.
+   Las que se fueron agregando despues vienen de donde sea, y el
+   catalogo se ve disparejo. Esto pasa una por el mismo molde.
+
+   La llave de Gemini NO esta aca: admin.html es una pagina estatica y
+   todo lo que tenga dentro se ve con "ver codigo fuente". La peticion
+   va a una funcion de Netlify que guarda la llave y comprueba que quien
+   llama sea admin de verdad.
+
+   Y NO se guarda nada solo: se muestran las dos fotos lado a lado y hay
+   que aceptar. Una foto que ya no se parece al producto es peor que una
+   foto fea, y eso solo lo puede juzgar un ojo. */
+/* Los correos que ven el convertidor. Es solo cosmetico —para no
+   enseñarle a Jesus un boton que no le sirve—: la puerta de verdad esta
+   en la funcion de Netlify, que comprueba el correo antes de gastar un
+   centimo. Esconder un boton nunca protege nada por si solo. */
+const ESTILO_CORREOS = ['rojasporrasjan@gmail.com'];
+
+function puedoTransformarFotos() {
+  const u = firebase.auth().currentUser;
+  if (!u || !u.email) return false;
+  return ESTILO_CORREOS.indexOf(u.email.toLowerCase()) >= 0;
+}
+
+/* Se llama al pintar la tabla y al abrir un producto. */
+function pintarBotonesEstilo() {
+  const puede = puedoTransformarFotos();
+  document.querySelectorAll('[data-estilo]').forEach(b => {
+    b.style.display = puede ? 'inline-flex' : 'none';
+  });
+  const enModal = document.getElementById('estilo-btn');
+  if (enModal && !puede) enModal.dataset.bloqueado = '1';
+}
+
+let estiloNueva = null;
+
+function cerrarEstilo() {
+  const c = document.getElementById('estilo-caja');
+  if (c) { c.hidden = true; c.innerHTML = ''; }
+  estiloNueva = null;
+}
+
+function estiloDice(html, malo) {
+  const c = document.getElementById('estilo-caja');
+  if (!c) return;
+  c.hidden = false;
+  c.innerHTML = '<div class="estilo-msg' + (malo ? ' malo' : '') + '">' + html + '</div>';
+}
+
+async function pasarAEstiloCasa() {
+  const btn = document.getElementById('estilo-btn');
+  const prev = document.getElementById('img-preview');
+  if (!btn || !prev || !prev.src) return;
+
+  const antes = prev.src;
+  const nombre = (document.getElementById('f-name') || {}).value || '';
+
+  btn.disabled = true;
+  const textoBtn = btn.innerHTML;
+  btn.innerHTML = 'Transformando…';
+  estiloDice('Mandando la foto… suele tardar entre 10 y 20 segundos.');
+
+  try {
+    const u = firebase.auth().currentUser;
+    if (!u) throw new Error('Hay que entrar al panel primero.');
+    const token = await u.getIdToken();
+
+    /* Si la foto todavia no esta subida, viaja en base64; si ya vive en
+       Cloudinary, viaja la URL y la baja el servidor. */
+    const cuerpo = antes.indexOf('data:') === 0
+      ? { imagenBase64: antes, nombre: nombre }
+      : { imagenUrl: antes, nombre: nombre };
+
+    const r = await fetch('/.netlify/functions/estilo-foto', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+      body: JSON.stringify(cuerpo),
+    });
+    const d = await r.json().catch(() => ({}));
+
+    if (!r.ok) {
+      const extra = d.detalle ? '<br><span style="opacity:.8">' + esc(d.detalle) + '</span>' : '';
+      estiloDice('<b>' + esc(d.error || ('Error ' + r.status)) + '</b>' + extra, true);
+      return;
+    }
+
+    estiloNueva = d.imagen;
+    const c = document.getElementById('estilo-caja');
+    c.hidden = false;
+    c.innerHTML =
+      '<div class="estilo-par">' +
+        '<div class="estilo-col"><img src="' + esc(antes) + '" alt="Foto actual">' +
+          '<span>Como está</span></div>' +
+        '<div class="estilo-col nueva"><img src="' + esc(estiloNueva) + '" alt="Foto propuesta">' +
+          '<span>Propuesta</span></div>' +
+      '</div>' +
+      '<div class="estilo-pie">' +
+        '<button type="button" class="btn-save" onclick="usarEstiloNuevo()">Usar esta</button>' +
+        '<button type="button" class="btn-cancel" onclick="cerrarEstilo()">Dejar la de antes</button>' +
+        '<button type="button" class="btn-cancel" onclick="pasarAEstiloCasa()">Probar otra vez</button>' +
+      '</div>' +
+      '<div class="estilo-aviso"><b>Mirala antes de aceptar.</b> La IA a veces cambia el ' +
+        'producto —el corte, el tamaño, cuántas piezas hay—. Si no es lo mismo que ' +
+        'se entrega, dejá la de antes: una foto bonita que no corresponde trae ' +
+        'reclamos.</div>';
+  } catch (e) {
+    estiloDice('<b>No se pudo transformar.</b><br>' + esc(String(e.message || e)), true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = textoBtn;
+  }
+}
+
+/* Se acepta: pasa a ser la vista previa y se sube al guardar el
+   producto, por el mismo camino de siempre (Cloudinary). */
+function usarEstiloNuevo() {
+  if (!estiloNueva) return;
+  const partes = estiloNueva.split(',');
+  const tipo = (partes[0].match(/data:([^;]+)/) || [])[1] || 'image/png';
+  const bin = atob(partes[1]);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  pendingImgFile = new File([buf], 'estilo-casa.png', { type: tipo });
+  showImgPreview(estiloNueva);
+  toast('✅ Foto cambiada. Se sube al guardar el producto.');
 }
 
 /* ════════════════════════════════════════════
@@ -4443,8 +4635,18 @@ if (qaProd) qaProd.addEventListener('click', () => showView('productos'));
 document.getElementById('products-tbody').addEventListener('click', e => {
   const editBtn = e.target.closest('[data-edit]');
   const delBtn  = e.target.closest('[data-del]');
+  const estBtn  = e.target.closest('[data-estilo]');
   if (editBtn) openProductModal(parseInt(editBtn.dataset.edit));
   if (delBtn)  openConfirmDelete(parseInt(delBtn.dataset.del));
+  /* Abre el producto y arranca la transformacion sola: la idea es ir
+     bajando por la lista de una en una, no entrar y buscar el boton. */
+  if (estBtn) {
+    openProductModal(parseInt(estBtn.dataset.estilo));
+    setTimeout(() => {
+      const b = document.getElementById('estilo-btn');
+      if (b && b.style.display !== 'none') b.click();
+    }, 700);
+  }
 });
 
 /* table search & filter */

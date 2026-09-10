@@ -125,6 +125,17 @@ const VIEJO = 'PROMOVIEJA';
   const abierto = await pa.evaluate(async cod => {
     // La funcion se llama editCupon (sin "ar"); es la del boton "Editar".
     if (typeof editCupon !== 'function') return { err: 'no existe editCupon' };
+    /* editCupon sale sin hacer nada si el cupon todavia no llego a la
+       lista local (cfCoupons se llena por snapshot). Con el emulador
+       cargado eso tarda mas, y la prueba leia el formulario con lo que
+       tuviera puesto de antes: dio un falso fallo en la bateria. Se
+       espera el DATO, no el reloj. */
+    for (let i = 0; i < 40; i++) {
+      if ((cfCoupons || []).some(x => x.id === cod)) break;
+      await new Promise(k => setTimeout(k, 300));
+    }
+    if (!(cfCoupons || []).some(x => x.id === cod))
+      return { err: 'el cupon no llego a la lista del panel' };
     editCupon(cod);
     await new Promise(k => setTimeout(k, 1800));
     return { code: document.getElementById('cup-code').value,

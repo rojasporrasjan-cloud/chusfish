@@ -5,6 +5,13 @@
 [build]
   publish = "."
 
+# Las funciones guardan las llaves que NO pueden ir en el navegador.
+# admin.html es una pagina estatica: todo lo que tenga dentro lo ve
+# cualquiera con "ver codigo fuente". La llave de Gemini vive en
+# Site settings > Environment variables, y solo la lee el servidor.
+[functions]
+  directory = "netlify/functions"
+
 [build.processing]
   skip_processing = false
 
