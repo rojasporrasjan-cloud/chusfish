@@ -311,6 +311,70 @@ Cubre registro con cupón, el pedido con descuento, la confirmación de
 Jesús, el bono de bienvenida, el libro cuadrando con el saldo, el canje y
 la guía completándose.
 
+## El convertidor de fotos (Gemini)
+
+**Estado: montado y probado, pero APAGADO hasta que se ponga la llave.**
+
+Jesús sube el producto con la foto que tenga. Jan entra después y con un
+botón la pasa por el molde del catálogo: pizarra oscura, hielo picado,
+limón, lima y eneldo. El botón (una ✦) está en cada fila de Productos:
+se le da, se abre el producto, arranca la conversión sola, se comparan
+las dos fotos y hay que aceptar.
+
+### Para encenderlo
+
+1. Sacar la llave gratis en **Google AI Studio**.
+2. Netlify ▸ Site settings ▸ Environment variables:
+
+```
+GEMINI_API_KEY = la llave          (obligatoria)
+ESTILO_CORREOS = correo1,correo2   (opcional; por defecto solo Jan)
+```
+
+Sin la llave el botón contesta *"Falta la llave de Gemini. Ponela en
+Netlify como GEMINI_API_KEY"* — no falla en silencio.
+
+### Por qué la llave NO está en admin.html
+
+`admin.html` es una página estática: **todo lo que tenga dentro se ve con
+"ver código fuente"**. Una llave de Gemini ahí es una llave regalada, y la
+factura llega igual. Por eso vive en `netlify/functions/estilo-foto.js`,
+que corre en el servidor.
+
+Ojo con no confundirse: la `apiKey` de **Firebase** que sí está en el HTML
+es pública **a propósito** — la seguridad de Firebase vive en las reglas,
+y el navegador necesita esa llave para conectarse. La de Gemini es lo
+contrario: un secreto de facturación.
+
+### Por qué solo Jan, si Jesús también es admin
+
+Son dos trabajos distintos y este gasta plata de una API. La función
+comprueba **dos** cosas y hay que pasar las dos:
+
+1. Que Firestore acepte el token **y** exista `admins/{uid}` — la misma
+   regla que protege el panel, así un token falso o caducado no sirve.
+2. Que el correo esté en la lista.
+
+**Esconder el botón no es la protección.** Se comprobó llamando la función
+a mano con la sesión de Jesús: responde 403.
+
+### El modelo
+
+`gemini-3.1-flash-image`, ~$0.067 por foto (unos $6 por los 87 productos,
+una sola vez). **`gemini-2.5-flash-image` se apaga el 2-oct-2026** — si
+alguien lo ve escrito en algún lado, está viejo. El `-lite` cuesta la
+mitad si el gasto llegara a importar.
+
+### Lo que hay que esperar
+
+El texto insiste mucho en no tocar el producto —especie, corte, número de
+piezas— pero **la IA a veces igual lo cambia**. Por eso se ven las dos
+fotos lado a lado y hay que aceptar a mano. Contá con descartar unas
+cuantas y darle "Probar otra vez"; cada intento cuesta lo mismo.
+
+Una foto bonita de un pescado que no es el que se entrega trae reclamos:
+ante la duda, dejar la de antes.
+
 ## Si de golpe falla todo
 
 Es casi siempre el emulador, no el código. El proceso `java` crece hasta
