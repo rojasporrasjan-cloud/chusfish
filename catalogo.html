@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -94,7 +94,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="auth.js?v=16"></script>
+  <script src="auth.js?v=17"></script>
 <script src="ui.js?v=18"></script>
 
   <style>
@@ -1891,6 +1891,48 @@
   <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=934181449682569&ev=PageView&noscript=1"/></noscript>
   <!-- End Meta Pixel -->
+  <!-- CAPI (Conversions API de Meta) — refuerzo servidor del Pixel del browser.
+       Cada evento se manda en paralelo: browser (fbq) + servidor (sendCAPI).
+       Meta los deduplica por event_id y cuenta solo uno en sus reportes.
+       Token: Netlify > Site settings > Environment variables > META_CAPI_TOKEN -->
+  <script>
+  (function() {
+    function getCookie(name) {
+      var m = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
+      return m ? decodeURIComponent(m[1]) : undefined;
+    }
+    function uuid() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+    }
+    // Envia el evento al servidor Netlify en paralelo con el Pixel del browser.
+    // event_id compartido -> Meta lo cuenta UNA sola vez (deduplicacion).
+    window.sendCAPI = function(event_name, custom_data, event_id) {
+      var eid = event_id || uuid();
+      var payload = {
+        event_name: event_name,
+        event_id: eid,
+        event_time: Math.floor(Date.now() / 1000),
+        event_source_url: location.href,
+        user_data: { fbc: getCookie('_fbc'), fbp: getCookie('_fbp') }
+      };
+      if (custom_data && Object.keys(custom_data).length > 0) {
+        payload.custom_data = custom_data;
+      }
+      fetch('/.netlify/functions/meta-capi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        keepalive: true  // funciona incluso si la pagina se cierra justo despues
+      }).catch(function() { /* silencioso: el Pixel del browser ya lo mando */ });
+      return eid;
+    };
+    // PageView al cargar la pagina
+    window.sendCAPI('PageView');
+  })();
+  </script>
 </head>
 <body>
 <!-- PRELOADER -->
@@ -3030,7 +3072,10 @@ function openModal(id) {
   modalQty = getMin(p.unit);
   const compartir = document.getElementById('btn-share-modal');
   if (compartir) compartir.onclick = () => shareProduct(String(p.id));
-  if (window.fbq) fbq('track','ViewContent',{ content_name: p.name, content_ids:[p.id], content_type:'product', value: p.price||0, currency:'CRC' });
+  if (window.fbq) {
+    const _eid = (window.sendCAPI || function(){})('ViewContent',{ content_name: p.name, content_ids:[String(p.id)], content_type:'product', value: p.price||0, currency:'CRC' });
+    fbq('track','ViewContent',{ content_name: p.name, content_ids:[p.id], content_type:'product', value: p.price||0, currency:'CRC', eventID: _eid });
+  }
 
   modalName.textContent  = p.name;
   modalBadge.textContent = p.badge;
@@ -3353,7 +3398,10 @@ function addToCart(product, qty) {
   }
   saveCart();
   renderCartUI();
-  if (window.fbq) fbq('track','AddToCart',{ content_name: product.name, content_ids:[product.id], content_type:'product', value: (product.price||0)*qty, currency:'CRC' });
+  if (window.fbq) {
+    const _eid = (window.sendCAPI || function(){})('AddToCart',{ content_name: product.name, content_ids:[String(product.id)], content_type:'product', value: (product.price||0)*qty, currency:'CRC' });
+    fbq('track','AddToCart',{ content_name: product.name, content_ids:[product.id], content_type:'product', value: (product.price||0)*qty, currency:'CRC', eventID: _eid });
+  }
 }
 
 function updateCartQty(id, direction) {
@@ -3474,7 +3522,8 @@ document.getElementById('cart-wa-btn').addEventListener('click', function() {
   openCartOrderForm();
   if (window.fbq) {
     const total = cart.reduce((s,i) => s + (i.product.price||0)*i.qty, 0);
-    fbq('track','InitiateCheckout',{ num_items: cart.length, value: total, currency:'CRC' });
+    var _eid_ic = (window.sendCAPI || function(){return '';})('InitiateCheckout',{ num_items: cart.length, value: total, currency:'CRC' });
+    fbq('track','InitiateCheckout',{ num_items: cart.length, value: total, currency:'CRC', eventID: _eid_ic });
   }
 });
 
@@ -4904,7 +4953,8 @@ document.getElementById('order-form').addEventListener('submit', async function(
   if (guardado) {
     if (window.fbq) {
       const orderTotal = itemsForOrder.reduce((s2, i) => s2 + (i.price || 0) * i.qty, 0);
-      fbq('track', 'Purchase', { value: orderTotal, currency: 'CRC', num_items: itemsForOrder.length });
+      var _eid_pur = (window.sendCAPI || function(){return '';})('Purchase',{ value: orderTotal, currency: 'CRC', num_items: itemsForOrder.length });
+      fbq('track', 'Purchase', { value: orderTotal, currency: 'CRC', num_items: itemsForOrder.length, eventID: _eid_pur });
     }
   } else {
     encolarPedido(datosPedido);   // se reintenta la proxima vez que entre
